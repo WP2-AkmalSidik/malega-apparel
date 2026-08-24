@@ -26,12 +26,12 @@ export default function Navbar() {
   return (
     <>
       {/* Top Luxury Announcement Bar */}
-      <div className="bg-[#080E20] border-b border-[#CBAC70]/20 text-[#CBAC70] text-[11px] py-1.5 px-4 font-medium tracking-wide">
+      <div className="bg-[#080E20] border-b border-[#CBAC70]/20 text-[#CBAC70] text-[8.5px] xs:text-[9.5px] sm:text-[11px] py-1 sm:py-1.5 px-2.5 sm:px-4 font-medium tracking-wide">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#CBAC70] animate-pulse"></span>
-            <span className="text-[#FDFCFF]">COMPLIMENTARY SHIPPING:</span>
-            <span>Nikmati Gratis Ongkir XTRA Seluruh ID dengan Kode &quot;FREESHIPXTRA&quot;</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 leading-tight overflow-hidden">
+            <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#CBAC70] animate-pulse shrink-0"></span>
+            <span className="text-[#FDFCFF] font-bold tracking-wider shrink-0">GRATIS ONGKIR:</span>
+            <span className="truncate text-[#CBAC70]">Gunakan Kode &quot;FREESHIPXTRA&quot; Seluruh ID</span>
           </div>
 
           <div className="hidden sm:flex items-center gap-4 text-[11px] text-[#94A3B8]">
@@ -52,7 +52,7 @@ export default function Navbar() {
 
       {/* Main Luxury Header */}
       <header className="sticky top-0 z-40 bg-[#0B132B]/90 backdrop-blur-xl border-b border-[#CBAC70]/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 lg:h-20 flex items-center justify-between gap-4 sm:gap-6">
           
           {/* Left: Brand Logo */}
           <BrandLogo size="md" />

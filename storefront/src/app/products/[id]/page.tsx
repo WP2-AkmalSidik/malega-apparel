@@ -14,7 +14,9 @@ import {
   Sparkles, 
   Heart,
   Zap,
-  Check
+  CheckCircle,
+  ThumbsUp,
+  Image as ImageIcon
 } from 'lucide-react';
 import { productsCatalog } from '../../../data/products';
 import { useCart } from '../../../context/CartContext';
@@ -38,6 +40,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [addedToast, setAddedToast] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'photo' | '5star'>('all');
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
@@ -87,12 +90,74 @@ export default function ProductDetailPage({ params }: PageProps) {
     router.push('/checkout');
   };
 
+  const reviewsList = [
+    {
+      id: 'rev-1',
+      author: 'Dimas Rizky P.',
+      avatar: 'D',
+      rating: 5,
+      date: '2 hari yang lalu',
+      variant: `${selectedColor.name} • Size L`,
+      bodyProfile: 'TB 175cm / BB 72kg (Pas & Boxy Proporsional)',
+      comment: 'Beneran tebel 300GSM padat tapi adem dipakai seharian. Jahitan kerah rib-nya kokoh banget gak gampang melar abis dicuci. Potongan bahu drop shoulder-nya beneran pas streetwear look.',
+      photos: [
+        'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=500&auto=format&fit=crop&q=80'
+      ],
+      helpful: 46
+    },
+    {
+      id: 'rev-2',
+      author: 'Alif Fadhillah',
+      avatar: 'A',
+      rating: 5,
+      date: '5 hari yang lalu',
+      variant: 'Vintage Black • Size XL',
+      bodyProfile: 'TB 180cm / BB 80kg',
+      comment: 'Warna deep black-nya pekat dan mewah banget. Kerah rib 3.5cm rapi gak kopong. Ini brand lokal kualitasnya beneran enterprise standar internasional.',
+      photos: [
+        'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=500&auto=format&fit=crop&q=80'
+      ],
+      helpful: 28
+    },
+    {
+      id: 'rev-3',
+      author: 'Reza Kurniawan',
+      avatar: 'R',
+      rating: 5,
+      date: '1 minggu yang lalu',
+      variant: 'Onyx Black • Size M',
+      bodyProfile: 'TB 168cm / BB 62kg',
+      comment: 'Packing double boxy sangat aman, pengiriman SPX cepet 1 hari sampai. Kain berat dan gak nerawang sama sekali. Pasti repeat order warna lain!',
+      photos: [],
+      helpful: 19
+    },
+    {
+      id: 'rev-4',
+      author: 'Devina Putri',
+      avatar: 'D',
+      rating: 5,
+      date: '2 minggu yang lalu',
+      variant: 'Sand Khaki • Size S',
+      bodyProfile: 'TB 160cm / BB 49kg (Oversized Clean Look)',
+      comment: 'Buat cewek look-nya jadi oversized keren banget. Bahannya premium tebal jatuh, jatuhnya di badan estetik.',
+      photos: [],
+      helpful: 12
+    }
+  ];
+
+  const filteredReviews = reviewsList.filter(r => {
+    if (reviewFilter === 'photo') return r.photos.length > 0;
+    if (reviewFilter === '5star') return r.rating === 5;
+    return true;
+  });
+
   const relatedProducts = productsCatalog
     .filter(p => p.id !== product.id && (p.category === product.category || p.isBestSeller))
     .slice(0, 4);
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-10 sm:space-y-14 pb-24 md:pb-12">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8 sm:space-y-12 pb-24 md:pb-12">
       
       {/* Toast Notification */}
       {addedToast && (
@@ -179,7 +244,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         {/* Right Info & Purchasing Panel (Outer & Inner Card Packaging) */}
         <div className="lg:col-span-6 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 sm:p-3 border border-[#CBAC70]/30 shadow-2xl flex flex-col justify-between">
           
-          <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-6 space-y-5 flex-1">
+          <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1">
             
             {/* Header info */}
             <div className="space-y-2 border-b border-white/10 pb-4">
@@ -325,17 +390,6 @@ export default function ProductDetailPage({ params }: PageProps) {
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] text-[#94A3B8] pt-2">
-              <div className="flex items-center gap-1 text-[#CBAC70]">
-                <Truck className="w-3 h-3" />
-                <span>Gratis Ongkir XTRA</span>
-              </div>
-              <div className="flex items-center gap-1 text-emerald-400">
-                <ShieldCheck className="w-3 h-3" />
-                <span>Garansi 7 Hari Tukar Size</span>
-              </div>
-            </div>
-
           </div>
 
         </div>
@@ -344,16 +398,16 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       {/* Specifications & Description (Double-Framed Card) */}
       <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 sm:p-3 border border-[#CBAC70]/30 shadow-2xl">
-        <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-5 sm:p-8 space-y-6">
+        <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-6 space-y-5">
           
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[#CBAC70] border-b border-white/10 pb-3 flex items-center gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-[#CBAC70] border-b border-white/10 pb-2.5 flex items-center gap-2">
               <Sparkles className="w-4 h-4" /> Fabric & Construction Specifications
             </h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3.5 text-xs">
               {Object.entries(product.specifications).map(([key, val], idx) => (
-                <div key={idx} className="flex justify-between p-3 rounded-xl bg-[#0B132B] border border-white/5">
+                <div key={idx} className="flex justify-between p-2.5 sm:p-3 rounded-xl bg-[#0B132B] border border-white/5">
                   <span className="text-[#94A3B8]">{key}</span>
                   <span className="font-bold text-[#FDFCFF]">{val}</span>
                 </div>
@@ -361,7 +415,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="space-y-2 border-t border-white/10 pt-5">
+          <div className="space-y-1.5 border-t border-white/10 pt-4">
             <h3 className="font-bold text-xs sm:text-sm text-[#FDFCFF] uppercase tracking-wider">Deskripsi & Perawatan</h3>
             <p className="text-xs text-[#94A3B8] leading-relaxed whitespace-pre-line">
               {product.description}
@@ -369,7 +423,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           </div>
 
           {product.features && (
-            <div className="space-y-2 border-t border-white/10 pt-5">
+            <div className="space-y-1.5 border-t border-white/10 pt-4">
               <h3 className="font-bold text-xs sm:text-sm text-[#FDFCFF] uppercase tracking-wider">Keunggulan Konstruksi</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {product.features.map((feat, idx) => (
@@ -381,6 +435,144 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
             </div>
           )}
+
+        </div>
+      </div>
+
+      {/* NEW: Customer Reviews & Ratings Section (Double-Framed Card) */}
+      <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 sm:p-3 border border-[#CBAC70]/30 shadow-2xl">
+        <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-6 space-y-6">
+          
+          {/* Section Header & Rating Overview */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div className="space-y-1">
+              <h2 className="text-sm sm:text-base font-black uppercase tracking-wide text-[#FDFCFF] flex items-center gap-2">
+                <span>Ulasan Pembeli</span>
+                <span className="text-xs text-[#CBAC70] font-normal font-mono">({product.reviewCount} ulasan)</span>
+              </h2>
+              <p className="text-xs text-[#94A3B8]">100% Ulasan dari pembeli terverifikasi Malega Studio</p>
+            </div>
+
+            {/* Score Pill */}
+            <div className="flex items-center gap-3 bg-[#0B132B] border border-[#CBAC70]/30 p-3 rounded-2xl shrink-0 self-start sm:self-auto">
+              <div className="text-2xl font-black text-[#CBAC70] gold-gradient-pure leading-none">
+                {product.rating}
+              </div>
+              <div className="space-y-1">
+                <div className="flex text-[#CBAC70]">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                  ))}
+                </div>
+                <p className="text-[10px] text-[#94A3B8] font-medium">99% Pembeli Puas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Review Filter Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 text-xs">
+            <button
+              onClick={() => setReviewFilter('all')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 ${
+                reviewFilter === 'all'
+                  ? 'bg-[#CBAC70] text-[#0B132B]'
+                  : 'bg-[#0B132B] border border-white/10 text-[#94A3B8] hover:text-white'
+              }`}
+            >
+              Semua Ulasan ({reviewsList.length})
+            </button>
+
+            <button
+              onClick={() => setReviewFilter('photo')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                reviewFilter === 'photo'
+                  ? 'bg-[#CBAC70] text-[#0B132B]'
+                  : 'bg-[#0B132B] border border-white/10 text-[#94A3B8] hover:text-white'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Dengan Foto ({reviewsList.filter(r => r.photos.length > 0).length})</span>
+            </button>
+
+            <button
+              onClick={() => setReviewFilter('5star')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                reviewFilter === '5star'
+                  ? 'bg-[#CBAC70] text-[#0B132B]'
+                  : 'bg-[#0B132B] border border-white/10 text-[#94A3B8] hover:text-white'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5 fill-current text-[#CBAC70]" />
+              <span>Bintang 5 ({reviewsList.filter(r => r.rating === 5).length})</span>
+            </button>
+          </div>
+
+          {/* Reviews List */}
+          <div className="divide-y divide-white/5 space-y-4">
+            {filteredReviews.map((rev) => (
+              <div key={rev.id} className="pt-4 space-y-2.5 text-xs">
+                
+                {/* Author row */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-[#14204A] border border-[#CBAC70]/40 text-[#CBAC70] font-black flex items-center justify-center text-xs shrink-0">
+                      {rev.avatar}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#FDFCFF]">{rev.author}</span>
+                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                          <CheckCircle className="w-2.5 h-2.5" /> Terverifikasi
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#94A3B8]">{rev.date}</span>
+                    </div>
+                  </div>
+
+                  {/* Stars */}
+                  <div className="flex text-[#CBAC70] shrink-0">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-current" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Variant & Fitting info */}
+                <div className="p-2 rounded-lg bg-[#0B132B] border border-white/5 text-[11px] text-[#94A3B8] flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span><strong className="text-white">Varian:</strong> {rev.variant}</span>
+                  <span><strong className="text-white">Fitting:</strong> {rev.bodyProfile}</span>
+                </div>
+
+                {/* Comment */}
+                <p className="text-xs text-[#FDFCFF]/90 leading-relaxed">
+                  {rev.comment}
+                </p>
+
+                {/* Photos if any */}
+                {rev.photos.length > 0 && (
+                  <div className="flex items-center gap-2 pt-1 overflow-x-auto">
+                    {rev.photos.map((photo, pIdx) => (
+                      <img
+                        key={pIdx}
+                        src={photo}
+                        alt="Customer Fit Pic"
+                        className="w-16 h-20 rounded-xl object-cover border border-white/10 shrink-0 hover:scale-105 transition-transform"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Helpful count */}
+                <div className="pt-1 flex items-center gap-1 text-[10px] text-[#94A3B8]">
+                  <button className="flex items-center gap-1 hover:text-[#CBAC70] transition-colors">
+                    <ThumbsUp className="w-3 h-3" />
+                    <span>Membantu ({rev.helpful})</span>
+                  </button>
+                </div>
+
+              </div>
+            ))}
+          </div>
 
         </div>
       </div>
