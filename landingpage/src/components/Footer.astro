@@ -1,72 +1,63 @@
 ---
 ---
 
-<footer class="bg-black border-t border-slate-900 pt-16 pb-12 text-slate-400 text-sm">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 pb-12 border-b border-slate-900">
+<footer class="bg-[#080E20] border-t border-[#CBAC70]/20 text-[#94A3B8] text-xs pt-12 pb-10 mt-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
       
-      <!-- Brand column -->
-      <div class="md:col-span-5 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-extrabold text-black text-base">
-            M
-          </div>
-          <span class="text-xl font-extrabold tracking-wider text-white font-['Space_Grotesk']">MALEGA APPAREL</span>
-        </div>
-        <p class="text-xs text-slate-400 max-w-sm leading-relaxed">
-          Brand fashion streetwear modern dengan komitmen pada material heavyweight terbaik, presisi pola potongan kontemporer, dan gaya hidup urban.
-        </p>
-        <div class="flex items-center gap-4 text-xs font-semibold text-slate-300">
-          <a href="#" class="hover:text-amber-400 transition-colors">Instagram</a>
-          <a href="#" class="hover:text-amber-400 transition-colors">TikTok</a>
-          <a href="#" class="hover:text-amber-400 transition-colors">Shopee Mall</a>
-          <a href="#" class="hover:text-amber-400 transition-colors">Tokopedia</a>
-        </div>
-      </div>
-
-      <!-- Links: Shop -->
-      <div class="md:col-span-2 space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-white font-mono">Koleksi</h4>
-        <ul class="space-y-2 text-xs">
-          <li><a href="#featured" class="hover:text-amber-400 transition-colors">Heavyweight Tees</a></li>
-          <li><a href="#featured" class="hover:text-amber-400 transition-colors">Hoodies & Crewnecks</a></li>
-          <li><a href="#featured" class="hover:text-amber-400 transition-colors">Cargo & Pants</a></li>
-          <li><a href="#featured" class="hover:text-amber-400 transition-colors">Accessories</a></li>
-        </ul>
-      </div>
-
-      <!-- Links: Support -->
-      <div class="md:col-span-2 space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-white font-mono">Bantuan</h4>
-        <ul class="space-y-2 text-xs">
-          <li><a href="#" class="hover:text-amber-400 transition-colors">Panduan Ukuran (Size Guide)</a></li>
-          <li><a href="#" class="hover:text-amber-400 transition-colors">Konfirmasi Pembayaran</a></li>
-          <li><a href="#" class="hover:text-amber-400 transition-colors">Pengiriman & Retur</a></li>
-          <li><a href="#" class="hover:text-amber-400 transition-colors">FAQ</a></li>
-        </ul>
-      </div>
-
-      <!-- Internal Quick Links: Backoffice -->
-      <div class="md:col-span-3 space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-white font-mono">Management Portal</h4>
-        <p class="text-xs text-slate-400">Akses backoffice untuk tim internal dan manajemen stok.</p>
-        <a 
-          href="http://localhost:8000" 
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-xs font-semibold text-slate-200 hover:text-white transition-all shadow"
-        >
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          Buka Backoffice (Laravel)
+      <!-- Brand description -->
+      <div class="md:col-span-6 space-y-3.5">
+        <a href="/" class="inline-block">
+          <img
+            src="/img/malega-brand.png"
+            alt="MALEGA APPAREL"
+            class="h-9 w-auto object-contain brightness-105"
+            width="150"
+            height="40"
+          />
         </a>
+        <p class="text-xs text-[#94A3B8] leading-relaxed max-w-md">
+          Malega Apparel menghadirkan busana streetwear berkelas dengan standar siluet kontemporer, konstruksi jahitan berkekuatan tinggi, dan estetika warna abadi 300GSM.
+        </p>
+        <div class="flex items-center gap-4 text-xs font-semibold text-[#CBAC70]">
+          <a href="#" class="hover:text-white transition-colors">Instagram</a>
+          <a href="#" class="hover:text-white transition-colors">TikTok</a>
+          <a href="#" class="hover:text-white transition-colors">Spotify Playlist</a>
+        </div>
+      </div>
+
+      <!-- Links 1 -->
+      <div class="md:col-span-3 space-y-2.5">
+        <h4 class="font-bold text-xs uppercase tracking-widest text-[#CBAC70]">Koleksi & Seri</h4>
+        <ul class="space-y-1.5 text-xs">
+          <li><a href="http://localhost:3000/katalog/heavyweight-boxy-tees-300gsm" class="hover:text-[#CBAC70]">Heavyweight Tees 300GSM</a></li>
+          <li><a href="http://localhost:3000/katalog/french-terry-outerwear-series" class="hover:text-[#CBAC70]">French Terry Hoodies 380GSM</a></li>
+          <li><a href="http://localhost:3000/katalog/tactical-utility-bottoms" class="hover:text-[#CBAC70]">Utility Cargo & Raw Denim</a></li>
+          <li><a href="http://localhost:3000/katalog/atelier-luxury-accessories" class="hover:text-[#CBAC70]">Atelier Caps & Bags</a></li>
+        </ul>
+      </div>
+
+      <!-- Links 2 -->
+      <div class="md:col-span-3 space-y-2.5">
+        <h4 class="font-bold text-xs uppercase tracking-widest text-[#CBAC70]">Layanan & Toko</h4>
+        <ul class="space-y-1.5 text-xs">
+          <li><a href="http://localhost:3000" class="hover:text-[#CBAC70] font-bold text-white">Official Storefront →</a></li>
+          <li><a href="http://localhost:3000/katalog" class="hover:text-[#CBAC70]">Direktori Katalog Lengkap</a></li>
+          <li><a href="http://localhost:3000/checkout" class="hover:text-[#CBAC70]">Panduan Checkout & Pengiriman</a></li>
+          <li><a href="#" class="hover:text-[#CBAC70]">Garansi 7 Hari Retur Size</a></li>
+        </ul>
       </div>
 
     </div>
 
-    <!-- Copyright Bar -->
-    <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-      <p>© 2026 Malega Apparel. All rights reserved.</p>
-      <p class="text-[11px] font-mono">Built with Astro & Laravel Livewire v4</p>
+    <!-- Copyright -->
+    <div class="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#94A3B8]">
+      <p>© 2026 MALEGA APPAREL. All rights reserved.</p>
+      <div class="flex items-center gap-3">
+        <span>Bespoke Urban Streetwear Atelier • Bandung, Indonesia</span>
+      </div>
     </div>
+
   </div>
 </footer>

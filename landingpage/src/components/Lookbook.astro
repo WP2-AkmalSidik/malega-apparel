@@ -1,68 +1,86 @@
 ---
-const lookbooks = [
+const lookbookItems = [
   {
-    title: "Chapter I: Midnight Drift",
-    season: "Fall / Winter 2026",
-    tag: "STREETWEAR",
-    desc: "Siluet oversized warna monokrom untuk transisi siang ke malam."
+    look: "LOOK 01 : ALL-BLACK OBSIDIAN",
+    model: "Obsidian Boxy Tee 300GSM + Ripstop Cargo",
+    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/products/mlg-001"
   },
   {
-    title: "Chapter II: Concrete Utopia",
-    season: "Spring / Summer 2026",
-    tag: "UTILITY",
-    desc: "Paduan fungsional cargo dan heavyweight boxy tee bertema urban utility."
+    look: "LOOK 02 : FLEECE COLD LAYER",
+    model: "French Terry Hoodie 380GSM + Selvedge Denim",
+    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/products/mlg-002"
   },
   {
-    title: "Chapter III: Raw Minimalist",
-    season: "Capsule Drop",
-    tag: "CORE ESSENTIALS",
-    desc: "Estetika esensial dengan fokus pada tekstur kain dan kenyamanan harian."
+    look: "LOOK 03 : MONOCHROME ESSENTIALS",
+    model: "Sand Khaki 300GSM Tee + Gold Monogram Cap",
+    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/products/mlg-001"
   }
 ];
 ---
 
-<section id="lookbook" class="py-24 relative">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
-      <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block font-mono">Visual Editorial</span>
-      <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-['Space_Grotesk'] tracking-tight">
-        Editorial <span class="accent-gradient">Lookbook</span>
+<section id="lookbook" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-10">
+  
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
+    <div class="space-y-1">
+      <span class="text-xs font-bold text-[#CBAC70] uppercase tracking-widest font-mono">SEASON 2026 EDITORIAL</span>
+      <h2 class="text-2xl sm:text-4xl font-black text-[#FDFCFF] uppercase tracking-wide">
+        Official Streetwear Lookbook
       </h2>
-      <p class="text-sm text-slate-400">
-        Inspirasi padu padan siluet apparel modern untuk tampilan harian yang tegas dan percaya diri.
-      </p>
     </div>
+    <a href="http://localhost:3000" class="text-xs font-bold text-[#CBAC70] hover:underline flex items-center gap-1">
+      <span>Belanja Keseluruhan Look di Store</span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"></path>
+        <path d="m12 5 7 7-7 7"></path>
+      </svg>
+    </a>
+  </div>
 
-    <div class="grid md:grid-cols-3 gap-8">
-      {lookbooks.map((item, idx) => (
-        <div class="group relative rounded-3xl overflow-hidden glass-panel border border-slate-800 hover:border-amber-500/50 transition-all duration-300">
-          <div class="aspect-[3/4] bg-gradient-to-t from-black via-slate-900 to-slate-800 p-8 flex flex-col justify-between relative">
-            <div class="flex justify-between items-center">
-              <span class="text-[11px] font-mono font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                {item.tag}
-              </span>
-              <span class="text-xs text-slate-500 font-mono">0{idx + 1}</span>
-            </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {lookbookItems.map((item) => (
+      <div class="group rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 border border-[#CBAC70]/25 hover:border-[#CBAC70]/70 transition-all duration-300 shadow-xl flex flex-col justify-between">
+        
+        <div class="rounded-2xl bg-[#070D1F] border border-white/10 overflow-hidden relative aspect-[3/4]">
+          <img
+            src={item.image}
+            alt={item.look}
+            class="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
+            loading="lazy"
+            width="600"
+            height="800"
+          />
 
-            <div class="space-y-2 z-10">
-              <span class="text-xs text-slate-400 font-mono block">{item.season}</span>
-              <h3 class="text-xl font-bold text-white font-['Space_Grotesk'] group-hover:text-amber-400 transition-colors">
-                {item.title}
-              </h3>
-              <p class="text-xs text-slate-400 leading-relaxed">
-                {item.desc}
-              </p>
-              <div class="pt-3">
-                <a href="#featured" class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 group-hover:translate-x-1 transition-transform">
-                  Lihat Item Terkait →
-                </a>
-              </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/30 to-transparent opacity-85 group-hover:opacity-75 transition-opacity" />
+
+          <div class="absolute inset-0 p-6 flex flex-col justify-end space-y-2">
+            <span class="text-[10px] font-mono text-[#CBAC70] font-bold uppercase tracking-widest">
+              {item.look}
+            </span>
+            <h3 class="text-base font-black text-[#FDFCFF] leading-snug">
+              {item.model}
+            </h3>
+            
+            <div class="pt-2">
+              <a
+                href={item.href}
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#CBAC70] text-[#0B132B] text-xs font-black uppercase tracking-wider rounded-xl hover:bg-[#E3CD99] transition-all shadow-md active:scale-95"
+              >
+                <span>Beli Look Ini</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </a>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
 
+        </div>
+
+      </div>
+    ))}
   </div>
+
 </section>

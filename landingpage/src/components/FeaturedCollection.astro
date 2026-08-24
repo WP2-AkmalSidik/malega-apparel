@@ -1,142 +1,107 @@
 ---
-const products = [
+const collections = [
   {
-    id: "PROD-01",
-    name: "Obsidian Heavyweight Tee",
-    category: "T-Shirt",
-    price: "Rp 289.000",
-    oldPrice: "Rp 349.000",
-    badge: "Best Seller",
-    badgeColor: "bg-amber-500 text-black",
-    specs: "300GSM Heavy Cotton • Relaxed Fit",
-    color: "Onyx Black"
+    title: "Heavyweight Boxy Tees",
+    subtitle: "300GSM 100% Combed Cotton",
+    tag: "300GSM HEAVY",
+    price: "Mulai Rp 229.000",
+    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/katalog/heavyweight-boxy-tees-300gsm"
   },
   {
-    id: "PROD-02",
-    name: "Tactical Cargo Jogger Pants",
-    category: "Bottoms",
-    price: "Rp 429.000",
-    oldPrice: "Rp 499.000",
-    badge: "New Release",
-    badgeColor: "bg-emerald-500 text-black",
-    specs: "Ripstop Twill • 6 Utility Pockets",
-    color: "Slate Charcoal"
+    title: "French Terry Hoodies",
+    subtitle: "380GSM Heavyweight Fleece",
+    tag: "380GSM FLEECE",
+    price: "Mulai Rp 389.000",
+    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/katalog/french-terry-outerwear-series"
   },
   {
-    id: "PROD-03",
-    name: "Minimalist Boxy Fleece Hoodie",
-    category: "Outerwear",
-    price: "Rp 489.000",
-    oldPrice: "Rp 559.000",
-    badge: "Trending",
-    badgeColor: "bg-orange-500 text-black",
-    specs: "380GSM French Terry • Double Layer Hood",
-    color: "Washed Olive"
+    title: "Utility Cargo & Denim",
+    subtitle: "Ripstop & 14oz Raw Selvedge",
+    tag: "TACTICAL RAW",
+    price: "Mulai Rp 319.000",
+    image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/katalog/tactical-utility-bottoms"
   },
   {
-    id: "PROD-04",
-    name: "Raw Denim Workwear Overshirt",
-    category: "Outerwear",
-    price: "Rp 529.000",
-    oldPrice: "Rp 599.000",
-    badge: "Limited Edition",
-    badgeColor: "bg-red-500 text-white",
-    specs: "14oz Selvedge Denim • Custom Hardware",
-    color: "Indigo Fade"
-  },
-  {
-    id: "PROD-05",
-    name: "Structured Minimal 6-Panel Cap",
-    category: "Accessories",
-    price: "Rp 179.000",
-    oldPrice: "Rp 219.000",
-    badge: "Essential",
-    badgeColor: "bg-slate-700 text-slate-200",
-    specs: "High Density Embroidery • Brass Clasp",
-    color: "Midnight Navy"
-  },
-  {
-    id: "PROD-06",
-    name: "Urban Modular Crossbody Bag",
-    category: "Accessories",
-    price: "Rp 249.000",
-    oldPrice: "Rp 299.000",
-    badge: "Restocked",
-    badgeColor: "bg-cyan-500 text-black",
-    specs: "Cordura Fabric • YKK Waterproof Zippers",
-    color: "Matte Black"
+    title: "Atelier Caps & Bags",
+    subtitle: "Gold Monogram & Cordura",
+    tag: "GOLD EMBROIDERY",
+    price: "Mulai Rp 129.000",
+    image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&auto=format&fit=crop&q=80",
+    href: "http://localhost:3000/katalog/atelier-luxury-accessories"
   }
 ];
 ---
 
-<section id="featured" class="py-24 relative">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    <!-- Section Header -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-      <div>
-        <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-2 font-mono">Curated Drops</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-['Space_Grotesk'] tracking-tight">
-          Featured Apparel <span class="accent-gradient">Collection</span>
-        </h2>
-      </div>
-      <p class="text-sm text-slate-400 max-w-md">
-        Setiap artikel diproduksi dalam kuantitas terbatas guna menjaga eksklusivitas, presisi cutting, dan standar detail premium.
-      </p>
+<section id="koleksi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-10">
+  
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
+    <div class="space-y-1">
+      <span class="text-xs font-bold text-[#CBAC70] uppercase tracking-widest font-mono">Curated Disciplines</span>
+      <h2 class="text-2xl sm:text-4xl font-black text-[#FDFCFF] uppercase tracking-wide">
+        Katalog Seri Koleksi
+      </h2>
     </div>
+    <a href="http://localhost:3000/katalog" class="text-xs font-bold text-[#CBAC70] hover:underline flex items-center gap-1">
+      <span>Lihat Direktori Katalog Lengkap</span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"></path>
+        <path d="m12 5 7 7-7 7"></path>
+      </svg>
+    </a>
+  </div>
 
-    <!-- Products Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      {products.map((item) => (
-        <div class="group glass-panel rounded-2xl overflow-hidden hover:border-slate-600 transition-all duration-300 flex flex-col justify-between">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {collections.map((item) => (
+      <div class="group rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 border border-[#CBAC70]/25 hover:border-[#CBAC70]/70 transition-all duration-300 shadow-xl hover:shadow-[#CBAC70]/15 flex flex-col justify-between">
+        
+        <div class="rounded-2xl bg-[#070D1F] border border-white/10 overflow-hidden flex flex-col justify-between h-full">
           
-          <!-- Card Image & Silhouette Box -->
-          <div class="aspect-[4/3] bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 p-6 flex flex-col justify-between relative overflow-hidden">
-            <div class="flex justify-between items-center z-10">
-              <span class={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${item.badgeColor}`}>
-                {item.badge}
+          <!-- Image -->
+          <div class="relative aspect-[4/5] bg-[#050914] overflow-hidden">
+            <img
+              src={item.image}
+              alt={item.title}
+              class="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
+              loading="lazy"
+              width="600"
+              height="750"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#070D1F] via-transparent to-transparent opacity-80" />
+
+            <div class="absolute top-3 left-3">
+              <span class="bg-[#CBAC70] text-[#0B132B] text-[9px] font-black tracking-widest uppercase px-2.5 py-0.5 rounded shadow">
+                {item.tag}
               </span>
-              <span class="text-[11px] font-mono text-slate-500">{item.id}</span>
-            </div>
-
-            <!-- Visual Icon/Graphic -->
-            <div class="my-auto text-center transform group-hover:scale-105 transition-transform duration-300">
-              <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-amber-400 group-hover:border-amber-500/50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="z-10 text-[11px] text-slate-400 font-medium flex justify-between items-center">
-              <span>{item.color}</span>
-              <span>{item.category}</span>
             </div>
           </div>
 
-          <!-- Card Content -->
-          <div class="p-6 flex flex-col justify-between flex-1 space-y-4">
+          <!-- Content -->
+          <div class="p-4 sm:p-5 space-y-3">
             <div>
-              <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition-colors font-['Space_Grotesk']">
-                {item.name}
+              <h3 class="font-black text-sm sm:text-base text-[#FDFCFF] group-hover:text-[#CBAC70] transition-colors leading-snug">
+                {item.title}
               </h3>
-              <p class="text-xs text-slate-400 mt-1">{item.specs}</p>
+              <p class="text-xs text-[#94A3B8] mt-0.5">{item.subtitle}</p>
             </div>
 
-            <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
-              <div>
-                <span class="text-xs text-slate-500 line-through mr-2">{item.oldPrice}</span>
-                <span class="text-base font-extrabold text-amber-400 font-['Space_Grotesk']">{item.price}</span>
-              </div>
-              <button class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-amber-400 hover:text-black text-slate-200 text-xs font-bold transition-all duration-200 shadow">
-                Order via WA
-              </button>
+            <div class="pt-3 border-t border-white/10 flex items-center justify-between">
+              <span class="text-xs font-black text-[#CBAC70]">{item.price}</span>
+              <a
+                href={item.href}
+                class="px-3 py-1.5 rounded-lg bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] text-[11px] font-bold transition-all shadow"
+              >
+                Lihat Seri →
+              </a>
             </div>
           </div>
 
         </div>
-      ))}
-    </div>
 
+      </div>
+    ))}
   </div>
+
 </section>
