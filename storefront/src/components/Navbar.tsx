@@ -30,18 +30,10 @@ export default function Navbar() {
             <span className="truncate text-[#CBAC70]">Gunakan Kode &quot;FREESHIPXTRA&quot; Seluruh ID</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-4 text-[11px] text-[#94A3B8]">
-            <a 
-              href="http://localhost:8000" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="hover:text-[#CBAC70] flex items-center gap-1 transition-colors"
-            >
-              <span>Backoffice Portal</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-            <span>|</span>
-            <span className="text-[#CBAC70] font-semibold">100% Bespoke Craftsmanship</span>
+          <div className="hidden sm:flex items-center gap-3 text-[11px] text-[#94A3B8]">
+            <span className="text-[#CBAC70] font-semibold">100% Original Bespoke Studio</span>
+            <span>•</span>
+            <span>Bandung, ID</span>
           </div>
         </div>
       </div>
@@ -129,16 +121,9 @@ export default function Navbar() {
               ))}
             </nav>
 
-            <div className="pt-4 border-t border-[#CBAC70]/20 flex items-center justify-between text-xs text-[#94A3B8]">
-              <a 
-                href="http://localhost:8000" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[#CBAC70] font-bold flex items-center gap-1.5"
-              >
-                <span>Backoffice Admin Portal</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-[#94A3B8]">
+              <span>© 2026 MALEGA APPAREL</span>
+              <span className="text-[#CBAC70] font-mono font-semibold">Official Storefront</span>
             </div>
           </div>
         )}
