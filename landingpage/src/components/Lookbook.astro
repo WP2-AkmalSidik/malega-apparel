@@ -1,0 +1,68 @@
+---
+const lookbooks = [
+  {
+    title: "Chapter I: Midnight Drift",
+    season: "Fall / Winter 2026",
+    tag: "STREETWEAR",
+    desc: "Siluet oversized warna monokrom untuk transisi siang ke malam."
+  },
+  {
+    title: "Chapter II: Concrete Utopia",
+    season: "Spring / Summer 2026",
+    tag: "UTILITY",
+    desc: "Paduan fungsional cargo dan heavyweight boxy tee bertema urban utility."
+  },
+  {
+    title: "Chapter III: Raw Minimalist",
+    season: "Capsule Drop",
+    tag: "CORE ESSENTIALS",
+    desc: "Estetika esensial dengan fokus pada tekstur kain dan kenyamanan harian."
+  }
+];
+---
+
+<section id="lookbook" class="py-24 relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+      <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block font-mono">Visual Editorial</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-['Space_Grotesk'] tracking-tight">
+        Editorial <span class="accent-gradient">Lookbook</span>
+      </h2>
+      <p class="text-sm text-slate-400">
+        Inspirasi padu padan siluet apparel modern untuk tampilan harian yang tegas dan percaya diri.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      {lookbooks.map((item, idx) => (
+        <div class="group relative rounded-3xl overflow-hidden glass-panel border border-slate-800 hover:border-amber-500/50 transition-all duration-300">
+          <div class="aspect-[3/4] bg-gradient-to-t from-black via-slate-900 to-slate-800 p-8 flex flex-col justify-between relative">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] font-mono font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                {item.tag}
+              </span>
+              <span class="text-xs text-slate-500 font-mono">0{idx + 1}</span>
+            </div>
+
+            <div class="space-y-2 z-10">
+              <span class="text-xs text-slate-400 font-mono block">{item.season}</span>
+              <h3 class="text-xl font-bold text-white font-['Space_Grotesk'] group-hover:text-amber-400 transition-colors">
+                {item.title}
+              </h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                {item.desc}
+              </p>
+              <div class="pt-3">
+                <a href="#featured" class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 group-hover:translate-x-1 transition-transform">
+                  Lihat Item Terkait →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
