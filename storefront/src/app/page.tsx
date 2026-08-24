@@ -1,337 +1,260 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { ArrowRight, Sparkles, Shield, Flame, CheckCircle, Award, Compass } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { 
+  Search, 
+  SlidersHorizontal, 
+  Sparkles, 
+  Tag, 
+  RotateCcw, 
+  Flame, 
+  Check, 
+  ShoppingBag,
+  ArrowRight
+} from 'lucide-react';
 import { productsCatalog } from '../data/products';
 import ProductCard from '../components/ProductCard';
 
-export default function HomePage() {
-  const newDrops = productsCatalog.filter(p => p.isNewDrop).slice(0, 4);
-  const bestSellers = productsCatalog.filter(p => p.isBestSeller).slice(0, 4);
+export default function StoreHomePage() {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedSize, setSelectedSize] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('featured');
+  const [onlyNewDrops, setOnlyNewDrops] = useState<boolean>(false);
+  const [onlyBestSellers, setOnlyBestSellers] = useState<boolean>(false);
 
   const categories = [
-    {
-      name: 'Heavyweight Tees',
-      subtitle: '300GSM Boxy Drop-Shoulder',
-      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80',
-      href: '/products?category=T-Shirts',
-      count: '4 Artikel'
-    },
-    {
-      name: 'Hoodies & Outerwear',
-      subtitle: '380GSM French Terry & Selvedge',
-      image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80',
-      href: '/products?category=Outerwear',
-      count: '3 Artikel'
-    },
-    {
-      name: 'Utility Bottoms',
-      subtitle: 'Ripstop Cargo & Raw Denim',
-      image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&auto=format&fit=crop&q=80',
-      href: '/products?category=Bottoms',
-      count: '3 Artikel'
-    },
-    {
-      name: 'Luxury Accessories',
-      subtitle: 'Gold Monogram Caps & Bags',
-      image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&auto=format&fit=crop&q=80',
-      href: '/products?category=Accessories',
-      count: '2 Artikel'
-    }
+    { id: 'all', label: 'Semua Koleksi' },
+    { id: 'T-Shirts', label: 'Heavyweight Tees (300GSM)' },
+    { id: 'Outerwear', label: 'Hoodies & Outer' },
+    { id: 'Bottoms', label: 'Cargo & Denim' },
+    { id: 'Accessories', label: 'Caps & Bags' }
   ];
 
+  const sizeOptions = ['all', 'S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36'];
+
+  const filteredProducts = useMemo(() => {
+    return productsCatalog.filter(p => {
+      // Category filter
+      if (selectedCategory !== 'all' && p.category !== selectedCategory) {
+        return false;
+      }
+      // Search filter
+      if (searchQuery.trim() !== '') {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = p.title.toLowerCase().includes(q);
+        const matchSubtitle = p.subtitle.toLowerCase().includes(q);
+        const matchDesc = p.description.toLowerCase().includes(q);
+        const matchCat = p.category.toLowerCase().includes(q);
+        const matchMaterial = p.material.toLowerCase().includes(q);
+        if (!matchTitle && !matchSubtitle && !matchDesc && !matchCat && !matchMaterial) return false;
+      }
+      // Size filter
+      if (selectedSize !== 'all' && !p.sizes.includes(selectedSize)) {
+        return false;
+      }
+      // New drops
+      if (onlyNewDrops && !p.isNewDrop) {
+        return false;
+      }
+      // Best sellers
+      if (onlyBestSellers && !p.isBestSeller) {
+        return false;
+      }
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'sold') return b.soldCount - a.soldCount;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      return 0; // default featured
+    });
+  }, [selectedCategory, searchQuery, selectedSize, onlyNewDrops, onlyBestSellers, sortBy]);
+
+  const handleResetFilters = () => {
+    setSelectedCategory('all');
+    setSearchQuery('');
+    setSelectedSize('all');
+    setSortBy('featured');
+    setOnlyNewDrops(false);
+    setOnlyBestSellers(false);
+  };
+
   return (
-    <div className="space-y-24 pb-16">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5">
       
-      {/* 1. Hero Section */}
-      <section className="relative pt-12 pb-20 sm:pt-20 sm:pb-28 overflow-hidden">
-        {/* Ambient Gold Glows */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-[#CBAC70]/10 blur-[150px] rounded-full pointer-events-none" />
-        <div className="absolute top-1/4 right-5 w-[450px] h-[450px] bg-[#162550]/40 blur-[130px] rounded-full pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
-            {/* Left Column: Headlines & CTAs */}
-            <div className="lg:col-span-7 space-y-6 text-left">
-              
-              {/* Release Pill */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#111D42] border border-[#CBAC70]/40 text-[#CBAC70] text-xs font-bold tracking-widest uppercase">
-                <span className="w-2 h-2 rounded-full bg-[#CBAC70] animate-ping" />
-                <span>SS26 CAPSULE DROP : THE OBSIDIAN ESSENTIALS</span>
-              </div>
-
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.06]">
-                Redefining <span className="gold-gradient-text">Streetwear</span> with <span className="gold-gradient-pure">300GSM Cotton.</span>
-              </h1>
-
-              {/* Subheadline */}
-              <p className="text-base sm:text-lg text-[#94A3B8] max-w-xl font-normal leading-relaxed">
-                Koleksi esensial streetwear berkarakter kuat dengan gramasi tebal 300GSM, potongan boxy presisi drop-shoulder, dan detail konstruksi jahitan tingkat tinggi.
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-3">
-                <Link
-                  href="/products"
-                  className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] font-black text-xs uppercase tracking-widest hover:opacity-95 transition-all shadow-xl hover:shadow-[#CBAC70]/20 flex items-center gap-2 active:scale-95"
-                >
-                  <span>Explore Catalog</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-
-                <Link
-                  href="/products?category=T-Shirts"
-                  className="px-7 py-4 rounded-xl bg-[#111D42] hover:bg-[#172654] text-[#FDFCFF] border border-[#CBAC70]/30 font-bold text-xs uppercase tracking-wider transition-all active:scale-95"
-                >
-                  <span>Heavyweight Tees</span>
-                </Link>
-              </div>
-
-              {/* 3 Quick Proof Points */}
-              <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 w-full max-w-lg">
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black text-[#CBAC70]">300<span className="text-sm font-bold text-white">GSM</span></p>
-                  <p className="text-xs text-[#94A3B8] mt-0.5 font-medium">Heavy Combed Cotton</p>
-                </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black text-[#CBAC70]">100<span className="text-sm font-bold text-white">%</span></p>
-                  <p className="text-xs text-[#94A3B8] mt-0.5 font-medium">Custom Cut & Sew</p>
-                </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black text-[#CBAC70]">4.9<span className="text-sm font-bold text-white">★</span></p>
-                  <p className="text-xs text-[#94A3B8] mt-0.5 font-medium">1.4k+ Verified Reviews</p>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Right Column: Hero Visual Product Showcase */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md lg:max-w-none">
-                <div className="luxury-card rounded-3xl p-6 shadow-2xl relative group overflow-hidden">
-                  
-                  {/* Visual Image */}
-                  <div className="aspect-[4/5] rounded-2xl bg-[#070D1F] overflow-hidden relative">
-                    <img
-                      src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80"
-                      alt="Malega Heavyweight Tee"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    
-                    <div className="absolute top-4 left-4 bg-[#CBAC70] text-[#0B132B] text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded shadow">
-                      FEATURED PIECE
-                    </div>
-                  </div>
-
-                  {/* Bottom Info inside Card */}
-                  <div className="pt-5 space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-base text-[#FDFCFF]">
-                          Obsidian Heavyweight Boxy Tee
-                        </h3>
-                        <p className="text-xs text-[#94A3B8]">Deep Onyx • Drop Shoulder Fit</p>
-                      </div>
-                      <span className="text-lg font-black text-[#CBAC70]">
-                        Rp 229.000
-                      </span>
-                    </div>
-
-                    <Link
-                      href="/products/mlg-001"
-                      className="w-full py-3 bg-[#172654] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] border border-[#CBAC70]/40 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow"
-                    >
-                      <span>Lihat Detail Produk</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-          </div>
+      {/* 1. Minimal Luxury Promo Strip */}
+      <div className="rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#14204A] via-[#0E1736] to-[#14204A] border border-[#CBAC70]/30 px-3.5 py-2.5 sm:px-5 sm:py-3 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-2 text-xs min-w-0">
+          <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#CBAC70] shrink-0" />
+          <span className="text-[#94A3B8] text-[11px] sm:text-xs truncate">
+            Gunakan voucher VIP: <strong className="text-[#CBAC70] font-mono">MALEGAVIP15</strong> (Diskon 15%)
+          </span>
         </div>
-      </section>
+        <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full whitespace-nowrap hidden xs:inline-block">
+          Gratis Ongkir Active
+        </span>
+      </div>
 
-      {/* 2. Shop By Category Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
-          <div>
-            <span className="text-xs font-bold text-[#CBAC70] uppercase tracking-widest block font-mono">Curated Disciplines</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#FDFCFF] uppercase tracking-wide">
-              Shop by Category
-            </h2>
-          </div>
-          <Link href="/products" className="text-xs font-bold text-[#CBAC70] hover:underline flex items-center gap-1">
-            <span>View All Collections</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+      {/* 2. Direct Category Filter Tabs (Scrollable on Mobile) */}
+      <div className="overflow-x-auto scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="flex items-center gap-2 min-w-max pb-1">
+          {categories.map((cat) => {
+            const count = cat.id === 'all' 
+              ? productsCatalog.length 
+              : productsCatalog.filter(p => p.category === cat.id).length;
+            const isSelected = selectedCategory === cat.id;
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((cat, idx) => (
-            <Link
-              key={idx}
-              href={cat.href}
-              className="group luxury-card rounded-2xl overflow-hidden relative aspect-[3/4] block hover:border-[#CBAC70]/80 transition-all duration-300 shadow-lg"
-            >
-              <img
-                src={cat.image}
-                alt={cat.name}
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-
-              <div className="absolute inset-0 p-6 flex flex-col justify-end space-y-1">
-                <span className="text-[10px] font-mono text-[#CBAC70] font-semibold uppercase tracking-widest">
-                  {cat.count}
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 active:scale-95 ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] shadow-md'
+                    : 'bg-[#0E1736] hover:bg-[#14204A] text-[#94A3B8] hover:text-[#FDFCFF] border border-white/10 hover:border-[#CBAC70]/40'
+                }`}
+              >
+                <span>{cat.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-[#0B132B] text-[#CBAC70]' : 'bg-[#070D1F] text-[#94A3B8]'}`}>
+                  {count}
                 </span>
-                <h3 className="text-lg font-bold text-[#FDFCFF] group-hover:text-[#CBAC70] transition-colors">
-                  {cat.name}
-                </h3>
-                <p className="text-xs text-[#94A3B8]">{cat.subtitle}</p>
-                <div className="pt-2 flex items-center gap-1 text-xs font-bold text-[#CBAC70] opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span>Explore Series →</span>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </button>
+            );
+          })}
         </div>
-      </section>
+      </div>
 
-      {/* 3. New Drops & Featured Capsule */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-[#CBAC70]" />
-              <span className="text-xs font-bold text-[#CBAC70] uppercase tracking-widest font-mono">Season 2026</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#FDFCFF] uppercase tracking-wide">
-              New Drops & Signature Pieces
-            </h2>
-          </div>
-          <Link href="/products" className="text-xs font-bold text-[#CBAC70] hover:underline flex items-center gap-1">
-            <span>Explore All ({productsCatalog.length})</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {newDrops.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* 4. Craftsmanship Standard Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="luxury-card rounded-3xl p-8 sm:p-12 border border-[#CBAC70]/30 relative overflow-hidden">
-          <div className="grid lg:grid-cols-12 gap-10 items-center">
-            
-            <div className="lg:col-span-7 space-y-5">
-              <span className="text-xs font-bold text-[#CBAC70] uppercase tracking-widest font-mono">The Craftsmanship Standard</span>
-              <h2 className="text-2xl sm:text-4xl font-black text-[#FDFCFF] leading-tight uppercase">
-                Heavyweight Cotton 300GSM <br/>
-                <span className="gold-gradient-pure">No Compromise on Fabric Quality.</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-                Di Malega Apparel, kami menolak bahan tipis yang mudah susut. Setiap lembar kaos diproduksi dari 100% benang katun combed berkualitas dengan gramasi 300GSM padat, double rib collar 3.5cm, serta teknik pewarnaan Reactive Dye ramah lingkungan.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-xl bg-[#0B132B]/80 border border-white/10">
-                  <span className="text-xs font-black text-[#CBAC70] block font-mono">01. HEAVY FABRIC</span>
-                  <p className="text-xs text-[#94A3B8] mt-1">300GSM Solid & kokoh, tidak terawang saat dikenakan.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#0B132B]/80 border border-white/10">
-                  <span className="text-xs font-black text-[#CBAC70] block font-mono">02. DOUBLE COLLAR</span>
-                  <p className="text-xs text-[#94A3B8] mt-1">Kerah rib 3.5cm ganda tidak melar pasca pencucian berulang.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="aspect-square rounded-2xl bg-[#070D1F] p-4 flex flex-col justify-end border border-white/10">
-                  <span className="text-xs font-mono text-[#CBAC70]">GRAMASI</span>
-                  <span className="text-lg font-black text-white">300 GSM</span>
-                </div>
-                <div className="aspect-[4/3] rounded-2xl bg-[#070D1F] p-4 flex flex-col justify-end border border-white/10">
-                  <span className="text-xs font-mono text-emerald-400">BENANG</span>
-                  <span className="text-sm font-bold text-white">100% Combed</span>
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-6">
-                <div className="aspect-[4/3] rounded-2xl bg-[#070D1F] p-4 flex flex-col justify-end border border-white/10">
-                  <span className="text-xs font-mono text-cyan-400">CUTTING</span>
-                  <span className="text-sm font-bold text-white">Boxy Drop</span>
-                </div>
-                <div className="aspect-square rounded-2xl bg-[#070D1F] p-4 flex flex-col justify-end border border-white/10">
-                  <span className="text-xs font-mono text-[#CBAC70]">ORIGINAL</span>
-                  <span className="text-lg font-black text-white">Bespoke</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Best Sellers Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Flame className="w-4 h-4 text-[#CBAC70]" />
-              <span className="text-xs font-bold text-[#CBAC70] uppercase tracking-widest font-mono">Community Favorites</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#FDFCFF] uppercase tracking-wide">
-              Most Wanted Bestsellers
-            </h2>
-          </div>
-          <Link href="/products" className="text-xs font-bold text-[#CBAC70] hover:underline flex items-center gap-1">
-            <span>View All Bestsellers</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {bestSellers.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* 6. VIP Drop Club / Promo Card */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-gradient-to-br from-[#111D42] via-[#0B132B] to-[#1C2541] border border-[#CBAC70]/40 p-8 sm:p-12 text-center space-y-5 shadow-2xl relative overflow-hidden">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-[#CBAC70]/20 border border-[#CBAC70]/40 text-[#CBAC70] text-xs font-bold font-mono tracking-widest">
-            EXCLUSIVE VIP PRIVILEGE
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-black text-[#FDFCFF] tracking-tight uppercase">
-            Join the <span className="gold-gradient-pure">Malega VIP Circle</span>
-          </h2>
-          <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto leading-relaxed">
-            Dapatkan voucher diskon 15% untuk pesanan pertama Anda dengan kode promo <strong className="text-[#CBAC70]">MALEGAVIP15</strong>, serta akses awal ke setiap rilis limited drop.
-          </p>
-
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+      {/* 3. Search & Control Toolbar */}
+      <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0E1736] border border-[#CBAC70]/20 space-y-3 shadow-md">
+        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          
+          {/* Search Bar Input */}
+          <div className="relative flex-1">
             <input
-              type="email"
-              placeholder="Masukkan alamat email Anda..."
-              className="w-full bg-[#080E20] border border-[#CBAC70]/40 rounded-xl px-4 py-3 text-xs text-[#FDFCFF] placeholder-[#94A3B8] focus:outline-none focus:border-[#CBAC70]"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari kaos boxy 300GSM, hoodie, cargo..."
+              className="w-full bg-[#070D1F] border border-white/15 rounded-xl pl-9 pr-4 py-2 text-xs text-[#FDFCFF] placeholder-[#94A3B8] focus:outline-none focus:border-[#CBAC70] transition-colors"
             />
-            <button className="w-full sm:w-auto px-6 py-3 bg-[#CBAC70] hover:bg-[#E3CD99] text-[#0B132B] font-black text-xs uppercase tracking-widest rounded-xl whitespace-nowrap shadow-lg">
-              Klaim 15% OFF
+            <Search className="w-4 h-4 text-[#CBAC70] absolute left-3 top-2.5" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2 text-xs text-[#94A3B8] hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <span className="text-[11px] text-[#94A3B8] hidden sm:inline">Urutkan:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-[#070D1F] border border-white/15 rounded-xl px-3 py-2 text-xs text-[#FDFCFF] focus:outline-none focus:border-[#CBAC70]"
+            >
+              <option value="featured">Paling Populer</option>
+              <option value="sold">Terlaris (Sold)</option>
+              <option value="price-low">Harga: Rendah ke Tinggi</option>
+              <option value="price-high">Harga: Tinggi ke Rendah</option>
+              <option value="rating">Rating Bintang</option>
+            </select>
+          </div>
+
+        </div>
+
+        {/* Quick Filter Chips (Size, New, Best) */}
+        <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-white/5 text-xs">
+          
+          {/* Size Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none max-w-full">
+            <span className="text-[11px] text-[#94A3B8] shrink-0 mr-1">Size:</span>
+            {sizeOptions.map((s) => (
+              <button
+                key={s}
+                onClick={() => setSelectedSize(s)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all shrink-0 ${
+                  selectedSize === s
+                    ? 'bg-[#CBAC70] text-[#0B132B]'
+                    : 'bg-[#070D1F] text-[#94A3B8] border border-white/10 hover:border-[#CBAC70]/40'
+                }`}
+              >
+                {s === 'all' ? 'ALL' : s}
+              </button>
+            ))}
+          </div>
+
+          {/* Toggles */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto text-[11px] text-[#94A3B8]">
+            <button
+              onClick={() => setOnlyNewDrops(!onlyNewDrops)}
+              className={`px-2.5 py-1 rounded-lg font-semibold border transition-all ${
+                onlyNewDrops
+                  ? 'bg-[#CBAC70]/20 border-[#CBAC70] text-[#CBAC70]'
+                  : 'bg-[#070D1F] border-white/10 text-[#94A3B8]'
+              }`}
+            >
+              New Drops Only
+            </button>
+
+            <button
+              onClick={() => setOnlyBestSellers(!onlyBestSellers)}
+              className={`px-2.5 py-1 rounded-lg font-semibold border transition-all ${
+                onlyBestSellers
+                  ? 'bg-[#CBAC70]/20 border-[#CBAC70] text-[#CBAC70]'
+                  : 'bg-[#070D1F] border-white/10 text-[#94A3B8]'
+              }`}
+            >
+              Bestsellers
+            </button>
+
+            {(selectedCategory !== 'all' || searchQuery || selectedSize !== 'all' || onlyNewDrops || onlyBestSellers) && (
+              <button
+                onClick={handleResetFilters}
+                className="text-[#CBAC70] hover:underline flex items-center gap-1 font-bold pl-1"
+                title="Reset"
+              >
+                <RotateCcw className="w-3 h-3" /> Reset
+              </button>
+            )}
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* 4. Product Catalog Listing (2-Column Mobile First & 3-4 Col Desktop) */}
+      <section className="space-y-3">
+        
+        <div className="flex items-center justify-between text-xs text-[#94A3B8] px-1">
+          <span>Menampilkan <strong className="text-[#CBAC70] font-bold">{filteredProducts.length}</strong> produk artikel</span>
+          <span className="text-[11px] text-[#CBAC70] font-mono">100% Original Malega Studio</span>
+        </div>
+
+        {filteredProducts.length === 0 ? (
+          <div className="rounded-2xl bg-[#0E1736] border border-white/10 p-10 text-center space-y-3">
+            <p className="text-sm font-bold text-[#FDFCFF]">Tidak ada produk yang sesuai dengan filter Anda</p>
+            <p className="text-xs text-[#94A3B8]">Coba ubah kata kunci atau reset filter ukuran/kategori.</p>
+            <button
+              onClick={handleResetFilters}
+              className="px-5 py-2 rounded-xl bg-[#CBAC70] text-[#0B132B] font-bold text-xs uppercase"
+            >
+              Reset Filter
             </button>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+
       </section>
 
     </div>
