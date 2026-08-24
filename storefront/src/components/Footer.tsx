@@ -26,12 +26,12 @@ export default function Footer() {
           </div>
 
           <div className="md:col-span-2 space-y-2.5">
-            <h4 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70]">Koleksi</h4>
+            <h4 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70]">Katalog Koleksi</h4>
             <ul className="space-y-1.5 text-xs">
-              <li><Link href="/products?category=T-Shirts" className="hover:text-[#CBAC70]">Heavyweight Tees</Link></li>
-              <li><Link href="/products?category=Outerwear" className="hover:text-[#CBAC70]">Fleece Hoodies</Link></li>
-              <li><Link href="/products?category=Bottoms" className="hover:text-[#CBAC70]">Utility Cargo</Link></li>
-              <li><Link href="/products?category=Accessories" className="hover:text-[#CBAC70]">Caps & Bags</Link></li>
+              <li><Link href="/katalog/heavyweight-boxy-tees-300gsm" className="hover:text-[#CBAC70]">Heavyweight (300GSM)</Link></li>
+              <li><Link href="/katalog/french-terry-outerwear-series" className="hover:text-[#CBAC70]">Fleece Hoodies (380GSM)</Link></li>
+              <li><Link href="/katalog/tactical-utility-bottoms" className="hover:text-[#CBAC70]">Utility Cargo & Denim</Link></li>
+              <li><Link href="/katalog/atelier-luxury-accessories" className="hover:text-[#CBAC70]">Caps & Atelier Bags</Link></li>
             </ul>
           </div>
 

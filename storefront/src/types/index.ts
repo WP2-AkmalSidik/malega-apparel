@@ -102,3 +102,23 @@ export interface OrderReceipt {
   status: 'Payment Pending' | 'Sedang Dikemas Penjual' | 'Dalam Pengiriman' | 'Terkirim';
   buyerNote: string;
 }
+
+export interface CatalogCollection {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  season: string;
+  releaseYear: string;
+  badge: string;
+  coverImage: string;
+  bannerImage: string;
+  totalArticles: number;
+  featuredMaterial: string;
+  gsmWeight?: number;
+  description: string;
+  storytelling: string;
+  palette: string[];
+  tags: string[];
+  productIds: string[];
+}

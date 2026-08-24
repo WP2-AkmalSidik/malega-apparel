@@ -16,11 +16,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Catalog / Shop', href: '/products' },
-    { label: 'Heavyweight Tees', href: '/products?category=T-Shirts' },
-    { label: 'Hoodies & Outer', href: '/products?category=Outerwear' },
-    { label: 'Bottoms', href: '/products?category=Bottoms' },
-    { label: 'Accessories', href: '/products?category=Accessories' }
+    { label: 'Katalog', href: '/katalog' },
   ];
 
   return (
