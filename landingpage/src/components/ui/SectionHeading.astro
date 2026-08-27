@@ -1,0 +1,97 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  align?: 'left' | 'center' | 'split';
+  linkText?: string;
+  linkHref?: string;
+  class?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  subtitle,
+  align = 'left',
+  linkText,
+  linkHref,
+  class: className = '',
+} = Astro.props;
+---
+
+<div class={`w-full ${className}`}>
+  {align === 'split' ? (
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#CBAC70]/15">
+      <div class="space-y-2 max-w-2xl">
+        {eyebrow && (
+          <p class="text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
+            {eyebrow}
+          </p>
+        )}
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF]">
+          {title}
+        </h2>
+        {subtitle && (
+          <p class="text-sm sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-1">
+            {subtitle}
+          </p>
+        )}
+      </div>
+
+      {linkText && linkHref && (
+        <a
+          href={linkHref}
+          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#CBAC70] hover:text-[#E6D3A7] transition-colors py-1 group shrink-0"
+        >
+          <span>{linkText}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      )}
+    </div>
+  ) : align === 'center' ? (
+    <div class="text-center max-w-3xl mx-auto space-y-3">
+      {eyebrow && (
+        <p class="text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
+          {eyebrow}
+        </p>
+      )}
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF]">
+        {title}
+      </h2>
+      {subtitle && (
+        <p class="text-sm sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-1">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  ) : (
+    <div class="space-y-2 max-w-3xl">
+      {eyebrow && (
+        <p class="text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
+          {eyebrow}
+        </p>
+      )}
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF]">
+        {title}
+      </h2>
+      {subtitle && (
+        <p class="text-sm sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-1">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  )}
+</div>

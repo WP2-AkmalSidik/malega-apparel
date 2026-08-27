@@ -1,0 +1,116 @@
+---
+import { MAIN_NAV } from '../../data/navigation';
+import MobileMenu from './MobileMenu.astro';
+---
+
+<header
+  id="main-header"
+  class="fixed top-0 inset-x-0 z-50 transition-all duration-500 bg-transparent py-5 sm:py-6"
+>
+  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 flex items-center justify-between gap-6">
+    
+    <!-- Left Navigation (Desktop) -->
+    <nav class="hidden lg:flex items-center gap-8 text-xs font-semibold tracking-[0.2em] uppercase text-[#FDFCFF]" aria-label="Main Navigation">
+      {MAIN_NAV.slice(0, 3).map((item) => (
+        <a
+          href={item.href}
+          class="relative py-1 hover:text-[#CBAC70] transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#CBAC70] after:transition-all after:duration-300 hover:after:w-full"
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <!-- Center Brand Logo -->
+    <a href="/" class="flex items-center gap-2.5 group cursor-pointer shrink-0" aria-label="Malega Apparel Home">
+      <img
+        src="/img/malega-brand.png"
+        alt="MALEGA APPAREL"
+        class="h-8 sm:h-10 w-auto object-contain brightness-105 transition-opacity group-hover:opacity-90"
+        loading="eager"
+        width="160"
+        height="44"
+      />
+    </a>
+
+    <!-- Right Navigation (Desktop) & Action CTA -->
+    <div class="hidden lg:flex items-center gap-8">
+      <nav class="flex items-center gap-8 text-xs font-semibold tracking-[0.2em] uppercase text-[#FDFCFF]">
+        {MAIN_NAV.slice(3).map((item) => (
+          <a
+            href={item.href}
+            class="relative py-1 hover:text-[#CBAC70] transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#CBAC70] after:transition-all after:duration-300 hover:after:w-full"
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Client Care / WhatsApp Direct Inquiry Button -->
+      <a
+        href="https://wa.me/6281234567890?text=Halo%20Malega%20Apparel%20saya%20tertarik%20melihat%20katalog%20dan%20memesan%20produk."
+        target="_blank"
+        rel="noopener noreferrer"
+        class="px-5 py-2 rounded-sm border border-[#CBAC70]/40 hover:border-[#CBAC70] bg-[#0B132B]/60 hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] text-xs font-semibold uppercase tracking-[0.18em] transition-all duration-300 shadow-sm"
+      >
+        Concierge
+      </a>
+    </div>
+
+    <!-- Mobile Hamburger Button & Quick Action -->
+    <div class="flex items-center gap-3 lg:hidden">
+      <a
+        href="https://wa.me/6281234567890?text=Halo%20Malega%20Apparel"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="px-3.5 py-1.5 rounded-sm border border-[#CBAC70]/30 text-[#CBAC70] text-[11px] font-semibold uppercase tracking-wider"
+        aria-label="Contact Concierge"
+      >
+        Chat
+      </a>
+
+      <button
+        id="open-mobile-menu"
+        type="button"
+        class="p-2 text-[#FDFCFF] hover:text-[#CBAC70] focus:outline-none focus:ring-1 focus:ring-[#CBAC70]"
+        aria-label="Open mobile navigation menu"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<MobileMenu />
+
+<script>
+  function handleHeaderScroll() {
+    const header = document.getElementById('main-header');
+    if (!header) return;
+
+    if (window.scrollY > 40) {
+      header.classList.remove('bg-transparent', 'py-5', 'sm:py-6');
+      header.classList.add('glass-header-scrolled', 'py-3.5', 'sm:py-4', 'shadow-md');
+    } else {
+      header.classList.remove('glass-header-scrolled', 'py-3.5', 'sm:py-4', 'shadow-md');
+      header.classList.add('bg-transparent', 'py-5', 'sm:py-6');
+    }
+  }
+
+  window.addEventListener('scroll', handleHeaderScroll, { passive: true });
+  handleHeaderScroll();
+</script>

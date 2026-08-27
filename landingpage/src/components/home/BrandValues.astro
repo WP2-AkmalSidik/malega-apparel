@@ -1,0 +1,41 @@
+---
+import { BRAND_VALUES } from '../../data/editorial';
+import SectionHeading from '../ui/SectionHeading.astro';
+---
+
+<section id="values" class="py-24 sm:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
+  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 space-y-16">
+    
+    <!-- Section Heading -->
+    <SectionHeading
+      eyebrow="05 / Brand Pillars"
+      title="The Malega Ethos"
+      subtitle="Komitmen mendasar dalam setiap rancangan, pemilihan bahan, dan proses konstruksi busana kami."
+      align="left"
+    />
+
+    <!-- 3 Minimal Columns with Clean Border Separators -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14 pt-4">
+      {BRAND_VALUES.map((item) => (
+        <div class="space-y-4 relative border-t border-[#CBAC70]/20 pt-8">
+          <span class="text-xs font-mono font-bold text-[#CBAC70] tracking-widest block">
+            {item.number} /
+          </span>
+
+          <h3 class="text-xl sm:text-2xl font-bold text-[#FDFCFF]">
+            {item.title}
+          </h3>
+
+          <p class="text-xs font-semibold text-[#CBAC70] uppercase tracking-[0.15em]">
+            {item.headline}
+          </p>
+
+          <p class="text-xs sm:text-sm text-[#8E9BAE] leading-relaxed font-normal pt-1">
+            {item.description}
+          </p>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>

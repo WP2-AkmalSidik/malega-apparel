@@ -1,0 +1,76 @@
+---
+import type { CollectionItem } from '../../data/collections';
+
+interface Props {
+  collection: CollectionItem;
+  featured?: boolean;
+}
+
+const { collection, featured = false } = Astro.props;
+---
+
+<div class={`group relative overflow-hidden rounded-sm bg-[#0E1736] border border-[#CBAC70]/20 hover:border-[#CBAC70]/50 transition-colors duration-500 flex flex-col justify-between ${featured ? 'lg:col-span-2 lg:row-span-2' : ''}`}>
+  <!-- Image Background Container -->
+  <div class="relative w-full aspect-[4/5] sm:aspect-[3/4] lg:aspect-auto lg:h-full min-h-[380px] overflow-hidden">
+    <img
+      src={collection.image}
+      alt={collection.alt}
+      loading="lazy"
+      class="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+      width="800"
+      height="1000"
+    />
+
+    <!-- Multi-stage Dark Gradient Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/50 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500" />
+    <div class="absolute inset-0 bg-gradient-to-r from-[#0B132B]/40 to-transparent pointer-events-none" />
+
+    <!-- Top Badge -->
+    <div class="absolute top-5 left-5 right-5 flex items-center justify-between z-10">
+      <span class="text-xs font-mono font-bold text-[#CBAC70] tracking-widest">
+        {collection.number}
+      </span>
+      <span class="text-[10px] uppercase font-semibold tracking-[0.2em] px-2.5 py-1 bg-[#0B132B]/80 backdrop-blur-md border border-[#CBAC70]/30 text-[#CBAC70] rounded-sm">
+        {collection.tag}
+      </span>
+    </div>
+
+    <!-- Bottom Content Overlay -->
+    <div class="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-3 z-10">
+      <div class="space-y-1">
+        <p class="text-[11px] font-semibold text-[#CBAC70] tracking-[0.2em] uppercase">
+          {collection.tagline}
+        </p>
+        <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[#FDFCFF] group-hover:text-[#CBAC70] transition-colors leading-tight">
+          {collection.title}
+        </h3>
+      </div>
+
+      <p class="text-xs sm:text-sm text-[#8E9BAE] leading-relaxed line-clamp-2 max-w-lg font-normal">
+        {collection.description}
+      </p>
+
+      <div class="pt-2">
+        <a
+          href={collection.href}
+          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#FDFCFF] group-hover:text-[#CBAC70] transition-colors"
+        >
+          <span>Explore Series</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

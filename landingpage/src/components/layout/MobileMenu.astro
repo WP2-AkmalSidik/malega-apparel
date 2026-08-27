@@ -1,0 +1,135 @@
+---
+import { MAIN_NAV, SOCIAL_LINKS } from '../../data/navigation';
+---
+
+<!-- Mobile Menu Drawer (Dialog / Overlay) -->
+<div
+  id="mobile-drawer"
+  class="fixed inset-0 z-[100] bg-[#0B132B] flex flex-col justify-between p-6 sm:p-10 transition-all duration-500 opacity-0 pointer-events-none -translate-y-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Navigation Menu"
+>
+  <!-- Header Bar inside Drawer -->
+  <div class="flex items-center justify-between border-b border-[#CBAC70]/15 pb-6">
+    <a href="/" class="flex items-center gap-3">
+      <img
+        src="/img/malega-brand.png"
+        alt="MALEGA APPAREL"
+        class="h-7 w-auto object-contain brightness-105"
+        width="130"
+        height="36"
+      />
+    </a>
+
+    <button
+      id="close-mobile-menu"
+      type="button"
+      class="p-2.5 text-[#CBAC70] hover:text-[#FDFCFF] border border-[#CBAC70]/20 hover:border-[#CBAC70]/60 rounded-sm transition-colors focus:outline-none focus:ring-1 focus:ring-[#CBAC70]"
+      aria-label="Close navigation menu"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation Links (Large Editorial Typography) -->
+  <nav class="my-auto py-8">
+    <ul class="space-y-5">
+      {MAIN_NAV.map((item, index) => (
+        <li>
+          <a
+            href={item.href}
+            class="mobile-nav-link flex items-baseline justify-between text-2xl sm:text-3xl font-bold tracking-tight text-[#FDFCFF] hover:text-[#CBAC70] transition-colors group"
+          >
+            <span>{item.label}</span>
+            <span class="text-xs font-mono text-[#8E9BAE] group-hover:text-[#CBAC70] transition-colors">
+              0{index + 1}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  <!-- Drawer Footer: Direct Inquiry & Socials -->
+  <div class="border-t border-[#CBAC70]/15 pt-6 space-y-4">
+    <div class="flex items-center justify-between text-xs text-[#8E9BAE]">
+      <span class="uppercase tracking-[0.2em]">Malega Concierge</span>
+      <a
+        href="https://wa.me/6281234567890?text=Halo%20Malega%20Apparel"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-[#CBAC70] font-semibold tracking-wider hover:underline"
+      >
+        Chat on WhatsApp →
+      </a>
+    </div>
+
+    <div class="flex items-center gap-5 text-xs text-[#8E9BAE]">
+      {SOCIAL_LINKS.map((social) => (
+        <a
+          href={social.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-[#CBAC70] transition-colors"
+        >
+          {social.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</div>
+
+<script>
+  function setupMobileMenu() {
+    const drawer = document.getElementById('mobile-drawer');
+    const openBtn = document.getElementById('open-mobile-menu');
+    const closeBtn = document.getElementById('close-mobile-menu');
+    const links = document.querySelectorAll('.mobile-nav-link');
+
+    if (!drawer || !openBtn || !closeBtn) return;
+
+    function openMenu() {
+      drawer.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+      drawer.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+    }
+
+    function closeMenu() {
+      drawer.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+      drawer.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+      document.body.style.overflow = '';
+      openBtn.focus();
+    }
+
+    openBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+
+    links.forEach((link) => {
+      link.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !drawer.classList.contains('pointer-events-none')) {
+        closeMenu();
+      }
+    });
+  }
+
+  // Run on initial load and page transitions
+  setupMobileMenu();
+  document.addEventListener('astro:page-load', setupMobileMenu);
+</script>

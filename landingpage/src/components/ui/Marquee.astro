@@ -1,0 +1,28 @@
+---
+interface Props {
+  text?: string;
+  class?: string;
+}
+
+const {
+  text = "MALEGA APPAREL • MODERN ESSENTIALS • DESIGNED FOR EVERYDAY • CONTEMPORARY FORM • REFINED SILHOUETTES • TIMELESS APPAREL • ",
+  class: className = "",
+} = Astro.props;
+---
+
+<div class={`w-full overflow-hidden border-y border-[#CBAC70]/15 bg-[#0B132B]/60 py-3.5 select-none ${className}`}>
+  <div class="animate-marquee flex items-center whitespace-nowrap">
+    <span class="text-[11px] sm:text-xs font-semibold tracking-[0.3em] uppercase text-[#CBAC70]/90 px-4">
+      {text}
+    </span>
+    <span class="text-[11px] sm:text-xs font-semibold tracking-[0.3em] uppercase text-[#CBAC70]/90 px-4">
+      {text}
+    </span>
+    <span class="text-[11px] sm:text-xs font-semibold tracking-[0.3em] uppercase text-[#CBAC70]/90 px-4">
+      {text}
+    </span>
+    <span class="text-[11px] sm:text-xs font-semibold tracking-[0.3em] uppercase text-[#CBAC70]/90 px-4">
+      {text}
+    </span>
+  </div>
+</div>

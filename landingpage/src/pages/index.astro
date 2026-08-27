@@ -1,25 +1,43 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro';
-import Hero from '../components/Hero.astro';
-import FeaturedCollection from '../components/FeaturedCollection.astro';
-import BrandStory from '../components/BrandStory.astro';
-import Lookbook from '../components/Lookbook.astro';
-import VIPAccess from '../components/VIPAccess.astro';
-import Footer from '../components/Footer.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+
+import Hero from '../components/home/Hero.astro';
+import BrandStatement from '../components/home/BrandStatement.astro';
+import FeaturedCollections from '../components/home/FeaturedCollections.astro';
+import CategoryGrid from '../components/home/CategoryGrid.astro';
+import NewArrivals from '../components/home/NewArrivals.astro';
+import EditorialCampaign from '../components/home/EditorialCampaign.astro';
+import ModestCollection from '../components/home/ModestCollection.astro';
+import BrandValues from '../components/home/BrandValues.astro';
+import BrandStory from '../components/home/BrandStory.astro';
+import SocialGallery from '../components/home/SocialGallery.astro';
+import Newsletter from '../components/home/Newsletter.astro';
+
+import Marquee from '../components/ui/Marquee.astro';
 ---
 
 <Layout 
-  title="MALEGA APPAREL | Bespoke 300GSM Streetwear & Luxury Boxy Essentials"
-  description="Atelier resmi Malega Apparel Indonesia. Temukan koleksi kaos katun combed 300GSM, hoodie French Terry 380GSM, dan busana streetwear modern berstandar enterprise."
+  title="MALEGA APPAREL — Modern Clothing & Lifestyle Essentials"
+  description="Malega menghadirkan busana kontemporer dengan proporsi terukur, siluet modest modern, bahan berkualitas premium, dan karakter abadi."
 >
-  <Navbar />
+  <Header />
+  
   <main>
     <Hero />
-    <FeaturedCollection />
+    <Marquee />
+    <BrandStatement />
+    <FeaturedCollections />
+    <CategoryGrid />
+    <NewArrivals />
+    <EditorialCampaign />
+    <ModestCollection />
+    <BrandValues />
     <BrandStory />
-    <Lookbook />
-    <VIPAccess />
+    <SocialGallery />
+    <Newsletter />
   </main>
+
   <Footer />
 </Layout>

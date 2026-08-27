@@ -1,9 +1,35 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  --color-malega-navy: #0B132B;
+  --color-malega-navy-light: #111C3D;
+  --color-malega-navy-surface: #0E1736;
+  --color-malega-gold: #CBAC70;
+  --color-malega-gold-dark: #BD9B58;
+  --color-malega-gold-light: #E6D3A7;
+  --color-malega-white: #FDFCFF;
+  --color-malega-muted: #8E9BAE;
+  --color-malega-border: rgba(203, 172, 112, 0.15);
+  --color-malega-border-strong: rgba(203, 172, 112, 0.35);
+}
+
+:root {
+  --malega-navy: #0B132B;
+  --malega-gold: #CBAC70;
+  --malega-gold-dark: #BD9B58;
+  --malega-gold-light: #E6D3A7;
+  --malega-white: #FDFCFF;
+  --malega-muted: #8E9BAE;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0B132B;
+    color: #FDFCFF;
   }
 
   body {
@@ -12,44 +38,93 @@
     overflow-x: hidden;
     selection-background-color: #CBAC70;
     selection-color: #0B132B;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: #CBAC70;
+    color: #0B132B;
   }
 }
 
-/* Custom luxury glassmorphism and gold glow tokens */
-.luxury-card {
-  background: linear-gradient(180deg, rgba(20, 32, 74, 0.7) 0%, rgba(14, 23, 54, 0.9) 100%);
+/* Glassmorphism & Header state */
+.glass-header {
+  background: rgba(11, 19, 43, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(203, 172, 112, 0.22);
+  border-bottom: 1px solid rgba(203, 172, 112, 0.12);
 }
 
-.luxury-card:hover {
-  border-color: rgba(203, 172, 112, 0.55);
-}
-
-.glass-nav {
-  background: rgba(11, 19, 43, 0.85);
+.glass-header-scrolled {
+  background: rgba(11, 19, 43, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(203, 172, 112, 0.18);
+  border-bottom: 1px solid rgba(203, 172, 112, 0.2);
 }
 
+/* Gold Text Gradients (Subtle & Luxury) */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #FFFFFF 0%, #E3CD99 40%, #CBAC70 100%);
+  background: linear-gradient(135deg, #FDFCFF 0%, #E6D3A7 45%, #CBAC70 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gold-gradient-pure {
-  background: linear-gradient(135deg, #F5E6C8 0%, #CBAC70 50%, #A58645 100%);
+.gold-accent-text {
+  background: linear-gradient(135deg, #E6D3A7 0%, #CBAC70 60%, #BD9B58 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gold-gradient-bg {
-  background: linear-gradient(135deg, #E3CD99 0%, #CBAC70 50%, #A58645 100%);
+/* Subtle editorial borders and card backgrounds */
+.editorial-card {
+  background: linear-gradient(180deg, rgba(17, 28, 61, 0.5) 0%, rgba(11, 19, 43, 0.8) 100%);
+  border: 1px solid rgba(203, 172, 112, 0.15);
+  transition: border-color 0.4s ease, transform 0.4s ease;
 }
 
-.gold-glow {
-  box-shadow: 0 0 35px -5px rgba(203, 172, 112, 0.25);
+.editorial-card:hover {
+  border-color: rgba(203, 172, 112, 0.4);
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B132B;
+}
+::-webkit-scrollbar-thumb {
+  background: #14204A;
+  border-radius: 4px;
+  border: 1px solid rgba(203, 172, 112, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #CBAC70;
 }

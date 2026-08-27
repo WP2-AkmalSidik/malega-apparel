@@ -9,8 +9,8 @@ interface Props {
 }
 
 const {
-  title = "MALEGA APPAREL | Bespoke 300GSM Heavyweight Streetwear & Luxury Essentials",
-  description = "Official Malega Apparel Atelier. Discover premium 300GSM Combed Cotton Boxy Tees, 380GSM French Terry Hoodies, and Structured Urban Streetwear in Indonesia.",
+  title = "MALEGA APPAREL — Modern Clothing & Lifestyle Essentials",
+  description = "Official Malega Apparel Atelier. Contemporary fashion label crafted for everyday movement, refined modest essentials, tailored silhouettes, and lasting craftsmanship.",
   image = "/img/malega-brand.png",
   canonicalURL = "https://malega-apparel.com"
 } = Astro.props;
@@ -26,7 +26,7 @@ const structuredData = {
       "logo": {
         "@type": "ImageObject",
         "url": "https://malega-apparel.com/img/malega-brand.png",
-        "caption": "MALEGA APPAREL Official Logo"
+        "caption": "MALEGA APPAREL Official Brand Identity"
       },
       "sameAs": [
         "https://instagram.com/malega.apparel",
@@ -34,69 +34,18 @@ const structuredData = {
       ]
     },
     {
-      "@type": "ClothingStore",
-      "@id": "https://malega-apparel.com/#store",
-      "name": "MALEGA APPAREL Official Store",
-      "description": "Bespoke Streetwear Brand & Atelier specializing in 300GSM Heavyweight Combed Cotton & Luxury Boxy Silhouettes.",
-      "url": "https://malega-apparel.com",
-      "image": "https://malega-apparel.com/img/malega-brand.png",
-      "priceRange": "Rp 129.000 - Rp 449.000",
-      "currenciesAccepted": "IDR",
-      "paymentAccepted": "QRIS, Bank Transfer, Virtual Account, Credit Card, COD",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Bandung",
-        "addressRegion": "Jawa Barat",
-        "addressCountry": "ID"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "1420",
-        "bestRating": "5",
-        "worstRating": "1"
-      }
-    },
-    {
-      "@type": "OfferCatalog",
-      "name": "Malega SS26 Streetwear Collection",
-      "itemListElement": [
-        {
-          "@type": "Product",
-          "name": "Obsidian Heavyweight Boxy Tee 300GSM",
-          "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518",
-          "description": "100% Combed Cotton 300GSM, Boxy Drop Shoulder silhouette with 3.5cm double rib collar.",
-          "sku": "MLG-001",
-          "offers": {
-            "@type": "Offer",
-            "price": "229000",
-            "priceCurrency": "IDR",
-            "availability": "https://schema.org/InStock",
-            "url": "http://localhost:3000/products/mlg-001"
-          }
-        },
-        {
-          "@type": "Product",
-          "name": "Minimalist Boxy Fleece Hoodie 380GSM",
-          "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2",
-          "description": "380GSM French Terry Heavyweight Fleece Hoodie.",
-          "sku": "MLG-002",
-          "offers": {
-            "@type": "Offer",
-            "price": "389000",
-            "priceCurrency": "IDR",
-            "availability": "https://schema.org/InStock",
-            "url": "http://localhost:3000/products/mlg-002"
-          }
-        }
-      ]
+      "@type": "Brand",
+      "@id": "https://malega-apparel.com/#brand",
+      "name": "MALEGA APPAREL",
+      "description": "Modern Apparel & Lifestyle Brand specializing in casual wear, modest fashion, daily essentials, and premium apparel.",
+      "url": "https://malega-apparel.com"
     }
   ]
 };
 ---
 
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id" class="scroll-smooth bg-[#0B132B]">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
@@ -110,8 +59,8 @@ const structuredData = {
     <title>{title}</title>
     <meta name="title" content={title} />
     <meta name="description" content={description} />
-    <meta name="keywords" content="Malega Apparel, Kaos 300GSM, Kaos Boxy Oversized, Heavyweight T-Shirt, Streetwear Lokal, Streetwear Indonesia, French Terry Hoodie, Celana Cargo Ripstop, Streetwear Mewah" />
-    <meta name="author" content="Malega Apparel Atelier" />
+    <meta name="keywords" content="Malega Apparel, Modern Apparel, Modest Fashion, Koko Modern, Daily Essentials, Kaos Boxy, Contemporary Clothing, Premium Basics Indonesia" />
+    <meta name="author" content="Malega Apparel" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -121,7 +70,7 @@ const structuredData = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={image} />
-    <meta property="og:image:alt" content="MALEGA APPAREL - Bespoke 300GSM Streetwear" />
+    <meta property="og:image:alt" content="MALEGA APPAREL - Modern Clothing & Lifestyle Essentials" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
@@ -130,15 +79,15 @@ const structuredData = {
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={image} />
 
-    <!-- Google Fonts (Plus Jakarta Sans) -->
+    <!-- Google Fonts (Plus Jakarta Sans: 400, 500, 600, 700) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- JSON-LD SEO Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
-  <body class="bg-[#0B132B] text-[#FDFCFF] min-h-screen antialiased selection:bg-[#CBAC70] selection:text-[#0B132B] overflow-x-hidden">
+  <body class="bg-[#0B132B] text-[#FDFCFF] min-h-screen antialiased selection:bg-[#CBAC70] selection:text-[#0B132B] overflow-x-hidden font-sans">
     <slot />
   </body>
 </html>

@@ -1,0 +1,31 @@
+---
+import { FEATURED_COLLECTIONS } from '../../data/collections';
+import CollectionCard from '../ui/CollectionCard.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+---
+
+<section id="collections" class="py-24 sm:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
+  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 space-y-16">
+    
+    <!-- Section Heading -->
+    <SectionHeading
+      eyebrow="01 / Curated Disciplines"
+      title="Discover The Collections"
+      subtitle="Eksplorasi empat pilar desain Malega yang memadukan kenyamanan esensial, siluet modest modern, dan material berkarakter."
+      align="split"
+      linkText="View All Series"
+      linkHref="#categories"
+    />
+
+    <!-- Collection Grid (2x2 Editorial Layout) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+      {FEATURED_COLLECTIONS.map((collection, index) => (
+        <CollectionCard
+          collection={collection}
+          featured={index === 0}
+        />
+      ))}
+    </div>
+
+  </div>
+</section>

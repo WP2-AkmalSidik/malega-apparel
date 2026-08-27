@@ -1,0 +1,47 @@
+---
+interface Props {
+  href: string;
+  label: string;
+  variant?: 'gold' | 'white' | 'muted';
+  isExternal?: boolean;
+  class?: string;
+}
+
+const {
+  href,
+  label,
+  variant = 'gold',
+  isExternal = false,
+  class: className = '',
+} = Astro.props;
+
+const colorClasses = {
+  gold: 'text-[#CBAC70] hover:text-[#E6D3A7]',
+  white: 'text-[#FDFCFF] hover:text-[#CBAC70]',
+  muted: 'text-[#8E9BAE] hover:text-[#FDFCFF]',
+};
+---
+
+<a
+  href={href}
+  target={isExternal ? '_blank' : undefined}
+  rel={isExternal ? 'noopener noreferrer' : undefined}
+  class={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] transition-colors py-1 group ${colorClasses[variant]} ${className}`}
+>
+  <span class="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-current after:transition-all after:duration-300 group-hover:after:w-full">
+    {label}
+  </span>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+</a>
