@@ -5,25 +5,57 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    --color-navy: #0B132B;
+    --color-navy-light: #121B3D;
+    --color-navy-lighter: #182352;
+    --color-gold: #CBAC70;
+    --color-gold-dark: #BD9B58;
+    --color-ivory: #FDFCFF;
 }
 
-/* Custom scrollbar and backdrop styling */
+/* Custom garment-tag badge: hangtag shape with punched hole */
+.tag-badge { 
+    position: relative; 
+}
+.tag-badge::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: #0B132B;
+    box-shadow: 0 0 0 1px currentColor;
+}
+
+/* Custom dashed stitching separator */
+.stitch { 
+    border-top: 1px dashed rgba(203, 172, 112, 0.35); 
+}
+
+/* Custom scrollbar styling */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #0f172a;
+    background: #0B132B;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #CBAC70;
     border-radius: 9999px;
+    opacity: 0.5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: #BD9B58;
 }

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Computed;
 
 #[Title('Backoffice Dashboard | Malega Apparel')]
 class Dashboard extends Component
@@ -183,7 +184,8 @@ class Dashboard extends Component
         $this->notificationMessage = null;
     }
 
-    public function getFilteredProductsProperty(): array
+    #[Computed]
+    public function filteredProducts(): array
     {
         return array_filter($this->products, function ($prod) {
             $matchesSearch = empty($this->searchQuery) ||
@@ -197,7 +199,8 @@ class Dashboard extends Component
         });
     }
 
-    public function getTotalRevenueProperty(): int
+    #[Computed]
+    public function totalRevenue(): int
     {
         $total = 0;
         foreach ($this->products as $prod) {
@@ -206,7 +209,8 @@ class Dashboard extends Component
         return $total;
     }
 
-    public function getTotalStockProperty(): int
+    #[Computed]
+    public function totalStock(): int
     {
         $total = 0;
         foreach ($this->products as $prod) {
@@ -215,7 +219,8 @@ class Dashboard extends Component
         return $total;
     }
 
-    public function getLowStockCountProperty(): int
+    #[Computed]
+    public function lowStockCount(): int
     {
         $count = 0;
         foreach ($this->products as $prod) {
