@@ -2,19 +2,19 @@
 import { FOOTER_DIRECTORY, SOCIAL_LINKS } from '../../data/navigation';
 ---
 
-<footer class="bg-[#0B132B] border-t border-[#CBAC70]/15 pt-20 pb-12 text-[#8E9BAE]">
-  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 space-y-16">
+<footer class="bg-[#0B132B] border-t border-[#CBAC70]/15 pt-14 pb-8 sm:pt-20 sm:pb-12 text-[#8E9BAE]">
+  <div class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 space-y-10 sm:space-y-16">
     
     <!-- Top Row: Brand Statement & Directory Columns -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8">
       
       <!-- Brand Narrative Column -->
-      <div class="lg:col-span-4 space-y-6">
+      <div class="lg:col-span-4 space-y-4 sm:space-y-6">
         <a href="/" class="inline-block">
           <img
             src="/img/malega-brand.png"
             alt="MALEGA APPAREL"
-            class="h-9 w-auto object-contain brightness-105"
+            class="h-8 sm:h-9 w-auto object-contain brightness-105"
             width="150"
             height="40"
           />
@@ -25,13 +25,13 @@ import { FOOTER_DIRECTORY, SOCIAL_LINKS } from '../../data/navigation';
         </p>
 
         <!-- Social Media Links -->
-        <div class="flex flex-wrap items-center gap-5 pt-2">
+        <div class="flex flex-wrap items-center gap-4 sm:gap-5 pt-1 sm:pt-2">
           {SOCIAL_LINKS.map((social) => (
             <a
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              class="text-xs font-semibold uppercase tracking-[0.18em] text-[#CBAC70] hover:text-[#E6D3A7] transition-colors"
+              class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#CBAC70] hover:text-[#E6D3A7] transition-colors"
             >
               {social.label}
             </a>
@@ -39,19 +39,19 @@ import { FOOTER_DIRECTORY, SOCIAL_LINKS } from '../../data/navigation';
         </div>
       </div>
 
-      <!-- Directory Columns -->
-      <div class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
+      <!-- Directory Columns: 2 Columns on Mobile, 4 on Desktop -->
+      <div class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
         {FOOTER_DIRECTORY.map((col) => (
-          <div class="space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-[#FDFCFF]">
+          <div class="space-y-3 sm:space-y-4">
+            <h3 class="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#FDFCFF]">
               {col.title}
             </h3>
-            <ul class="space-y-2.5">
+            <ul class="space-y-2 sm:space-y-2.5">
               {col.links.map((link) => (
                 <li>
                   <a
                     href={link.href}
-                    class="text-xs text-[#8E9BAE] hover:text-[#CBAC70] transition-colors inline-block py-0.5"
+                    class="text-[11px] sm:text-xs text-[#8E9BAE] hover:text-[#CBAC70] transition-colors inline-block py-0.5"
                   >
                     {link.label}
                   </a>
@@ -65,11 +65,11 @@ import { FOOTER_DIRECTORY, SOCIAL_LINKS } from '../../data/navigation';
     </div>
 
     <!-- Middle Divider & Location Badge -->
-    <div class="border-t border-[#CBAC70]/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8E9BAE]">
-      <p class="tracking-wide">
+    <div class="border-t border-[#CBAC70]/10 pt-6 sm:pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs text-[#8E9BAE]">
+      <p class="tracking-wide text-[11px] sm:text-xs">
         Designed & Produced in Indonesia. Global Standard Craftsmanship.
       </p>
-      <div class="flex items-center gap-6 text-xs">
+      <div class="flex items-center gap-4 sm:gap-6 text-[11px] sm:text-xs">
         <span class="inline-flex items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-[#CBAC70]"></span>
           <span>Official Atelier Storefront</span>
@@ -79,15 +79,15 @@ import { FOOTER_DIRECTORY, SOCIAL_LINKS } from '../../data/navigation';
 
     <!-- Editorial Malega Wordmark Banner -->
     <div class="select-none overflow-hidden text-center opacity-10 hover:opacity-20 transition-opacity duration-700 pointer-events-none">
-      <span class="text-[clamp(48px,12vw,140px)] font-black uppercase tracking-[0.25em] text-[#FDFCFF] leading-none block whitespace-nowrap">
+      <span class="text-[clamp(32px,9vw,140px)] font-black uppercase tracking-[0.25em] text-[#FDFCFF] leading-none block whitespace-nowrap">
         MALEGA APPAREL
       </span>
     </div>
 
     <!-- Bottom Copyright -->
-    <div class="border-t border-[#CBAC70]/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#8E9BAE]/70">
+    <div class="border-t border-[#CBAC70]/10 pt-5 sm:pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] sm:text-[11px] text-[#8E9BAE]/70">
       <p>© {new Date().getFullYear()} MALEGA APPAREL. All rights reserved.</p>
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-4 sm:gap-6">
         <a href="#" class="hover:text-[#CBAC70] transition-colors">Privacy Policy</a>
         <a href="#" class="hover:text-[#CBAC70] transition-colors">Terms of Service</a>
         <a href="#" class="hover:text-[#CBAC70] transition-colors">Accessibility</a>

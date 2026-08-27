@@ -22,18 +22,18 @@ const {
 
 <div class={`w-full ${className}`}>
   {align === 'split' ? (
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#CBAC70]/15">
-      <div class="space-y-2 max-w-2xl">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-[#CBAC70]/15">
+      <div class="space-y-1.5 sm:space-y-2 max-w-2xl">
         {eyebrow && (
-          <p class="text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
+          <p class="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
             {eyebrow}
           </p>
         )}
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF]">
+        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF] leading-tight">
           {title}
         </h2>
         {subtitle && (
-          <p class="text-sm sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-1">
+          <p class="text-xs sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-0.5 sm:pt-1">
             {subtitle}
           </p>
         )}
@@ -42,12 +42,12 @@ const {
       {linkText && linkHref && (
         <a
           href={linkHref}
-          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#CBAC70] hover:text-[#E6D3A7] transition-colors py-1 group shrink-0"
+          class="inline-flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-[#CBAC70] hover:text-[#E6D3A7] transition-colors py-1 group shrink-0 self-start md:self-auto"
         >
           <span>{linkText}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:translate-x-1"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -62,33 +62,33 @@ const {
       )}
     </div>
   ) : align === 'center' ? (
-    <div class="text-center max-w-3xl mx-auto space-y-3">
+    <div class="text-center max-w-3xl mx-auto space-y-2 sm:space-y-3">
       {eyebrow && (
-        <p class="text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
+        <p class="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
           {eyebrow}
         </p>
       )}
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF]">
+      <h2 class="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF] leading-tight">
         {title}
       </h2>
       {subtitle && (
-        <p class="text-sm sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-1">
+        <p class="text-xs sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-0.5 sm:pt-1">
           {subtitle}
         </p>
       )}
     </div>
   ) : (
-    <div class="space-y-2 max-w-3xl">
+    <div class="space-y-1.5 sm:space-y-2 max-w-3xl">
       {eyebrow && (
-        <p class="text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
+        <p class="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
           {eyebrow}
         </p>
       )}
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF]">
+      <h2 class="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#FDFCFF] leading-tight">
         {title}
       </h2>
       {subtitle && (
-        <p class="text-sm sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-1">
+        <p class="text-xs sm:text-base text-[#8E9BAE] font-normal leading-relaxed pt-0.5 sm:pt-1">
           {subtitle}
         </p>
       )}

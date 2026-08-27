@@ -1,41 +1,60 @@
 ---
 ---
 
-<section class="relative min-h-[calc(100vh-4.5rem)] lg:min-h-[90vh] flex items-center pt-24 pb-8 sm:pt-28 sm:pb-10 lg:pt-24 lg:pb-8 overflow-hidden bg-[#0B132B]">
+<section class="relative min-h-[calc(100vh-4rem)] lg:min-h-[88vh] flex items-center pt-20 pb-8 sm:pt-24 sm:pb-10 lg:pt-24 lg:pb-8 overflow-hidden bg-[#0B132B]">
   <!-- Subtle Ambient Glows -->
   <div class="absolute top-1/4 right-1/4 w-[450px] h-[450px] bg-[#CBAC70]/5 blur-[140px] rounded-full pointer-events-none"></div>
   <div class="absolute bottom-10 left-10 w-[350px] h-[350px] bg-[#111C3D]/60 blur-[120px] rounded-full pointer-events-none"></div>
 
-  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 w-full relative z-10">
-    <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-center">
+  <div class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 w-full relative z-10">
+    <div class="grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 xl:gap-16 items-center">
       
-      <!-- Left Column: Editorial Statement & CTAs -->
+      <!-- Content Column -->
       <div class="lg:col-span-7 space-y-4 sm:space-y-5 lg:space-y-5 text-left">
         
         <!-- Eyebrow Tag -->
-        <div class="inline-flex items-center gap-3">
-          <span class="w-7 h-[1px] bg-[#CBAC70]"></span>
+        <div class="inline-flex items-center gap-2.5 sm:gap-3">
+          <span class="w-5 sm:w-7 h-[1px] bg-[#CBAC70]"></span>
           <span class="text-[10px] sm:text-xs font-semibold tracking-[0.25em] text-[#CBAC70] uppercase">
             Contemporary Apparel & Lifestyle
           </span>
         </div>
 
         <!-- Main Editorial Headline with Plus Jakarta Sans -->
-        <h1 class="text-3xl sm:text-5xl lg:text-[3.25rem] xl:text-[3.85rem] font-bold tracking-tight text-[#FDFCFF] leading-[1.1]">
-          Everyday Form. <br />
+        <h1 class="text-3xl sm:text-5xl lg:text-[3.25rem] xl:text-[3.85rem] font-bold tracking-tight text-[#FDFCFF] leading-[1.12]">
+          Everyday Form. <br class="hidden sm:inline" />
           <span class="gold-gradient-text">Elevated.</span>
         </h1>
 
+        <!-- Mobile Featured Image Preview (Visible only on mobile < sm) -->
+        <div class="block sm:hidden my-3">
+          <div class="relative aspect-[4/3] rounded-sm overflow-hidden bg-[#0E1736] border border-[#CBAC70]/25 shadow-lg">
+            <img
+              src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=85"
+              alt="Malega Apparel Editorial Campaign"
+              class="w-full h-full object-cover object-[center_20%]"
+              loading="eager"
+              width="600"
+              height="450"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0B132B]/85 via-transparent to-transparent pointer-events-none"></div>
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[9px] text-[#FDFCFF]">
+              <span class="font-semibold text-[#CBAC70] tracking-widest uppercase">SS26 CAPSULE</span>
+              <span class="font-mono text-[#8E9BAE]">01/26</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Supporting Subtitle Copy -->
-        <p class="text-sm sm:text-base text-[#8E9BAE] max-w-lg font-normal leading-relaxed">
+        <p class="text-xs sm:text-base text-[#8E9BAE] max-w-lg font-normal leading-relaxed">
           Malega menghadirkan busana kontemporer dengan proporsi terukur, kenyamanan esensial, dan karakter abadi — dirancang untuk menemani setiap babak perjalanan Anda.
         </p>
 
-        <!-- CTAs -->
-        <div class="flex flex-wrap items-center gap-3.5 pt-1">
+        <!-- CTAs (Mobile Optimized) -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 pt-1">
           <a
             href="#collections"
-            class="px-7 py-3 sm:py-3.5 bg-[#CBAC70] hover:bg-[#E6D3A7] text-[#0B132B] font-semibold text-xs uppercase tracking-[0.2em] transition-all duration-300 rounded-sm shadow-md hover:shadow-[#CBAC70]/20 flex items-center gap-2 group"
+            class="w-full sm:w-auto text-center px-6 sm:px-7 py-3 sm:py-3.5 bg-[#CBAC70] hover:bg-[#E6D3A7] text-[#0B132B] font-semibold text-xs uppercase tracking-[0.2em] transition-all duration-300 rounded-sm shadow-md hover:shadow-[#CBAC70]/20 flex items-center justify-center gap-2 group active:scale-98"
           >
             <span>Explore Collection</span>
             <svg
@@ -55,44 +74,44 @@
 
           <a
             href="#statement"
-            class="px-6 py-3 sm:py-3.5 border border-[#CBAC70]/30 hover:border-[#CBAC70] bg-[#0B132B]/40 hover:bg-[#0E1736] text-[#FDFCFF] font-semibold text-xs uppercase tracking-[0.2em] transition-all duration-300 rounded-sm"
+            class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 border border-[#CBAC70]/30 hover:border-[#CBAC70] bg-[#0B132B]/40 hover:bg-[#0E1736] text-[#FDFCFF] font-semibold text-xs uppercase tracking-[0.2em] transition-all duration-300 rounded-sm active:scale-98"
           >
             Discover Malega
           </a>
         </div>
 
         <!-- Subtle 3 Key Pillars -->
-        <div class="grid grid-cols-3 gap-4 sm:gap-6 pt-4 sm:pt-5 border-t border-[#CBAC70]/15 max-w-lg">
+        <div class="grid grid-cols-3 gap-2 sm:gap-6 pt-4 sm:pt-5 border-t border-[#CBAC70]/15 max-w-lg">
           <div class="space-y-0.5">
-            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#CBAC70]">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[#CBAC70]">
               Silhouettes
             </p>
-            <p class="text-[11px] sm:text-xs text-[#8E9BAE]">
-              Relaxed & Tailored
+            <p class="text-[10px] sm:text-xs text-[#8E9BAE] leading-tight">
+              Relaxed Fit
             </p>
           </div>
           <div class="space-y-0.5">
-            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#CBAC70]">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[#CBAC70]">
               Materials
             </p>
-            <p class="text-[11px] sm:text-xs text-[#8E9BAE]">
-              Dense Combed Weaves
+            <p class="text-[10px] sm:text-xs text-[#8E9BAE] leading-tight">
+              Combed Cotton
             </p>
           </div>
           <div class="space-y-0.5">
-            <p class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-[#CBAC70]">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[#CBAC70]">
               Versatility
             </p>
-            <p class="text-[11px] sm:text-xs text-[#8E9BAE]">
-              Daily to Moments
+            <p class="text-[10px] sm:text-xs text-[#8E9BAE] leading-tight">
+              Daily Moments
             </p>
           </div>
         </div>
 
       </div>
 
-      <!-- Right Column: Asymmetrical Editorial Photography Composition -->
-      <div class="lg:col-span-5 relative flex justify-center lg:justify-end">
+      <!-- Right Column: Desktop/Tablet Photo Frame (hidden on < sm because mobile preview is above) -->
+      <div class="hidden sm:flex lg:col-span-5 relative justify-center lg:justify-end">
         <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-none">
           
           <!-- Editorial Photo Frame -->

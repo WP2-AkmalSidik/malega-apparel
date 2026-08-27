@@ -4,8 +4,8 @@ import ProductCard from '../ui/ProductCard.astro';
 import SectionHeading from '../ui/SectionHeading.astro';
 ---
 
-<section id="new-arrivals" class="py-24 sm:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
-  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 space-y-16">
+<section id="new-arrivals" class="py-16 sm:py-24 lg:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
+  <div class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 space-y-8 sm:space-y-16">
     
     <!-- Section Heading -->
     <SectionHeading
@@ -17,20 +17,20 @@ import SectionHeading from '../ui/SectionHeading.astro';
       linkHref="https://wa.me/6281234567890?text=Halo%20Malega%20Apparel%20saya%20ingin%20melihat%20katalog%20lengkap."
     />
 
-    <!-- Product Grid: 4 cols desktop, 2-3 cols tablet, 2 cols mobile -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:gap-x-8 lg:gap-y-12">
+    <!-- Product Grid: 2 cols mobile, 3 cols tablet, 4 cols desktop -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3.5 gap-y-6 sm:gap-x-6 sm:gap-y-10 lg:gap-x-8 lg:gap-y-12">
       {NEW_ARRIVALS.map((product) => (
         <ProductCard product={product} />
       ))}
     </div>
 
     <!-- Bottom Action Banner -->
-    <div class="pt-8 text-center">
+    <div class="pt-4 sm:pt-8 text-center">
       <a
         href="https://wa.me/6281234567890?text=Halo%20Malega%20Apparel%20saya%20ingin%20konsultasi%20ukuran%20dan%20order."
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-3 px-8 py-4 border border-[#CBAC70]/30 hover:border-[#CBAC70] bg-[#0E1736] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 rounded-sm shadow-md"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-8 py-3.5 sm:py-4 border border-[#CBAC70]/30 hover:border-[#CBAC70] bg-[#0E1736] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.2em] transition-all duration-300 rounded-sm shadow-md active:scale-98"
       >
         <span>Inquire & Order via Concierge</span>
         <svg

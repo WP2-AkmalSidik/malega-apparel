@@ -4,8 +4,8 @@ import CollectionCard from '../ui/CollectionCard.astro';
 import SectionHeading from '../ui/SectionHeading.astro';
 ---
 
-<section id="collections" class="py-24 sm:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
-  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 space-y-16">
+<section id="collections" class="py-16 sm:py-24 lg:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
+  <div class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 space-y-8 sm:space-y-16">
     
     <!-- Section Heading -->
     <SectionHeading
@@ -18,7 +18,7 @@ import SectionHeading from '../ui/SectionHeading.astro';
     />
 
     <!-- Collection Grid (2x2 Editorial Layout) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 lg:gap-10">
       {FEATURED_COLLECTIONS.map((collection, index) => (
         <CollectionCard
           collection={collection}

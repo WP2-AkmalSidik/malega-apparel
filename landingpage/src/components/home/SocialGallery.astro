@@ -3,8 +3,8 @@ import { SOCIAL_GALLERY } from '../../data/editorial';
 import SectionHeading from '../ui/SectionHeading.astro';
 ---
 
-<section class="py-24 sm:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
-  <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 space-y-16">
+<section class="py-16 sm:py-24 lg:py-32 bg-[#0B132B] relative border-t border-[#CBAC70]/10">
+  <div class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 space-y-8 sm:space-y-16">
     
     <!-- Section Heading -->
     <SectionHeading
@@ -16,8 +16,8 @@ import SectionHeading from '../ui/SectionHeading.astro';
       linkHref="https://instagram.com/malega.apparel"
     />
 
-    <!-- Visual 6-Grid Gallery -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+    <!-- Visual 6-Grid Gallery: 3 Columns on Mobile, 6 on Desktop -->
+    <div class="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
       {SOCIAL_GALLERY.map((item) => (
         <a
           href="https://instagram.com/malega.apparel"
@@ -36,11 +36,11 @@ import SectionHeading from '../ui/SectionHeading.astro';
           />
 
           <!-- Gradient on Hover -->
-          <div class="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/40 to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col justify-end p-4 z-10">
-            <span class="text-[9px] font-semibold text-[#CBAC70] uppercase tracking-[0.2em] block">
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/40 to-transparent opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col justify-end p-2.5 sm:p-4 z-10">
+            <span class="text-[8px] sm:text-[9px] font-semibold text-[#CBAC70] uppercase tracking-[0.2em] block">
               {item.tag}
             </span>
-            <p class="text-xs text-[#FDFCFF] font-medium leading-snug line-clamp-2">
+            <p class="text-[10px] sm:text-xs text-[#FDFCFF] font-medium leading-snug line-clamp-2 hidden sm:block">
               {item.caption}
             </p>
           </div>
