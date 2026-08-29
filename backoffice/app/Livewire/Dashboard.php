@@ -2,242 +2,160 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
-#[Title('Backoffice Dashboard | Malega Apparel')]
+#[Title('Dashboard | Malega Apparel Backoffice')]
+#[Layout('layouts.app')]
 class Dashboard extends Component
 {
-    public string $activeTab = 'overview';
+    public string $timeRange = '7d';
+
     public string $searchQuery = '';
-    public string $selectedCategory = 'all';
-    public string $timeRange = 'month';
 
-    // Form state for adding new product
-    public bool $showAddModal = false;
-    public string $newProductName = '';
-    public string $newProductCategory = 'T-Shirt';
-    public string $newProductSku = '';
-    public int $newProductPrice = 0;
-    public int $newProductStock = 0;
-
-    // Flash notification message
-    public ?string $notificationMessage = null;
-
-    // Mock dataset for Backoffice demonstration
-    public array $products = [
-        [
-            'id' => 1,
-            'sku' => 'MLG-TS-001',
-            'name' => 'Obsidian Heavyweight Tee 300GSM',
-            'category' => 'T-Shirt',
-            'price' => 289000,
-            'stock' => 45,
-            'status' => 'In Stock',
-            'sales' => 128
-        ],
-        [
-            'id' => 2,
-            'sku' => 'MLG-CG-002',
-            'name' => 'Tactical Cargo Jogger Pants',
-            'category' => 'Bottoms',
-            'price' => 429000,
-            'stock' => 18,
-            'status' => 'In Stock',
-            'sales' => 94
-        ],
-        [
-            'id' => 3,
-            'sku' => 'MLG-HD-003',
-            'name' => 'Minimalist Boxy Fleece Hoodie',
-            'category' => 'Outerwear',
-            'price' => 489000,
-            'stock' => 7,
-            'status' => 'Low Stock',
-            'sales' => 76
-        ],
-        [
-            'id' => 4,
-            'sku' => 'MLG-DN-004',
-            'name' => 'Raw Denim Workwear Overshirt',
-            'category' => 'Outerwear',
-            'price' => 529000,
-            'stock' => 12,
-            'status' => 'In Stock',
-            'sales' => 52
-        ],
-        [
-            'id' => 5,
-            'sku' => 'MLG-CP-005',
-            'name' => 'Structured Minimal 6-Panel Cap',
-            'category' => 'Accessories',
-            'price' => 179000,
-            'stock' => 34,
-            'status' => 'In Stock',
-            'sales' => 160
-        ],
-        [
-            'id' => 6,
-            'sku' => 'MLG-BG-006',
-            'name' => 'Urban Modular Crossbody Bag',
-            'category' => 'Accessories',
-            'price' => 249000,
-            'stock' => 4,
-            'status' => 'Low Stock',
-            'sales' => 88
-        ]
-    ];
-
-    public array $recentOrders = [
-        [
-            'order_id' => 'ORD-2026-9021',
-            'customer' => 'Dimas Pratama',
-            'items' => 'Obsidian Heavyweight Tee (XL)',
-            'total' => 289000,
-            'status' => 'Paid',
-            'created_at' => '10 menit lalu'
-        ],
-        [
-            'order_id' => 'ORD-2026-9020',
-            'customer' => 'Rian Aditya',
-            'items' => 'Tactical Cargo Jogger (L) + Cap',
-            'total' => 608000,
-            'status' => 'Packing',
-            'created_at' => '35 menit lalu'
-        ],
-        [
-            'order_id' => 'ORD-2026-9019',
-            'customer' => 'Arif Wicaksono',
-            'items' => 'Minimalist Boxy Hoodie (L)',
-            'total' => 489000,
-            'status' => 'Shipped',
-            'created_at' => '2 jam lalu'
-        ],
-        [
-            'order_id' => 'ORD-2026-9018',
-            'customer' => 'Fajar Nugraha',
-            'items' => 'Raw Denim Overshirt (M)',
-            'total' => 529000,
-            'status' => 'Delivered',
-            'created_at' => '4 jam lalu'
-        ]
-    ];
-
-    public function setTab(string $tab): void
+    /**
+     * Set the active time range filter for metrics.
+     */
+    public function setTimeRange(string $range): void
     {
-        $this->activeTab = $tab;
+        $this->timeRange = $range;
     }
 
-    public function openAddModal(): void
+    /**
+     * Export current dashboard metrics snapshot.
+     */
+    public function exportReport(): void
     {
-        $this->newProductName = '';
-        $this->newProductCategory = 'T-Shirt';
-        $this->newProductSku = 'MLG-NEW-' . rand(100, 999);
-        $this->newProductPrice = 299000;
-        $this->newProductStock = 25;
-        $this->showAddModal = true;
+        session()->flash('status', 'Laporan metrik penjualan sedang dipersiapkan untuk diekspor.');
     }
 
-    public function closeAddModal(): void
+    /**
+     * Get computed stat cards based on timeRange.
+     *
+     * @return array<string, array{label: string, value: string, badge: string, badgeType: string, comparison: string}>
+     */
+    #[Computed]
+    public function stats(): array
     {
-        $this->showAddModal = false;
+        return match ($this->timeRange) {
+            '30d' => [
+                'revenue' => ['label' => 'Total Pendapatan', 'value' => 'Rp 1,12M', 'badge' => '+18,2%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
+                'orders' => ['label' => 'Pesanan Baru', 'value' => '4.890', 'badge' => '+8,7%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
+                'customers' => ['label' => 'Pelanggan Baru', 'value' => '1.420', 'badge' => '+4,1%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
+                'conversion' => ['label' => 'Tingkat Konversi', 'value' => '3,95%', 'badge' => '+0,4%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
+            ],
+            '1y' => [
+                'revenue' => ['label' => 'Total Pendapatan', 'value' => 'Rp 14,8M', 'badge' => '+34,5%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
+                'orders' => ['label' => 'Pesanan Baru', 'value' => '58.420', 'badge' => '+22,1%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
+                'customers' => ['label' => 'Pelanggan Baru', 'value' => '18.900', 'badge' => '+15,6%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
+                'conversion' => ['label' => 'Tingkat Konversi', 'value' => '4,10%', 'badge' => '+0,8%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
+            ],
+            default => [
+                'revenue' => ['label' => 'Total Pendapatan', 'value' => 'Rp 284,5jt', 'badge' => '+12,4%', 'badgeType' => 'emerald', 'comparison' => 'vs minggu lalu'],
+                'orders' => ['label' => 'Pesanan Baru', 'value' => '1.248', 'badge' => '+5,1%', 'badgeType' => 'emerald', 'comparison' => 'vs minggu lalu'],
+                'customers' => ['label' => 'Pelanggan Baru', 'value' => '356', 'badge' => '-2,3%', 'badgeType' => 'red', 'comparison' => 'vs minggu lalu'],
+                'conversion' => ['label' => 'Tingkat Konversi', 'value' => '3,82%', 'badge' => '+0,6%', 'badgeType' => 'emerald', 'comparison' => 'vs minggu lalu'],
+            ],
+        };
     }
 
-    public function saveProduct(): void
+    /**
+     * Top selling products feed.
+     *
+     * @return array<int, array{code: string, name: string, sold: string, price: string}>
+     */
+    #[Computed]
+    public function topProducts(): array
     {
-        if (trim($this->newProductName) === '') {
-            $this->notificationMessage = 'Nama produk wajib diisi.';
-            return;
-        }
+        return [
+            ['code' => 'OS', 'name' => 'Oxford Shirt — Navy', 'sold' => '142 terjual', 'price' => 'Rp 349rb'],
+            ['code' => 'TC', 'name' => 'Tailored Chino', 'sold' => '98 terjual', 'price' => 'Rp 429rb'],
+            ['code' => 'LB', 'name' => 'Leather Belt Classic', 'sold' => '76 terjual', 'price' => 'Rp 219rb'],
+            ['code' => 'WC', 'name' => 'Wool Overcoat', 'sold' => '54 terjual', 'price' => 'Rp 1,2jt'],
+        ];
+    }
 
-        $newId = count($this->products) + 1;
-        $this->products[] = [
-            'id' => $newId,
-            'sku' => $this->newProductSku ?: 'MLG-SKU-' . $newId,
-            'name' => $this->newProductName,
-            'category' => $this->newProductCategory,
-            'price' => (int)$this->newProductPrice,
-            'stock' => (int)$this->newProductStock,
-            'status' => (int)$this->newProductStock > 10 ? 'In Stock' : 'Low Stock',
-            'sales' => 0
+    /**
+     * Recent orders feed with status and customer information.
+     *
+     * @return array<int, array{id: string, initials: string, customer: string, products: string, date: string, total: string, status: string, statusType: string}>
+     */
+    #[Computed]
+    public function recentOrders(): array
+    {
+        $allOrders = [
+            [
+                'id' => '#MLG-10245',
+                'initials' => 'RD',
+                'customer' => 'Rina Dewi',
+                'products' => 'Oxford Shirt, Tailored Chino',
+                'date' => '27 Ags 2026',
+                'total' => 'Rp 778rb',
+                'status' => 'Dikirim',
+                'statusType' => 'gold',
+            ],
+            [
+                'id' => '#MLG-10244',
+                'initials' => 'BS',
+                'customer' => 'Budi Santoso',
+                'products' => 'Wool Overcoat',
+                'date' => '27 Ags 2026',
+                'total' => 'Rp 1,2jt',
+                'status' => 'Diproses',
+                'statusType' => 'amber',
+            ],
+            [
+                'id' => '#MLG-10243',
+                'initials' => 'SP',
+                'customer' => 'Sari Puspita',
+                'products' => 'Leather Belt Classic',
+                'date' => '26 Ags 2026',
+                'total' => 'Rp 219rb',
+                'status' => 'Selesai',
+                'statusType' => 'emerald',
+            ],
+            [
+                'id' => '#MLG-10242',
+                'initials' => 'HN',
+                'customer' => 'Hendra Nugraha',
+                'products' => 'Oxford Shirt — Navy',
+                'date' => '26 Ags 2026',
+                'total' => 'Rp 349rb',
+                'status' => 'Dibatalkan',
+                'statusType' => 'red',
+            ],
+            [
+                'id' => '#MLG-10241',
+                'initials' => 'DP',
+                'customer' => 'Dian Permata',
+                'products' => 'Tailored Chino, Leather Belt',
+                'date' => '25 Ags 2026',
+                'total' => 'Rp 648rb',
+                'status' => 'Dikirim',
+                'statusType' => 'gold',
+            ],
         ];
 
-        $this->showAddModal = false;
-        $this->notificationMessage = 'Produk "' . $this->newProductName . '" berhasil ditambahkan ke inventaris!';
-    }
-
-    public function adjustStock(int $id, int $amount): void
-    {
-        foreach ($this->products as &$prod) {
-            if ($prod['id'] === $id) {
-                $prod['stock'] = max(0, $prod['stock'] + $amount);
-                $prod['status'] = $prod['stock'] > 10 ? 'In Stock' : ($prod['stock'] > 0 ? 'Low Stock' : 'Out of Stock');
-                $this->notificationMessage = 'Stok ' . $prod['name'] . ' diperbarui: ' . $prod['stock'] . ' pcs';
-                break;
-            }
+        if (empty($this->searchQuery)) {
+            return $allOrders;
         }
-    }
 
-    public function dismissNotification(): void
-    {
-        $this->notificationMessage = null;
-    }
+        $query = strtolower($this->searchQuery);
 
-    #[Computed]
-    public function filteredProducts(): array
-    {
-        return array_filter($this->products, function ($prod) {
-            $matchesSearch = empty($this->searchQuery) ||
-                stripos($prod['name'], $this->searchQuery) !== false ||
-                stripos($prod['sku'], $this->searchQuery) !== false;
-
-            $matchesCategory = $this->selectedCategory === 'all' ||
-                $prod['category'] === $this->selectedCategory;
-
-            return $matchesSearch && $matchesCategory;
+        return array_filter($allOrders, function ($order) use ($query) {
+            return str_contains(strtolower($order['id']), $query)
+                || str_contains(strtolower($order['customer']), $query)
+                || str_contains(strtolower($order['products']), $query);
         });
     }
 
-    #[Computed]
-    public function totalRevenue(): int
-    {
-        $total = 0;
-        foreach ($this->products as $prod) {
-            $total += ($prod['price'] * $prod['sales']);
-        }
-        return $total;
-    }
-
-    #[Computed]
-    public function totalStock(): int
-    {
-        $total = 0;
-        foreach ($this->products as $prod) {
-            $total += $prod['stock'];
-        }
-        return $total;
-    }
-
-    #[Computed]
-    public function lowStockCount(): int
-    {
-        $count = 0;
-        foreach ($this->products as $prod) {
-            if ($prod['stock'] <= 10) {
-                $count++;
-            }
-        }
-        return $count;
-    }
-
+    /**
+     * Render dashboard view.
+     */
     public function render()
     {
-        return view('livewire.dashboard', [
-            'filteredProducts' => $this->filteredProducts,
-            'totalRevenue' => $this->totalRevenue,
-            'totalStock' => $this->totalStock,
-            'lowStockCount' => $this->lowStockCount,
-        ]);
+        return view('livewire.dashboard');
     }
 }
