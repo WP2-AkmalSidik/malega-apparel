@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class OrderAddress extends Model
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'order_id',
+        'recipient_name',
+        'phone',
+        'address_line1',
+        'address_line2',
+        'city',
+        'province',
+        'postal_code',
+        'courier_name',
+        'tracking_number',
+    ];
+
+    /**
+     * Parent order.
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+}

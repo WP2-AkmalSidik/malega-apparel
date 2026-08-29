@@ -97,14 +97,19 @@
 
                 <!-- Pesanan -->
                 <a 
-                    href="#" 
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md text-ivory/60 hover:bg-white/5 hover:text-ivory transition-colors"
+                    href="{{ route('orders.index') }}" 
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md {{ request()->routeIs('orders*') ? 'bg-gold/10 border-l-2 border-gold text-ivory font-medium' : 'text-ivory/60 hover:bg-white/5 hover:text-ivory transition-colors' }}"
                 >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <svg class="w-4 h-4 {{ request()->routeIs('orders*') ? 'text-gold' : 'text-ivory/60' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.881-4.804 2.231-7.454a1.125 1.125 0 00-1.12-1.296H5.25M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
                     </svg>
                     <span class="text-sm">Pesanan</span>
-                    <span class="ml-auto text-[10px] bg-gold text-navy font-semibold px-1.5 py-0.5 rounded-full">12</span>
+                    @php
+                        $pendingOrdersCount = \App\Models\Order::where('order_status', \App\Enums\OrderStatus::Pending)->count();
+                    @endphp
+                    @if($pendingOrdersCount > 0)
+                        <span class="ml-auto text-[10px] bg-gold text-navy font-bold px-1.5 py-0.5 rounded-full">{{ $pendingOrdersCount }}</span>
+                    @endif
                 </a>
 
                 <!-- Pelanggan -->
@@ -199,6 +204,8 @@
                         Katalog / Kategori
                     @elseif(request()->routeIs('inventory*'))
                         Inventori / Saldo Stok & Buku Besar
+                    @elseif(request()->routeIs('orders*'))
+                        Transaksi / Manajemen Pesanan
                     @else
                         Overview / Dashboard
                     @endif

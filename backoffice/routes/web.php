@@ -5,6 +5,7 @@ use App\Livewire\Catalog\CategoryIndex;
 use App\Livewire\Catalog\ProductIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Inventory\InventoryIndex;
+use App\Livewire\Orders\OrderIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,9 @@ Route::middleware('auth')->group(function () {
 
     // Module 04: Inventory Management & Ledger
     Route::get('/inventory', InventoryIndex::class)->name('inventory.index');
+
+    // Module 05: Order & Commerce Management
+    Route::get('/orders', OrderIndex::class)->name('orders.index');
 
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();

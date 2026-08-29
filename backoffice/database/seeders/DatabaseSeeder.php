@@ -65,7 +65,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 5. Seed Catalog (Categories, Products & Variants)
+        // 5. Seed Catalog & Inventory
         $this->call(CatalogSeeder::class);
+
+        // 6. Seed Sample Orders
+        $this->call(OrderSeeder::class);
     }
 }
