@@ -3,6 +3,7 @@
 namespace App\Actions\Catalog;
 
 use App\Enums\ProductStatus;
+use App\Models\InventoryItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 class UpdateProductAction
 {
     /**
-     * Update a product and sync its variants.
+     * Update a product and sync its variants and inventory items.
      *
      * @param array{
      *     category_id?: int,
@@ -93,6 +94,12 @@ class UpdateProductAction
                                 'is_active' => $variantData['is_active'] ?? true,
                             ]);
                             $keptVariantIds[] = $variant->id;
+
+                            // Ensure inventory item exists
+                            InventoryItem::firstOrCreate(
+                                ['variant_id' => $variant->id],
+                                ['on_hand' => 0, 'reserved' => 0, 'low_stock_threshold' => 5]
+                            );
                         }
                     } else {
                         $newVariant = $product->variants()->create([
@@ -105,6 +112,12 @@ class UpdateProductAction
                             'is_active' => $variantData['is_active'] ?? true,
                         ]);
                         $keptVariantIds[] = $newVariant->id;
+
+                        // Initialize inventory item for new variant
+                        InventoryItem::firstOrCreate(
+                            ['variant_id' => $newVariant->id],
+                            ['on_hand' => 0, 'reserved' => 0, 'low_stock_threshold' => 5]
+                        );
                     }
                 }
 
@@ -114,7 +127,7 @@ class UpdateProductAction
                 }
             }
 
-            return $product->fresh(['category', 'collections', 'variants', 'images']);
+            return $product->fresh(['category', 'collections', 'variants.inventoryItem', 'images']);
         });
     }
 }

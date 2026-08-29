@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use App\Actions\Catalog\CreateCategoryAction;
 use App\Actions\Catalog\CreateProductAction;
+use App\Actions\Inventory\AddStockInboundAction;
 use App\Enums\ProductStatus;
+use App\Models\InventoryItem;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class CatalogSeeder extends Seeder
@@ -12,8 +15,13 @@ class CatalogSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(CreateCategoryAction $createCategory, CreateProductAction $createProduct): void
-    {
+    public function run(
+        CreateCategoryAction $createCategory,
+        CreateProductAction $createProduct,
+        AddStockInboundAction $addStock
+    ): void {
+        $admin = User::first();
+
         // 1. Categories
         $catTops = $createCategory->execute([
             'name' => 'Kemeja & Atasan',
@@ -56,7 +64,7 @@ class CatalogSeeder extends Seeder
         ]);
 
         // 2. Sample Products with Variants
-        $createProduct->execute([
+        $prod1 = $createProduct->execute([
             'category_id' => $catTops->id,
             'name' => 'Malega Oxford Signature Shirt — Obsidian Navy',
             'slug' => 'oxford-signature-navy',
@@ -70,7 +78,7 @@ class CatalogSeeder extends Seeder
             ],
         ]);
 
-        $createProduct->execute([
+        $prod2 = $createProduct->execute([
             'category_id' => $catBottoms->id,
             'name' => 'Tailored Slim Chino Trousers — Charcoal Khaki',
             'slug' => 'tailored-chino-charcoal',
@@ -84,7 +92,7 @@ class CatalogSeeder extends Seeder
             ],
         ]);
 
-        $createProduct->execute([
+        $prod3 = $createProduct->execute([
             'category_id' => $catAcc->id,
             'name' => 'Genuine Leather Belt Classic — Vintage Brass Buckle',
             'slug' => 'leather-belt-vintage-brass',
@@ -96,7 +104,7 @@ class CatalogSeeder extends Seeder
             ],
         ]);
 
-        $createProduct->execute([
+        $prod4 = $createProduct->execute([
             'category_id' => $catOuter->id,
             'name' => 'Malega Cashmere Wool Blend Overcoat',
             'slug' => 'cashmere-wool-overcoat',
@@ -107,5 +115,32 @@ class CatalogSeeder extends Seeder
                 ['sku' => 'MLG-OVC-BLK-L', 'title' => 'Black / L', 'price' => 1200000, 'compare_at_price' => 1450000, 'cost_price' => 600000, 'weight_grams' => 900, 'is_active' => true],
             ],
         ]);
+
+        // 3. Seed Initial Inbound Stock Balances
+        $stockMap = [
+            'MLG-OXF-NVY-S' => 25,
+            'MLG-OXF-NVY-M' => 45,
+            'MLG-OXF-NVY-L' => 30,
+            'MLG-OXF-NVY-XL' => 4, // Low stock example (< 5)
+            'MLG-CHN-KHK-29' => 12,
+            'MLG-CHN-KHK-30' => 28,
+            'MLG-CHN-KHK-32' => 35,
+            'MLG-CHN-KHK-34' => 0, // Out of stock example
+            'MLG-BLT-BRN-STD' => 50,
+            'MLG-BLT-BLK-STD' => 3, // Low stock example
+            'MLG-OVC-BLK-M' => 15,
+            'MLG-OVC-BLK-L' => 8,
+        ];
+
+        foreach ($stockMap as $sku => $qty) {
+            $item = InventoryItem::whereHas('variant', fn ($v) => $v->where('sku', $sku))->first();
+            if ($item && $qty > 0) {
+                $addStock->execute($item, [
+                    'quantity' => $qty,
+                    'reference_note' => 'Stok awal produksi Batch 01 — Malega Apparel',
+                    'user_id' => $admin?->id,
+                ]);
+            }
+        }
     }
 }

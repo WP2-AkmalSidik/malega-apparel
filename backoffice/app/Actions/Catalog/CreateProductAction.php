@@ -3,6 +3,7 @@
 namespace App\Actions\Catalog;
 
 use App\Enums\ProductStatus;
+use App\Models\InventoryItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 class CreateProductAction
 {
     /**
-     * Create a product with its variants in an atomic transaction.
+     * Create a product with its variants and initialize inventory records in an atomic transaction.
      *
      * @param array{
      *     category_id: int,
@@ -83,7 +84,7 @@ class CreateProductAction
             }
 
             foreach ($data['variants'] as $variantData) {
-                $product->variants()->create([
+                $variant = $product->variants()->create([
                     'sku' => strtoupper(trim($variantData['sku'])),
                     'title' => $variantData['title'],
                     'price' => (int) $variantData['price'],
@@ -92,9 +93,15 @@ class CreateProductAction
                     'weight_grams' => ! empty($variantData['weight_grams']) ? (int) $variantData['weight_grams'] : 250,
                     'is_active' => $variantData['is_active'] ?? true,
                 ]);
+
+                // Initialize inventory item record (ADR-001)
+                InventoryItem::firstOrCreate(
+                    ['variant_id' => $variant->id],
+                    ['on_hand' => 0, 'reserved' => 0, 'low_stock_threshold' => 5]
+                );
             }
 
-            return $product->load(['category', 'collections', 'variants', 'images']);
+            return $product->load(['category', 'collections', 'variants.inventoryItem', 'images']);
         });
     }
 }
