@@ -22,16 +22,24 @@
                 type: toast.type || 'info',
                 title: toast.title || (toast.type === 'success' ? 'Berhasil' : (toast.type === 'error' ? 'Gagal' : 'Pemberitahuan')),
                 message: toast.message || (typeof toast === 'string' ? toast : ''),
+                visible: true,
                 timeout: toast.timeout || 4000
             };
             this.toasts.push(newToast);
 
             setTimeout(() => {
-                this.removeToast(id);
+                this.dismissToast(id);
             }, newToast.timeout);
         },
-        removeToast(id) {
-            this.toasts = this.toasts.filter(t => t.id !== id);
+        dismissToast(id) {
+            const toast = this.toasts.find(t => t.id === id);
+            if (toast && toast.visible) {
+                toast.visible = false;
+                // Wait for exit animation to finish before removing from array
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter(t => t.id !== id);
+                }, 300);
+            }
         }
     }"
     x-on:toast.window="addToast($event.detail)"
@@ -41,12 +49,13 @@
 >
     <template x-for="toast in toasts" :key="toast.id">
         <div
-            x-transition:enter="transform ease-out duration-300 transition"
-            x-transition:enter-start="translate-y-4 opacity-0 scale-95"
-            x-transition:enter-end="translate-y-0 opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-90 translate-x-4"
+            x-show="toast.visible"
+            x-transition:enter="transition ease-out duration-350 transform"
+            x-transition:enter-start="translate-x-[110%] opacity-0"
+            x-transition:enter-end="translate-x-0 opacity-100"
+            x-transition:leave="transition ease-in duration-250 transform"
+            x-transition:leave-start="translate-y-0 opacity-100 scale-100"
+            x-transition:leave-end="translate-y-10 opacity-0 scale-95"
             class="pointer-events-auto w-full overflow-hidden rounded-2xl bg-[#0B132B]/95 border shadow-2xl backdrop-blur-xl transition-all duration-200"
             :class="{
                 'border-emerald-500/40 shadow-emerald-950/20': toast.type === 'success',
@@ -112,7 +121,7 @@
                 <!-- Dismiss Button -->
                 <button
                     type="button"
-                    @click="removeToast(toast.id)"
+                    @click="dismissToast(toast.id)"
                     class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                 >
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
