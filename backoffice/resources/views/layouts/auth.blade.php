@@ -33,6 +33,9 @@
             </div>
         </footer>
 
+        <!-- Modern Toast Notifications in Bottom-Right Corner -->
+        <x-toast />
+
         @livewireScripts
     </body>
 </html>

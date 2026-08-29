@@ -19,23 +19,6 @@
         <!-- Accent Top Stitch Line -->
         <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#CBAC70] to-transparent opacity-75"></div>
 
-        <!-- Session Status Flash Messages -->
-        @if (session('status'))
-            <div class="mb-6">
-                <x-alert type="info" dismissible="true">
-                    {{ session('status') }}
-                </x-alert>
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="mb-6">
-                <x-alert type="error" dismissible="true">
-                    {{ session('error') }}
-                </x-alert>
-            </div>
-        @endif
-
         <form wire:submit="login" class="space-y-5">
             <!-- Email Input -->
             <x-input
@@ -79,36 +62,37 @@
                 </label>
 
                 <span class="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500">
-                    <svg class="w-3.5 h-3.5 text-[#CBAC70]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 text-[#CBAC70]/70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     256-bit SSL
                 </span>
             </div>
 
-            <!-- Submit Button with 5 UI States Handling (Guaranteed Single Row) -->
+            <!-- Submit Button (Guaranteed 1-Line Flex Row) -->
             <div class="pt-3">
                 <button
                     type="submit"
                     wire:loading.attr="disabled"
-                    class="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-sm py-3.5 px-4 shadow-lg shadow-[#CBAC70]/10 focus:outline-none focus:ring-2 focus:ring-[#CBAC70] focus:ring-offset-2 focus:ring-offset-[#0B132B] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2 whitespace-nowrap"
+                    class="w-full h-12 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-sm shadow-lg shadow-[#CBAC70]/10 focus:outline-none focus:ring-2 focus:ring-[#CBAC70] focus:ring-offset-2 focus:ring-offset-[#0B132B] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.99] overflow-hidden"
+                    style="display: flex !important; align-items: center !important; justify-content: center !important;"
                 >
-                    <!-- Normal State Icon & Label -->
-                    <span wire:loading.remove wire:target="login" class="inline-flex items-center justify-center gap-2 whitespace-nowrap">
-                        <span>Masuk ke Sistem</span>
-                        <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <!-- Normal State Container -->
+                    <div wire:loading.remove wire:target="login" style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 0.5rem !important; width: 100% !important; white-space: nowrap !important;">
+                        <span style="display: inline-block !important; font-weight: 700 !important; line-height: 1 !important;">Masuk ke Sistem</span>
+                        <svg style="display: inline-block !important; width: 1.1rem !important; height: 1.1rem !important; flex-shrink: 0 !important;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
-                    </span>
+                    </div>
 
-                    <!-- Loading State Spinner & Label (Single-row inline-flex) -->
-                    <span wire:loading.inline-flex wire:target="login" class="items-center justify-center gap-2.5 whitespace-nowrap">
-                        <svg class="animate-spin h-4 w-4 text-[#0B132B] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <!-- Loading State Container -->
+                    <div wire:loading.flex wire:target="login" style="display: none; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 0.5rem !important; width: 100% !important; white-space: nowrap !important;">
+                        <svg class="animate-spin" style="display: inline-block !important; width: 1.1rem !important; height: 1.1rem !important; flex-shrink: 0 !important; color: #0B132B !important;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                         </svg>
-                        <span>Memverifikasi Kredensial...</span>
-                    </span>
+                        <span style="display: inline-block !important; font-weight: 700 !important; line-height: 1 !important;">Memverifikasi Kredensial...</span>
+                    </div>
                 </button>
             </div>
         </form>

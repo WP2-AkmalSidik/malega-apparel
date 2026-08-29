@@ -28,7 +28,11 @@ class Dashboard extends Component
      */
     public function exportReport(): void
     {
-        session()->flash('status', 'Laporan metrik penjualan sedang dipersiapkan untuk diekspor.');
+        $this->dispatch('toast', [
+            'type' => 'info',
+            'title' => 'Ekspor Data',
+            'message' => 'Laporan metrik penjualan sedang dipersiapkan untuk diekspor.',
+        ]);
     }
 
     /**
