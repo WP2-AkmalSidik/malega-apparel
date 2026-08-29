@@ -2,61 +2,37 @@
     <!-- Page Header & Filter Controls -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-            <h1 class="font-display text-3xl text-ivory tracking-tight">Dashboard</h1>
-            <p class="text-sm text-ivory/40 mt-1">Ringkasan performa toko — {{ date('d F Y') }}</p>
+            <h1 class="font-display text-3xl text-ivory tracking-tight">Dashboard Overview</h1>
+            <p class="text-xs text-slate-400 font-mono mt-1">Data metrik real-time Malega Apparel Backoffice &bull; {{ date('d F Y') }}</p>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center bg-white/5 border border-white/10 rounded-lg p-1 text-xs">
-                <button 
-                    type="button"
-                    wire:click="setTimeRange('7d')"
-                    class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer {{ $timeRange === '7d' ? 'bg-gold text-navy shadow-sm' : 'text-ivory/50 hover:text-ivory' }}"
-                >
-                    7 Hari
-                </button>
-                <button 
-                    type="button"
-                    wire:click="setTimeRange('30d')"
-                    class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer {{ $timeRange === '30d' ? 'bg-gold text-navy shadow-sm' : 'text-ivory/50 hover:text-ivory' }}"
-                >
-                    30 Hari
-                </button>
-                <button 
-                    type="button"
-                    wire:click="setTimeRange('1y')"
-                    class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer {{ $timeRange === '1y' ? 'bg-gold text-navy shadow-sm' : 'text-ivory/50 hover:text-ivory' }}"
-                >
-                    1 Tahun
-                </button>
-            </div>
-
             <button 
                 type="button"
                 wire:click="exportReport"
-                class="flex items-center gap-2 bg-gold hover:bg-gold-dark transition-colors text-navy text-sm font-semibold px-4 py-2 rounded-lg cursor-pointer shadow-sm active:scale-95"
+                class="flex items-center gap-2 bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] transition-all text-[#0B132B] text-xs font-bold px-4 py-2 rounded-xl cursor-pointer shadow-md shadow-[#CBAC70]/10"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                 </svg>
-                Ekspor
+                <span>Ekspor Laporan</span>
             </button>
         </div>
     </div>
 
     <!-- Stat Cards (4-Column Metric Grid) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach($this->stats as $key => $stat)
-            <div wire:key="stat-card-{{ $key }}" class="bg-navy-light border border-gold/15 rounded-xl p-5 shadow-lg shadow-black/20 hover:border-gold/30 transition-colors">
-                <p class="text-[11px] font-semibold tracking-[0.15em] text-gold/70 uppercase font-mono">{{ $stat['label'] }}</p>
+            <div wire:key="stat-card-{{ $key }}" class="bg-[#0B132B]/80 border border-[#CBAC70]/20 rounded-2xl p-5 shadow-lg shadow-black/40 hover:border-[#CBAC70]/40 transition-colors">
+                <p class="text-[11px] font-semibold tracking-[0.15em] text-[#CBAC70] uppercase font-mono">{{ $stat['label'] }}</p>
                 <p class="font-display text-2xl lg:text-3xl text-ivory mt-2 tracking-tight">{{ $stat['value'] }}</p>
                 <div class="flex items-center gap-2 mt-3">
                     @if($stat['badgeType'] === 'emerald')
-                        <span class="tag-badge text-emerald-400 border border-emerald-400/40 text-[11px] pl-4 pr-2 py-0.5 rounded-full font-mono">{{ $stat['badge'] }}</span>
+                        <span class="inline-flex items-center text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">{{ $stat['badge'] }}</span>
                     @else
-                        <span class="tag-badge text-red-400 border border-red-400/40 text-[11px] pl-4 pr-2 py-0.5 rounded-full font-mono">{{ $stat['badge'] }}</span>
+                        <span class="inline-flex items-center text-rose-400 bg-rose-500/10 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">{{ $stat['badge'] }}</span>
                     @endif
-                    <span class="text-[11px] text-ivory/30">{{ $stat['comparison'] }}</span>
+                    <span class="text-[11px] text-slate-400 truncate">{{ $stat['comparison'] }}</span>
                 </div>
             </div>
         @endforeach
@@ -65,16 +41,16 @@
     <!-- Chart + Top Products Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Sales Trend SVG Chart (Col-Span 2) -->
-        <div class="lg:col-span-2 bg-navy-light border border-gold/15 rounded-xl p-6 shadow-lg shadow-black/20">
+        <div class="lg:col-span-2 bg-[#0B132B]/80 border border-[#CBAC70]/20 rounded-2xl p-6 shadow-lg shadow-black/40">
             <div class="flex items-start justify-between mb-6">
                 <div>
-                    <p class="text-[11px] font-semibold tracking-[0.15em] text-gold/70 uppercase font-mono">
-                        Performa {{ $timeRange === '7d' ? '7 Hari Terakhir' : ($timeRange === '30d' ? '30 Hari Terakhir' : '1 Tahun Terakhir') }}
+                    <p class="text-[11px] font-semibold tracking-[0.15em] text-[#CBAC70] uppercase font-mono">
+                        Performa Penjualan
                     </p>
-                    <h2 class="font-display text-xl text-ivory mt-1">Tren Penjualan</h2>
+                    <h2 class="font-display text-xl text-ivory mt-1">Grafik Tren Omzet</h2>
                 </div>
-                <div class="flex items-center gap-1.5 text-xs text-ivory/40 font-mono">
-                    <span class="w-2 h-2 rounded-full bg-gold"></span> Pendapatan (IDR)
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-[#CBAC70]"></span> Pendapatan Terverifikasi
                 </div>
             </div>
 
@@ -107,39 +83,118 @@
                 </svg>
             </div>
 
-            <div class="flex justify-between text-[11px] text-ivory/30 mt-2 px-1 font-mono">
+            <div class="flex justify-between text-[11px] text-slate-400 mt-2 px-1 font-mono">
                 <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
             </div>
         </div>
 
         <!-- Best Sellers / Featured Products (Col-Span 1) -->
-        <div class="bg-navy-light border border-gold/15 rounded-xl p-6 shadow-lg shadow-black/20 flex flex-col justify-between">
+        <div class="bg-[#0B132B]/80 border border-[#CBAC70]/20 rounded-2xl p-6 shadow-lg shadow-black/40 flex flex-col justify-between">
             <div>
-                <p class="text-[11px] font-semibold tracking-[0.15em] text-gold/70 uppercase font-mono">Terlaris Minggu Ini</p>
-                <h2 class="font-display text-xl text-ivory mt-1 mb-4">Produk Unggulan</h2>
+                <p class="text-[11px] font-semibold tracking-[0.15em] text-[#CBAC70] uppercase font-mono">Produk Populer</p>
+                <h2 class="font-display text-xl text-ivory mt-1 mb-4">Terlaris Bulan Ini</h2>
 
-                <div class="space-y-4">
+                <div class="space-y-3.5">
                     @foreach($this->topProducts as $product)
-                        <div wire:key="top-prod-{{ $product['code'] }}" class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center text-navy text-xs font-bold shrink-0 shadow-sm">
-                                {{ $product['code'] }}
+                        <div wire:key="top-prod-{{ $loop->index }}" class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#CBAC70] to-[#BD9B58] flex items-center justify-center text-[#0B132B] text-xs font-bold shrink-0 shadow-xs">
+                                {{ strtoupper(substr($product->product_name ?? 'MLG', 0, 2)) }}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm text-ivory truncate font-medium">{{ $product['name'] }}</p>
-                                <p class="text-[11px] text-ivory/40">{{ $product['sold'] }}</p>
+                                <p class="text-xs text-slate-200 truncate font-semibold">{{ $product->product_name }}</p>
+                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">{{ $product->sku }} &bull; {{ $product->total_sold }} terjual</p>
                             </div>
-                            <p class="text-sm font-mono text-gold font-semibold shrink-0">{{ $product['price'] }}</p>
+                            <p class="text-xs font-mono text-[#CBAC70] font-bold shrink-0">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                         </div>
-                        @if(!$loop->last)
-                            <div class="stitch"></div>
-                        @endif
                     @endforeach
                 </div>
             </div>
 
-            <div class="pt-4 mt-4 border-t border-white/5 text-center">
-                <a href="#" class="text-xs text-gold/80 hover:text-gold transition-colors font-medium">
+            <div class="pt-4 mt-4 border-t border-slate-800 text-center">
+                <a href="{{ route('catalog.products') }}" class="text-xs text-[#CBAC70] hover:text-[#DFB67A] transition-colors font-medium">
                     Lihat Seluruh Katalog &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Feeds: Recent Orders & Low Stock Alerts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Orders Feed (Col-Span 2) -->
+        <div class="lg:col-span-2 bg-[#0B132B]/80 border border-[#CBAC70]/20 rounded-2xl p-6 shadow-lg shadow-black/40">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-[11px] font-semibold tracking-[0.15em] text-[#CBAC70] uppercase font-mono">Transaksi Terkini</p>
+                    <h2 class="font-display text-lg text-ivory mt-0.5">Pesanan Masuk Terbaru</h2>
+                </div>
+                <a href="{{ route('orders.index') }}" class="text-xs text-[#CBAC70] hover:text-[#DFB67A] font-semibold transition-colors">
+                    Semua Pesanan &rarr;
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-[10px] font-mono text-slate-400 uppercase border-b border-slate-800">
+                            <th class="py-2.5">No. Pesanan</th>
+                            <th class="py-2.5">Customer</th>
+                            <th class="py-2.5 text-right">Total</th>
+                            <th class="py-2.5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/50">
+                        @forelse($this->recentOrders as $ro)
+                            <tr class="hover:bg-white/[0.01]">
+                                <td class="py-3 font-mono font-bold text-[#CBAC70]">{{ $ro->order_number }}</td>
+                                <td class="py-3 text-slate-200">{{ $ro->customer?->name ?? 'Customer' }}</td>
+                                <td class="py-3 text-right font-mono font-bold text-slate-100">{{ $ro->formatted_grand_total }}</td>
+                                <td class="py-3 text-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $ro->order_status->badgeClasses() }}">
+                                        {{ $ro->order_status->label() }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-6 text-center text-slate-500 text-xs">Belum ada pesanan terbaru.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Low Stock Alerts Feed (Col-Span 1) -->
+        <div class="bg-[#0B132B]/80 border border-[#CBAC70]/20 rounded-2xl p-6 shadow-lg shadow-black/40 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[11px] font-semibold tracking-[0.15em] text-[#CBAC70] uppercase font-mono">Peringatan Gudang</p>
+                        <h2 class="font-display text-lg text-ivory mt-0.5">Stok Menipis</h2>
+                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                </div>
+
+                <div class="space-y-3">
+                    @forelse($this->lowStockItems as $lsi)
+                        <div class="p-2.5 rounded-xl bg-[#070C1A] border border-slate-800/80 flex items-center justify-between">
+                            <div class="min-w-0">
+                                <p class="font-mono font-bold text-xs text-[#CBAC70]">{{ $lsi->variant->sku }}</p>
+                                <p class="text-[11px] text-slate-300 truncate">{{ $lsi->variant->product->name }}</p>
+                            </div>
+                            <span class="font-mono font-bold text-xs {{ $lsi->available <= 0 ? 'text-rose-400' : 'text-amber-400' }}">
+                                Sisa {{ $lsi->available }}
+                            </span>
+                        </div>
+                    @empty
+                        <p class="text-center text-slate-500 text-xs py-4">Semua stok varian dalam kondisi aman.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-slate-800 text-center">
+                <a href="{{ route('inventory.index') }}" class="text-xs text-[#CBAC70] hover:text-[#DFB67A] transition-colors font-medium">
+                    Buka Manajemen Inventori &rarr;
                 </a>
             </div>
         </div>

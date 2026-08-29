@@ -3,6 +3,7 @@
 use App\Livewire\Auth\Login;
 use App\Livewire\Catalog\CategoryIndex;
 use App\Livewire\Catalog\ProductIndex;
+use App\Livewire\Customers\CustomerIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Inventory\InventoryIndex;
 use App\Livewire\Orders\OrderIndex;
@@ -36,6 +37,9 @@ Route::middleware('auth')->group(function () {
 
     // Module 05: Order & Commerce Management
     Route::get('/orders', OrderIndex::class)->name('orders.index');
+
+    // Module 06: Customer Management
+    Route::get('/customers', CustomerIndex::class)->name('customers.index');
 
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();

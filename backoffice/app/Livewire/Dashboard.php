@@ -2,6 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Enums\PaymentStatus;
+use App\Models\Customer;
+use App\Models\InventoryItem;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -15,149 +22,116 @@ class Dashboard extends Component
 
     public string $searchQuery = '';
 
-    /**
-     * Set the active time range filter for metrics.
-     */
     public function setTimeRange(string $range): void
     {
         $this->timeRange = $range;
     }
 
-    /**
-     * Export current dashboard metrics snapshot.
-     */
     public function exportReport(): void
     {
         $this->dispatch('toast', [
             'type' => 'info',
-            'title' => 'Ekspor Data',
-            'message' => 'Laporan metrik penjualan sedang dipersiapkan untuk diekspor.',
+            'title' => 'Ekspor Laporan',
+            'message' => 'Laporan rekapitulasi data penjualan & stok berhasil disiapkan.',
         ]);
     }
 
     /**
-     * Get computed stat cards based on timeRange.
-     *
-     * @return array<string, array{label: string, value: string, badge: string, badgeType: string, comparison: string}>
+     * Live metrics calculations from database.
      */
     #[Computed]
     public function stats(): array
     {
-        return match ($this->timeRange) {
-            '30d' => [
-                'revenue' => ['label' => 'Total Pendapatan', 'value' => 'Rp 1,12M', 'badge' => '+18,2%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
-                'orders' => ['label' => 'Pesanan Baru', 'value' => '4.890', 'badge' => '+8,7%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
-                'customers' => ['label' => 'Pelanggan Baru', 'value' => '1.420', 'badge' => '+4,1%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
-                'conversion' => ['label' => 'Tingkat Konversi', 'value' => '3,95%', 'badge' => '+0,4%', 'badgeType' => 'emerald', 'comparison' => 'vs bulan lalu'],
-            ],
-            '1y' => [
-                'revenue' => ['label' => 'Total Pendapatan', 'value' => 'Rp 14,8M', 'badge' => '+34,5%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
-                'orders' => ['label' => 'Pesanan Baru', 'value' => '58.420', 'badge' => '+22,1%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
-                'customers' => ['label' => 'Pelanggan Baru', 'value' => '18.900', 'badge' => '+15,6%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
-                'conversion' => ['label' => 'Tingkat Konversi', 'value' => '4,10%', 'badge' => '+0,8%', 'badgeType' => 'emerald', 'comparison' => 'vs tahun lalu'],
-            ],
-            default => [
-                'revenue' => ['label' => 'Total Pendapatan', 'value' => 'Rp 284,5jt', 'badge' => '+12,4%', 'badgeType' => 'emerald', 'comparison' => 'vs minggu lalu'],
-                'orders' => ['label' => 'Pesanan Baru', 'value' => '1.248', 'badge' => '+5,1%', 'badgeType' => 'emerald', 'comparison' => 'vs minggu lalu'],
-                'customers' => ['label' => 'Pelanggan Baru', 'value' => '356', 'badge' => '-2,3%', 'badgeType' => 'red', 'comparison' => 'vs minggu lalu'],
-                'conversion' => ['label' => 'Tingkat Konversi', 'value' => '3,82%', 'badge' => '+0,6%', 'badgeType' => 'emerald', 'comparison' => 'vs minggu lalu'],
-            ],
-        };
-    }
+        $totalRevenue = Order::where('payment_status', PaymentStatus::Paid)->sum('grand_total');
+        $totalOrders = Order::count();
+        $totalCustomers = Customer::count();
+        $totalStockAvailable = InventoryItem::all()->sum(fn ($i) => $i->available);
 
-    /**
-     * Top selling products feed.
-     *
-     * @return array<int, array{code: string, name: string, sold: string, price: string}>
-     */
-    #[Computed]
-    public function topProducts(): array
-    {
         return [
-            ['code' => 'OS', 'name' => 'Oxford Shirt — Navy', 'sold' => '142 terjual', 'price' => 'Rp 349rb'],
-            ['code' => 'TC', 'name' => 'Tailored Chino', 'sold' => '98 terjual', 'price' => 'Rp 429rb'],
-            ['code' => 'LB', 'name' => 'Leather Belt Classic', 'sold' => '76 terjual', 'price' => 'Rp 219rb'],
-            ['code' => 'WC', 'name' => 'Wool Overcoat', 'sold' => '54 terjual', 'price' => 'Rp 1,2jt'],
+            'revenue' => [
+                'label' => 'Total Pendapatan (Omzet)',
+                'value' => 'Rp '.number_format($totalRevenue, 0, ',', '.'),
+                'badge' => 'Live',
+                'badgeType' => 'emerald',
+                'comparison' => 'Omzet pesanan lunas terverifikasi',
+            ],
+            'orders' => [
+                'label' => 'Total Pesanan Masuk',
+                'value' => number_format($totalOrders),
+                'badge' => Order::pending()->count().' Pending',
+                'badgeType' => 'emerald',
+                'comparison' => 'Seluruh pesanan tercatat',
+            ],
+            'customers' => [
+                'label' => 'Pelanggan Terdaftar',
+                'value' => number_format($totalCustomers),
+                'badge' => 'Aktif',
+                'badgeType' => 'emerald',
+                'comparison' => 'Buku kontak pembeli',
+            ],
+            'stock' => [
+                'label' => 'Stok Fisik Tersedia',
+                'value' => number_format($totalStockAvailable).' unit',
+                'badge' => InventoryItem::lowStock()->count().' Menipis',
+                'badgeType' => InventoryItem::lowStock()->count() > 0 ? 'red' : 'emerald',
+                'comparison' => 'Total unit siap dikirim',
+            ],
         ];
     }
 
     /**
-     * Recent orders feed with status and customer information.
-     *
-     * @return array<int, array{id: string, initials: string, customer: string, products: string, date: string, total: string, status: string, statusType: string}>
+     * Top selling products computed from order_items snapshots.
      */
     #[Computed]
-    public function recentOrders(): array
+    public function topProducts()
     {
-        $allOrders = [
-            [
-                'id' => '#MLG-10245',
-                'initials' => 'RD',
-                'customer' => 'Rina Dewi',
-                'products' => 'Oxford Shirt, Tailored Chino',
-                'date' => '27 Ags 2026',
-                'total' => 'Rp 778rb',
-                'status' => 'Dikirim',
-                'statusType' => 'gold',
-            ],
-            [
-                'id' => '#MLG-10244',
-                'initials' => 'BS',
-                'customer' => 'Budi Santoso',
-                'products' => 'Wool Overcoat',
-                'date' => '27 Ags 2026',
-                'total' => 'Rp 1,2jt',
-                'status' => 'Diproses',
-                'statusType' => 'amber',
-            ],
-            [
-                'id' => '#MLG-10243',
-                'initials' => 'SP',
-                'customer' => 'Sari Puspita',
-                'products' => 'Leather Belt Classic',
-                'date' => '26 Ags 2026',
-                'total' => 'Rp 219rb',
-                'status' => 'Selesai',
-                'statusType' => 'emerald',
-            ],
-            [
-                'id' => '#MLG-10242',
-                'initials' => 'HN',
-                'customer' => 'Hendra Nugraha',
-                'products' => 'Oxford Shirt — Navy',
-                'date' => '26 Ags 2026',
-                'total' => 'Rp 349rb',
-                'status' => 'Dibatalkan',
-                'statusType' => 'red',
-            ],
-            [
-                'id' => '#MLG-10241',
-                'initials' => 'DP',
-                'customer' => 'Dian Permata',
-                'products' => 'Tailored Chino, Leather Belt',
-                'date' => '25 Ags 2026',
-                'total' => 'Rp 648rb',
-                'status' => 'Dikirim',
-                'statusType' => 'gold',
-            ],
-        ];
+        $bestSellers = OrderItem::select('product_name', 'sku', DB::raw('SUM(quantity) as total_sold'), DB::raw('MAX(unit_price) as price'))
+            ->groupBy('product_name', 'sku')
+            ->orderByDesc('total_sold')
+            ->take(4)
+            ->get();
 
-        if (empty($this->searchQuery)) {
-            return $allOrders;
+        if ($bestSellers->isEmpty()) {
+            return Product::with('variants')->take(4)->get()->map(fn ($p) => (object) [
+                'product_name' => $p->name,
+                'sku' => $p->variants->first()?->sku ?? '-',
+                'total_sold' => 0,
+                'price' => $p->variants->first()?->price ?? 0,
+            ]);
         }
 
-        $query = strtolower($this->searchQuery);
-
-        return array_filter($allOrders, function ($order) use ($query) {
-            return str_contains(strtolower($order['id']), $query)
-                || str_contains(strtolower($order['customer']), $query)
-                || str_contains(strtolower($order['products']), $query);
-        });
+        return $bestSellers;
     }
 
     /**
-     * Render dashboard view.
+     * Recent orders feed with customer and status.
      */
+    #[Computed]
+    public function recentOrders()
+    {
+        return Order::with(['customer', 'items', 'address'])
+            ->when($this->searchQuery, function ($q) {
+                $term = '%'.$this->searchQuery.'%';
+                $q->where('order_number', 'like', $term)
+                    ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', $term));
+            })
+            ->latest('created_at')
+            ->take(5)
+            ->get();
+    }
+
+    /**
+     * Low stock items needing immediate warehouse attention.
+     */
+    #[Computed]
+    public function lowStockItems()
+    {
+        return InventoryItem::with(['variant.product'])
+            ->whereRaw('(on_hand - reserved) <= low_stock_threshold')
+            ->take(4)
+            ->get();
+    }
+
     public function render()
     {
         return view('livewire.dashboard');
