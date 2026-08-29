@@ -5,43 +5,46 @@
         subtitle="Kelola lini koleksi busana, varian ukuran/warna, dan matriks harga Malega Apparel"
         :count="$totalCount"
     >
-        <!-- Filter Controls Bar -->
+        <!-- Filter Controls Bar (Full-Width Single Row) -->
         <x-slot:controls>
             <!-- Search Bar -->
-            <div class="relative w-full sm:w-64">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="relative w-full sm:w-60 lg:w-72">
+                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
                 <input
                     type="text"
                     wire:model.live.debounce.300ms="search"
-                    placeholder="Cari nama produk atau SKU..."
-                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
+                    placeholder="Cari produk atau SKU..."
+                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 pl-8 pr-3 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
                 >
             </div>
 
-            <!-- Category Filter Dropdown -->
-            <select
-                wire:model.live="categoryFilter"
-                class="bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
-            >
-                <option value="all">Semua Kategori</option>
-                @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                @endforeach
-            </select>
+            <!-- Filters Group -->
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <!-- Category Filter Dropdown -->
+                <select
+                    wire:model.live="categoryFilter"
+                    class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                >
+                    <option value="all">Semua Kategori</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                    @endforeach
+                </select>
 
-            <!-- Status Filter Dropdown -->
-            <select
-                wire:model.live="statusFilter"
-                class="bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
-            >
-                <option value="all">Semua Status</option>
-                <option value="active">Aktif</option>
-                <option value="draft">Draft</option>
-                <option value="inactive">Nonaktif</option>
-                <option value="archived">Diarsipkan</option>
-            </select>
+                <!-- Status Filter Dropdown -->
+                <select
+                    wire:model.live="statusFilter"
+                    class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                >
+                    <option value="all">Semua Status</option>
+                    <option value="active">Aktif</option>
+                    <option value="draft">Draft</option>
+                    <option value="inactive">Nonaktif</option>
+                    <option value="archived">Diarsipkan</option>
+                </select>
+            </div>
         </x-slot:controls>
 
         <x-slot:actions>
@@ -49,10 +52,10 @@
             <button
                 type="button"
                 wire:click="openCreateModal"
-                class="flex items-center gap-2 bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-[#CBAC70]/10 cursor-pointer transition-all active:scale-95 shrink-0"
+                class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-[11px] shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
             >
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.5v15m7.5-7.5h-15" />
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 <span>Tambah Produk</span>
             </button>
@@ -61,30 +64,30 @@
         <!-- Product Table Body -->
         <table class="w-full text-left text-xs">
             <thead>
-                <tr class="text-[11px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
-                    <th class="px-5 py-3.5 font-medium">Informasi Produk</th>
-                    <th class="px-5 py-3.5 font-medium hidden md:table-cell">Kategori</th>
-                    <th class="px-5 py-3.5 font-medium">Varian & SKU</th>
-                    <th class="px-5 py-3.5 font-medium">Rentang Harga</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Status</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Aksi</th>
+                <tr class="text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
+                    <th class="px-4 py-3 font-medium">Informasi Produk</th>
+                    <th class="px-4 py-3 font-medium hidden md:table-cell">Kategori</th>
+                    <th class="px-4 py-3 font-medium">Varian & SKU</th>
+                    <th class="px-4 py-3 font-medium">Rentang Harga</th>
+                    <th class="px-4 py-3 font-medium text-center">Status</th>
+                    <th class="px-4 py-3 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($products as $product)
                     <tr wire:key="prod-row-{{ $product->id }}" class="hover:bg-white/[0.02] transition-colors group">
                         <!-- Product Info (Thumbnail + Name) -->
-                        <td class="px-5 py-4">
-                            <div class="flex items-center gap-3">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2.5">
                                 <!-- Thumbnail Initials or Image -->
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-[#0B132B] border border-[#CBAC70]/30 flex items-center justify-center text-[#CBAC70] font-bold text-xs shrink-0 shadow-sm">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-[#0B132B] border border-[#CBAC70]/30 flex items-center justify-center text-[#CBAC70] font-bold text-[10px] shrink-0 shadow-sm">
                                     {{ strtoupper(substr($product->name, 0, 2)) }}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="font-semibold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-sm">
+                                    <p class="font-semibold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-[13px] leading-tight">
                                         {{ $product->name }}
                                     </p>
-                                    <p class="text-slate-400 font-mono text-[11px] truncate max-w-xs mt-0.5">
+                                    <p class="text-slate-400 font-mono text-[10px] truncate max-w-xs mt-0.5">
                                         slug: {{ $product->slug }}
                                     </p>
                                 </div>
@@ -92,54 +95,54 @@
                         </td>
 
                         <!-- Category -->
-                        <td class="px-5 py-4 hidden md:table-cell">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700/60">
+                        <td class="px-4 py-3 hidden md:table-cell">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800/80 text-slate-300 border border-slate-700/60">
                                 {{ $product->category->name }}
                             </span>
                         </td>
 
                         <!-- Variants / SKUs -->
-                        <td class="px-5 py-4">
+                        <td class="px-4 py-3">
                             <div class="flex flex-col gap-1">
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     @foreach($product->variants->take(3) as $variant)
-                                        <span class="font-mono text-[10px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
+                                        <span class="font-mono text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">
                                             {{ $variant->sku }}
                                         </span>
                                     @endforeach
                                     @if($product->variants->count() > 3)
-                                        <span class="text-[10px] text-slate-400 font-mono">
+                                        <span class="text-[9px] text-slate-400 font-mono">
                                             +{{ $product->variants->count() - 3 }} lagi
                                         </span>
                                     @endif
                                 </div>
-                                <span class="text-[11px] text-slate-400">
+                                <span class="text-[10px] text-slate-400">
                                     Total {{ $product->variants->count() }} SKU
                                 </span>
                             </div>
                         </td>
 
                         <!-- Price Range -->
-                        <td class="px-5 py-4 font-mono font-semibold text-xs text-[#CBAC70]">
+                        <td class="px-4 py-3 font-mono font-semibold text-[11px] text-[#CBAC70]">
                             {{ $product->formatted_price_range }}
                         </td>
 
                         <!-- Status Badge -->
-                        <td class="px-5 py-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold {{ $product->status->badgeClasses() }}">
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $product->status->badgeClasses() }}">
                                 {{ $product->status->label() }}
                             </span>
                         </td>
 
                         <!-- Actions -->
-                        <td class="px-5 py-4 text-right">
+                        <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 <!-- Edit Button -->
                                 <button
                                     type="button"
                                     wire:click="openEditModal({{ $product->id }})"
                                     title="Edit Produk"
-                                    class="p-1.5 text-slate-400 hover:text-[#CBAC70] hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                                    class="p-1 rounded-lg text-slate-400 hover:text-[#CBAC70] hover:bg-white/5 transition-colors cursor-pointer"
                                 >
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -151,7 +154,7 @@
                                     type="button"
                                     wire:click="confirmDelete({{ $product->id }})"
                                     title="Hapus Produk"
-                                    class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                                    class="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-white/5 transition-colors cursor-pointer"
                                 >
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -162,7 +165,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-5 py-12 text-center text-slate-400">
+                        <td colspan="6" class="px-4 py-10 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

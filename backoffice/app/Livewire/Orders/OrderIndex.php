@@ -27,6 +27,8 @@ class OrderIndex extends Component
 
     public string $paymentFilter = 'all';
 
+    public string $sortBy = 'latest';
+
     // Create Order Modal State
     public string $customerName = '';
 
@@ -86,6 +88,11 @@ class OrderIndex extends Component
     }
 
     public function updatedPaymentFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSortBy(): void
     {
         $this->resetPage();
     }
@@ -386,7 +393,10 @@ class OrderIndex extends Component
             ->when($this->paymentFilter !== 'all', function ($q) {
                 $q->where('payment_status', $this->paymentFilter);
             })
-            ->latest('created_at');
+            ->when($this->sortBy === 'latest', fn ($q) => $q->latest('created_at'))
+            ->when($this->sortBy === 'oldest', fn ($q) => $q->oldest('created_at'))
+            ->when($this->sortBy === 'highest_total', fn ($q) => $q->orderByDesc('grand_total'))
+            ->when($this->sortBy === 'lowest_total', fn ($q) => $q->orderBy('grand_total'));
 
         $orders = $query->paginate(15);
 

@@ -5,21 +5,21 @@
         subtitle="Pantau saldo stok fisik (on hand), stok tertahan pesanan (reserved), dan buku besar mutasi per SKU"
         :count="$totalItemsCount"
     >
-        <!-- Filter & Control Bar -->
+        <!-- Filter & Control Bar (Full-Width Single Row) -->
         <x-slot:controls>
-            <!-- Quick Filter Tabs (Pill Style) -->
+            <!-- Left: Quick Filter Tabs (Pill Style) -->
             <div class="flex items-center bg-[#070C1A] border border-slate-800 p-1 rounded-xl text-xs">
                 <button
                     type="button"
                     wire:click="setTab('all')"
-                    class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer {{ $tabFilter === 'all' ? 'bg-[#CBAC70] text-[#0B132B] shadow-xs' : 'text-slate-400 hover:text-white' }}"
+                    class="px-2.5 py-1.5 text-[11px] font-medium transition-colors border-r border-slate-700/80 last:border-r-0 {{ $tabFilter === 'all' ? 'bg-[#CBAC70]/10 text-[#CBAC70]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]' }}"
                 >
                     Semua ({{ $totalItemsCount }})
                 </button>
                 <button
                     type="button"
                     wire:click="setTab('low')"
-                    class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 {{ $tabFilter === 'low' ? 'bg-amber-500 text-[#0B132B] shadow-xs' : 'text-slate-400 hover:text-amber-400' }}"
+                    class="px-2.5 py-1.5 text-[11px] font-medium transition-colors border-r border-slate-700/80 flex items-center gap-1.5 {{ $tabFilter === 'low' ? 'bg-[#CBAC70]/10 text-[#CBAC70]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]' }}"
                 >
                     <span>Stok Menipis</span>
                     @if($lowStockCount > 0)
@@ -29,7 +29,7 @@
                 <button
                     type="button"
                     wire:click="setTab('out')"
-                    class="px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 {{ $tabFilter === 'out' ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-400 hover:text-rose-400' }}"
+                    class="px-2.5 py-1.5 text-[11px] font-medium transition-colors flex items-center gap-1.5 {{ $tabFilter === 'out' ? 'bg-rose-500/10 text-rose-400' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]' }}"
                 >
                     <span>Stok Habis</span>
                     @if($outOfStockCount > 0)
@@ -38,49 +38,52 @@
                 </button>
             </div>
 
-            <!-- Search Bar -->
-            <div class="relative w-full sm:w-60">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-                </svg>
-                <input
-                    type="text"
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Cari SKU atau nama produk..."
-                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
-                >
-            </div>
+            <!-- Right: Search Bar & Category Filter Group -->
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <!-- Search Bar -->
+                <div class="relative w-full sm:w-60 lg:w-64">
+                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                    </svg>
+                    <input
+                        type="text"
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="Cari SKU atau produk..."
+                        class="w-full bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 pl-8 pr-3 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
+                    >
+                </div>
 
-            <!-- Category Filter Dropdown -->
-            <select
-                wire:model.live="categoryFilter"
-                class="bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
-            >
-                <option value="all">Semua Kategori</option>
-                @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                @endforeach
-            </select>
+                <!-- Category Filter Dropdown -->
+                <select
+                    wire:model.live="categoryFilter"
+                    class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                >
+                    <option value="all">Semua Kategori</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+            </div>
         </x-slot:controls>
 
         <!-- Inventory Table Body -->
         <table class="w-full text-left text-xs">
             <thead>
-                <tr class="text-[11px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
-                    <th class="px-5 py-3.5 font-medium">Varian & Kode SKU</th>
-                    <th class="px-5 py-3.5 font-medium hidden md:table-cell">Kategori</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Fisik (On-Hand)</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Tertahan (Reserved)</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Tersedia (Available)</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Status Stok</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Aksi</th>
+                <tr class="text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
+                    <th class="px-4 py-3 font-medium">Varian & Kode SKU</th>
+                    <th class="px-4 py-3 font-medium text-center">Kategori</th>
+                    <th class="px-4 py-3 font-medium text-center" title="Stok fisik yang ada di gudang (Belum dikurangi pesanan yang belum diproses)">Fisik (On-Hand)</th>
+                    <th class="px-4 py-3 font-medium text-center" title="Stok yang sudah dipesan tapi belum dikirim">Tertahan (Reserved)</th>
+                    <th class="px-4 py-3 font-medium text-center" title="Stok yang siap dijual">Tersedia (Available)</th>
+                    <th class="px-4 py-3 font-medium text-center">Status Stok</th>
+                    <th class="px-4 py-3 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($inventoryItems as $item)
                     <tr wire:key="inv-row-{{ $item->id }}" class="hover:bg-white/[0.02] transition-colors group">
-                        <!-- Variant SKU & Product -->
-                        <td class="px-5 py-4">
+                        <!-- Variant Info -->
+                        <td class="px-4 py-3">
                             <div class="min-w-0">
                                 <p class="font-mono font-bold text-sm text-[#CBAC70] group-hover:text-[#DFB67A] transition-colors">
                                     {{ $item->variant->sku }}
@@ -95,31 +98,33 @@
                         </td>
 
                         <!-- Category -->
-                        <td class="px-5 py-4 hidden md:table-cell">
+                        <td class="px-4 py-3 text-center">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-[11px] font-medium bg-slate-800/80 text-slate-300 border border-slate-700/60">
                                 {{ $item->variant->product->category->name }}
                             </span>
                         </td>
 
                         <!-- Physical Stock (On-Hand) -->
-                        <td class="px-5 py-4 text-center font-mono font-semibold text-slate-200 text-sm">
-                            {{ number_format($item->on_hand) }}
+                        <td class="px-4 py-3 text-center">
+                            <span class="font-mono font-bold text-slate-200 text-[13px]">{{ number_format($item->on_hand) }}</span>
                         </td>
 
                         <!-- Reserved Stock -->
-                        <td class="px-5 py-4 text-center font-mono text-slate-400 text-sm">
-                            <span class="{{ $item->reserved > 0 ? 'text-amber-400 font-semibold' : 'text-slate-500' }}">
+                        <td class="px-4 py-3 text-center">
+                            <span class="font-mono font-medium text-[13px] {{ $item->reserved > 0 ? 'text-amber-400' : 'text-slate-500' }}">
                                 {{ number_format($item->reserved) }}
                             </span>
                         </td>
 
-                        <!-- Available Stock (on_hand - reserved) -->
-                        <td class="px-5 py-4 text-center font-mono font-bold text-sm {{ $item->available > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
-                            {{ number_format($item->available) }}
+                        <!-- Available Stock -->
+                        <td class="px-4 py-3 text-center">
+                            <span class="font-mono font-bold text-[13px] {{ $item->available > 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                                {{ number_format($item->available) }}
+                            </span>
                         </td>
 
                         <!-- Status Badge -->
-                        <td class="px-5 py-4 text-center">
+                        <td class="px-4 py-3 text-center">
                             @if($item->is_out_of_stock)
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
                                     <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
@@ -139,27 +144,26 @@
                         </td>
 
                         <!-- Action Buttons -->
-                        <td class="px-5 py-4 text-right">
+                        <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                <!-- Stock Adjustment / Opname Button -->
+                                <!-- Stock Opname Action Button -->
                                 <button
                                     type="button"
                                     wire:click="openAdjustmentModal({{ $item->id }})"
-                                    title="Sesuaikan Stok Fisik (Stock Opname)"
-                                    class="px-2.5 py-1.5 rounded-xl border border-[#CBAC70]/30 bg-[#CBAC70]/10 hover:bg-[#CBAC70]/20 text-[#CBAC70] text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+                                    class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-[#CBAC70]/20 hover:border-[#CBAC70]/50 border border-slate-700/80 transition-colors text-[10px] font-medium flex items-center gap-1.5"
                                 >
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
-                                    <span>Opname</span>
+                                    Opname
                                 </button>
 
                                 <!-- Audit Ledger Movement History Button -->
                                 <button
                                     type="button"
                                     wire:click="openLedgerModal({{ $item->id }})"
-                                    title="Lihat Buku Besar Mutasi Stok"
-                                    class="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                                    class="p-1 rounded-lg text-slate-400 hover:text-[#CBAC70] hover:bg-[#CBAC70]/10 transition-colors"
+                                    title="Lihat Buku Besar"
                                 >
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -170,7 +174,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-12 text-center text-slate-400">
+                        <td colspan="7" class="px-4 py-10 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

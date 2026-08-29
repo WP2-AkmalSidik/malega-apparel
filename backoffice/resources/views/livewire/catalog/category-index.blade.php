@@ -5,25 +5,25 @@
         subtitle="Kelola klasifikasi hierarki lini produk busana Malega Apparel"
         :count="$totalCount"
     >
-        <!-- Filter & Control Bar -->
+        <!-- Filter & Control Bar (Full-Width Single Row) -->
         <x-slot:controls>
-            <!-- Search Input -->
-            <div class="relative w-full sm:w-64">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <!-- Search Bar -->
+            <div class="relative w-full sm:w-60 lg:w-72">
+                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
-                <input
-                    type="text"
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Cari kategori..."
-                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
+                <input 
+                    type="text" 
+                    wire:model.live.debounce.300ms="search" 
+                    placeholder="Cari kategori..." 
+                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 pl-8 pr-3 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
                 >
             </div>
 
             <!-- Status Filter -->
             <select
                 wire:model.live="statusFilter"
-                class="bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
             >
                 <option value="all">Semua Status</option>
                 <option value="active">Hanya Aktif</option>
@@ -32,80 +32,80 @@
         </x-slot:controls>
 
         <x-slot:actions>
-            <!-- Create Category Button (Opens Modal) -->
-            <button
-                type="button"
-                wire:click="openCreateModal"
-                class="flex items-center gap-2 bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-[#CBAC70]/10 cursor-pointer transition-all active:scale-95 shrink-0"
-            >
-                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span>Tambah Kategori</span>
-            </button>
+                <!-- Create Category Button -->
+                <button 
+                    type="button"
+                    wire:click="openCreateModal"
+                    class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-[11px] shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span>Tambah Kategori</span>
+                </button>
         </x-slot:actions>
 
         <!-- Category Table Body -->
         <table class="w-full text-left text-xs">
             <thead>
-                <tr class="text-[11px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
-                    <th class="px-5 py-3.5 font-medium w-16 text-center">Urutan</th>
-                    <th class="px-5 py-3.5 font-medium">Nama Kategori</th>
-                    <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Slug Identifier</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Jumlah Produk</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Status</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Aksi</th>
+                <tr class="text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
+                    <th class="px-4 py-3 font-medium w-12 text-center">No</th>
+                    <th class="px-4 py-3 font-medium">Kategori</th>
+                    <th class="px-4 py-3 font-medium hidden sm:table-cell">Slug</th>
+                    <th class="px-4 py-3 font-medium text-center">Status</th>
+                    <th class="px-4 py-3 font-medium text-center">Produk</th>
+                    <th class="px-4 py-3 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($categories as $category)
                     <tr wire:key="cat-row-{{ $category->id }}" class="hover:bg-white/[0.02] transition-colors group">
                         <!-- Sort Order -->
-                        <td class="px-5 py-4 text-center font-mono text-slate-400">
-                            <span class="w-6 h-6 inline-flex items-center justify-center rounded-lg bg-slate-800/80 text-slate-300 font-semibold text-[11px]">
+                        <td class="px-4 py-3 text-center font-mono text-slate-400">
+                            <span class="w-5 h-5 inline-flex items-center justify-center rounded-md bg-slate-800/80 text-slate-300 font-semibold text-[10px]">
                                 {{ $category->sort_order }}
                             </span>
                         </td>
 
-                        <!-- Name & Description -->
-                        <td class="px-5 py-4">
+                        <!-- Category Name & Description -->
+                        <td class="px-4 py-3">
                             <div class="min-w-0">
-                                <p class="font-semibold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-sm">
+                                <p class="font-semibold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-[13px]">
                                     {{ $category->name }}
                                 </p>
                                 @if($category->description)
-                                    <p class="text-slate-400 text-[11px] truncate max-w-xs mt-0.5">{{ $category->description }}</p>
+                                    <p class="text-slate-400 text-[10px] truncate max-w-xs mt-0.5">{{ $category->description }}</p>
                                 @endif
                             </div>
                         </td>
 
                         <!-- Slug -->
-                        <td class="px-5 py-4 hidden sm:table-cell font-mono text-[11px] text-[#CBAC70]/80">
+                        <td class="px-4 py-3 hidden sm:table-cell font-mono text-[10px] text-[#CBAC70]/80">
                             {{ $category->slug }}
                         </td>
 
-                        <!-- Product Count -->
-                        <td class="px-5 py-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium {{ $category->products_count > 0 ? 'bg-[#CBAC70]/10 text-[#CBAC70] border border-[#CBAC70]/30' : 'bg-slate-800 text-slate-500' }}">
-                                {{ $category->products_count }} Produk
-                            </span>
-                        </td>
-
-                        <!-- Status Toggle Pill -->
-                        <td class="px-5 py-4 text-center">
+                        <!-- Status Badge -->
+                        <td class="px-4 py-3 text-center">
                             <button
                                 type="button"
                                 wire:click="toggleStatus({{ $category->id }})"
                                 title="Klik untuk mengubah status"
-                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all {{ $category->is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700' }}"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold cursor-pointer transition-all {{ $category->is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700' }}"
                             >
                                 <span class="w-1.5 h-1.5 rounded-full {{ $category->is_active ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]' : 'bg-slate-500' }}"></span>
                                 {{ $category->is_active ? 'Aktif' : 'Nonaktif' }}
                             </button>
                         </td>
 
-                        <!-- Actions -->
-                        <td class="px-5 py-4 text-right">
+                        <!-- Products Count Badge -->
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono font-medium {{ $category->products_count > 0 ? 'bg-[#CBAC70]/10 text-[#CBAC70] border border-[#CBAC70]/30' : 'bg-slate-800 text-slate-500' }}">
+                                {{ $category->products_count }} Produk
+                            </span>
+                        </td>
+
+                        <!-- Action Buttons -->
+                        <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 <!-- Edit Button -->
                                 <button
@@ -135,7 +135,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-5 py-12 text-center text-slate-400">
+                        <td colspan="4" class="px-4 py-10 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

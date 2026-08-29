@@ -5,101 +5,90 @@
         subtitle="Kelola seluruh siklus pesanan, status pembayaran, dan pengiriman kurir secara real-time"
         :count="$totalOrdersCount"
     >
-        <!-- Filter & Control Bar -->
-        <x-slot:controls>
-            <!-- Quick Filter Tabs (Pill Style) -->
-            <div class="flex items-center bg-[#070C1A] border border-slate-800 p-1 rounded-xl text-xs overflow-x-auto max-w-full">
-                <button
-                    type="button"
-                    wire:click="setStatusFilter('all')"
-                    class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer {{ $statusFilter === 'all' ? 'bg-[#CBAC70] text-[#0B132B] shadow-xs' : 'text-slate-400 hover:text-white' }}"
-                >
-                    Semua ({{ $totalOrdersCount }})
-                </button>
-                <button
-                    type="button"
-                    wire:click="setStatusFilter('pending')"
-                    class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer {{ $statusFilter === 'pending' ? 'bg-amber-500 text-[#0B132B] shadow-xs' : 'text-slate-400 hover:text-amber-400' }}"
-                >
-                    Menunggu ({{ $pendingCount }})
-                </button>
-                <button
-                    type="button"
-                    wire:click="setStatusFilter('processing')"
-                    class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer {{ $statusFilter === 'processing' ? 'bg-sky-500 text-[#0B132B] shadow-xs' : 'text-slate-400 hover:text-sky-400' }}"
-                >
-                    Diproses ({{ $processingCount }})
-                </button>
-                <button
-                    type="button"
-                    wire:click="setStatusFilter('completed')"
-                    class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer {{ $statusFilter === 'completed' ? 'bg-emerald-500 text-[#0B132B] shadow-xs' : 'text-slate-400 hover:text-emerald-400' }}"
-                >
-                    Selesai ({{ $completedCount }})
-                </button>
-                <button
-                    type="button"
-                    wire:click="setStatusFilter('cancelled')"
-                    class="px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer {{ $statusFilter === 'cancelled' ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-400 hover:text-rose-400' }}"
-                >
-                    Batal ({{ $cancelledCount }})
-                </button>
-            </div>
+        <!-- Primary Header Action -->
+        <x-slot:actions>
+            <button
+                type="button"
+                wire:click="openCreateModal"
+                class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-[11px] shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Buat Pesanan</span>
+            </button>
+        </x-slot:actions>
 
+        <!-- Filter & Search Toolbar (Full-Width Single Row) -->
+        <x-slot:controls>
             <!-- Search Bar -->
-            <div class="relative w-full sm:w-60">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="relative w-full sm:w-60 lg:w-72">
+                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
                 <input
                     type="text"
                     wire:model.live.debounce.300ms="search"
-                    placeholder="No. Pesanan, customer, SKU..."
-                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
+                    placeholder="Cari nomor pesanan, pelanggan..."
+                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 pl-8 pr-3 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
                 >
             </div>
 
-            <!-- Payment Filter -->
-            <select
-                wire:model.live="paymentFilter"
-                class="bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
-            >
-                <option value="all">Semua Pembayaran</option>
-                <option value="unpaid">Belum Dibayar</option>
-                <option value="paid">Lunas</option>
-            </select>
+            <!-- Filters Group -->
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <!-- Status Filter -->
+                <select
+                    wire:model.live="statusFilter"
+                    class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                >
+                    <option value="all">Semua Status ({{ $totalOrdersCount }})</option>
+                    <option value="pending">Menunggu ({{ $pendingCount }})</option>
+                    <option value="processing">Diproses ({{ $processingCount }})</option>
+                    <option value="completed">Selesai ({{ $completedCount }})</option>
+                    <option value="cancelled">Batal ({{ $cancelledCount }})</option>
+                </select>
 
-            <!-- Create Order Button -->
-            <button
-                type="button"
-                wire:click="openCreateModal"
-                class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
-            >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span>Buat Pesanan</span>
-            </button>
+                <!-- Payment Filter -->
+                <select
+                    wire:model.live="paymentFilter"
+                    class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                >
+                    <option value="all">Semua Pembayaran</option>
+                    <option value="unpaid">Belum Lunas</option>
+                    <option value="paid">Lunas</option>
+                </select>
+
+                <!-- Sort By Dropdown -->
+                <select
+                    wire:model.live="sortBy"
+                    class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                >
+                    <option value="latest">Terbaru</option>
+                    <option value="oldest">Terlama</option>
+                    <option value="highest_total">Nominal Tertinggi</option>
+                    <option value="lowest_total">Nominal Terendah</option>
+                </select>
+            </div>
         </x-slot:controls>
 
         <!-- Orders Table Body -->
         <table class="w-full text-left text-xs">
             <thead>
                 <tr class="text-[11px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
-                    <th class="px-5 py-3.5 font-medium">No. Pesanan</th>
-                    <th class="px-5 py-3.5 font-medium">Customer</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Total Transaksi</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Status Pesanan</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Pembayaran</th>
-                    <th class="px-5 py-3.5 font-medium text-center hidden md:table-cell">Pengiriman</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Aksi</th>
+                    <th class="px-4 py-3 font-medium">No. Pesanan</th>
+                    <th class="px-4 py-3 font-medium">Customer</th>
+                    <th class="px-4 py-3 font-medium text-right">Total Transaksi</th>
+                    <th class="px-4 py-3 font-medium text-center">Status Pesanan</th>
+                    <th class="px-4 py-3 font-medium text-center">Pembayaran</th>
+                    <th class="px-4 py-3 font-medium text-center hidden md:table-cell">Pengiriman</th>
+                    <th class="px-4 py-3 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($orders as $order)
                     <tr wire:key="order-row-{{ $order->id }}" class="hover:bg-white/[0.02] transition-colors group">
                         <!-- Order Number & Date -->
-                        <td class="px-5 py-4">
+                        <td class="px-4 py-3">
                             <button
                                 type="button"
                                 wire:click="openDetailModal({{ $order->id }})"
@@ -115,14 +104,14 @@
                         </td>
 
                         <!-- Customer Details -->
-                        <td class="px-5 py-4">
+                        <td class="px-4 py-3">
                             <p class="font-semibold text-slate-200 text-xs">{{ $order->customer?->name ?? 'Guest Buyer' }}</p>
                             <p class="text-slate-400 text-[11px] mt-0.5">{{ $order->customer?->phone ?? '-' }}</p>
                             <p class="text-slate-500 text-[10px]">{{ $order->address?->city ?? '' }}</p>
                         </td>
 
                         <!-- Grand Total & Items Count -->
-                        <td class="px-5 py-4 text-right">
+                        <td class="px-4 py-3 text-right">
                             <p class="font-mono font-bold text-slate-100 text-sm">
                                 {{ $order->formatted_grand_total }}
                             </p>
@@ -132,22 +121,22 @@
                         </td>
 
                         <!-- Order Status Badge -->
-                        <td class="px-5 py-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $order->order_status->badgeClasses() }}">
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $order->order_status->badgeClasses() }}">
                                 {{ $order->order_status->label() }}
                             </span>
                         </td>
 
                         <!-- Payment Status Badge -->
-                        <td class="px-5 py-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $order->payment_status->badgeClasses() }}">
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $order->payment_status->badgeClasses() }}">
                                 {{ $order->payment_status->label() }}
                             </span>
                         </td>
 
                         <!-- Fulfillment Status & Tracking -->
-                        <td class="px-5 py-4 text-center hidden md:table-cell">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $order->fulfillment_status->badgeClasses() }}">
+                        <td class="px-4 py-3 text-center hidden md:table-cell">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $order->fulfillment_status->badgeClasses() }}">
                                 {{ $order->fulfillment_status->label() }}
                             </span>
                             @if($order->address?->tracking_number)
@@ -158,14 +147,14 @@
                         </td>
 
                         <!-- Action Button -->
-                        <td class="px-5 py-4 text-right">
+                        <td class="px-4 py-3 text-right">
                             <button
                                 type="button"
                                 wire:click="openDetailModal({{ $order->id }})"
                                 class="px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1.5"
                             >
                                 <span>Detail</span>
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="w-3.5 h-3.5 text-[#CBAC70]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
@@ -173,7 +162,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-12 text-center text-slate-400">
+                        <td colspan="7" class="px-4 py-10 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

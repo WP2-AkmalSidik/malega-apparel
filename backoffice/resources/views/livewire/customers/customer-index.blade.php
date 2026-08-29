@@ -5,60 +5,62 @@
         subtitle="Buku profil pembeli, akumulasi belanja, dan riwayat pesanan seumur hidup pelanggan Malega Apparel"
         :count="$totalCustomersCount"
     >
-        <!-- Filter & Control Bar -->
+        <!-- Primary Header Action -->
+        <x-slot:actions>
+            <button
+                type="button"
+                wire:click="openCreateModal"
+                class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-[11px] shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Tambah Pelanggan</span>
+            </button>
+        </x-slot:actions>
+
+        <!-- Filter & Control Bar (Full-Width Single Row) -->
         <x-slot:controls>
             <!-- Search Bar -->
-            <div class="relative w-full sm:w-64">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="relative w-full sm:w-60 lg:w-72">
+                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
                 <input
                     type="text"
                     wire:model.live.debounce.300ms="search"
-                    placeholder="Cari nama, email, WhatsApp..."
-                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
+                    placeholder="Cari nama, WhatsApp, email..."
+                    class="w-full bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 pl-8 pr-3 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors"
                 >
             </div>
 
             <!-- Sort By Dropdown -->
             <select
                 wire:model.live="sortBy"
-                class="bg-[#070C1A] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
+                class="bg-[#070C1A] border border-slate-700/80 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70] focus:ring-1 focus:ring-[#CBAC70] transition-colors cursor-pointer"
             >
-                <option value="latest">Terbaru Terdaftar</option>
-                <option value="spend_desc">Total Belanja Tertinggi</option>
+                <option value="latest">Terbaru</option>
+                <option value="spend_desc">Belanja Terbanyak</option>
                 <option value="orders_desc">Pesanan Terbanyak</option>
             </select>
-
-            <!-- Add Customer Button -->
-            <button
-                type="button"
-                wire:click="openCreateModal"
-                class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
-            >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span>Tambah Pelanggan</span>
-            </button>
         </x-slot:controls>
 
         <!-- Customers Table Body -->
         <table class="w-full text-left text-xs">
             <thead>
                 <tr class="text-[11px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800/80 bg-white/[0.02]">
-                    <th class="px-5 py-3.5 font-medium">Pelanggan</th>
-                    <th class="px-5 py-3.5 font-medium">Kontak</th>
-                    <th class="px-5 py-3.5 font-medium text-center">Total Pesanan</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Akumulasi Belanja</th>
-                    <th class="px-5 py-3.5 font-medium text-right">Aksi</th>
+                    <th class="px-4 py-3 font-medium">Pelanggan</th>
+                    <th class="px-4 py-3 font-medium">Kontak</th>
+                    <th class="px-4 py-3 font-medium text-center">Total Pesanan</th>
+                    <th class="px-4 py-3 font-medium text-right">Akumulasi Belanja</th>
+                    <th class="px-4 py-3 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($customers as $customer)
                     <tr wire:key="customer-row-{{ $customer->id }}" class="hover:bg-white/[0.02] transition-colors group">
                         <!-- Customer Name & Avatar -->
-                        <td class="px-5 py-4">
+                        <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#CBAC70] to-[#BD9B58] flex items-center justify-center text-[#0B132B] font-bold text-xs shadow-xs">
                                     {{ strtoupper(substr($customer->name, 0, 2)) }}
@@ -75,25 +77,25 @@
                         </td>
 
                         <!-- Contact Details -->
-                        <td class="px-5 py-4">
+                        <td class="px-4 py-3">
                             <p class="text-slate-300 font-mono text-xs">{{ $customer->email }}</p>
                             <p class="text-slate-400 text-[11px] mt-0.5 font-mono">{{ $customer->phone }}</p>
                         </td>
 
                         <!-- Total Orders Count -->
-                        <td class="px-5 py-4 text-center">
+                        <td class="px-4 py-3 text-center">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-slate-800/80 text-slate-300 border border-slate-700/60">
                                 {{ $customer->total_orders_count }} Pesanan
                             </span>
                         </td>
 
                         <!-- Total Spend Amount -->
-                        <td class="px-5 py-4 text-right font-mono font-bold text-slate-100 text-sm">
+                        <td class="px-4 py-3 text-right font-mono font-bold text-slate-100 text-sm">
                             {{ $customer->formatted_total_spend }}
                         </td>
 
                         <!-- Action Buttons -->
-                        <td class="px-5 py-4 text-right">
+                        <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 <!-- Order History Button -->
                                 <button
@@ -124,7 +126,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-5 py-12 text-center text-slate-400">
+                        <td colspan="5" class="px-4 py-10 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500 mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
