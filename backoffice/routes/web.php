@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\Catalog\CategoryIndex;
+use App\Livewire\Catalog\ProductIndex;
 use App\Livewire\Dashboard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +22,12 @@ Route::middleware('guest')->group(function () {
 // Authenticated Backoffice Routes
 Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
+
+    // Module 02: Catalog Management
+    Route::prefix('catalog')->name('catalog.')->group(function () {
+        Route::get('/categories', CategoryIndex::class)->name('categories');
+        Route::get('/products', ProductIndex::class)->name('products');
+    });
 
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();

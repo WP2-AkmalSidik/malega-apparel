@@ -64,5 +64,8 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        // 5. Seed Catalog (Categories, Products & Variants)
+        $this->call(CatalogSeeder::class);
     }
 }
