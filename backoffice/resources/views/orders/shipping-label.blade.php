@@ -354,59 +354,10 @@
             </div>
         </div>
 
-        <!-- 2. Barcode Ekspedisi & No. Resi AWB -->
+        <!-- 2. Barcode Ekspedisi & No. Resi AWB (100% Real Scannable Code 128) -->
         <div class="barcode-section">
             <div class="barcode-strip" title="{{ $waybill }}">
-                <!-- High-contrast SVG 1D Barcode Simulation -->
-                <svg width="280" height="38" viewBox="0 0 280 38" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="0" y="0" width="3" height="38" fill="#000" />
-                    <rect x="5" y="0" width="2" height="38" fill="#000" />
-                    <rect x="9" y="0" width="4" height="38" fill="#000" />
-                    <rect x="15" y="0" width="2" height="38" fill="#000" />
-                    <rect x="19" y="0" width="6" height="38" fill="#000" />
-                    <rect x="28" y="0" width="3" height="38" fill="#000" />
-                    <rect x="33" y="0" width="2" height="38" fill="#000" />
-                    <rect x="38" y="0" width="5" height="38" fill="#000" />
-                    <rect x="45" y="0" width="3" height="38" fill="#000" />
-                    <rect x="51" y="0" width="4" height="38" fill="#000" />
-                    <rect x="57" y="0" width="2" height="38" fill="#000" />
-                    <rect x="62" y="0" width="5" height="38" fill="#000" />
-                    <rect x="69" y="0" width="3" height="38" fill="#000" />
-                    <rect x="74" y="0" width="6" height="38" fill="#000" />
-                    <rect x="83" y="0" width="2" height="38" fill="#000" />
-                    <rect x="87" y="0" width="4" height="38" fill="#000" />
-                    <rect x="94" y="0" width="3" height="38" fill="#000" />
-                    <rect x="99" y="0" width="5" height="38" fill="#000" />
-                    <rect x="106" y="0" width="2" height="38" fill="#000" />
-                    <rect x="110" y="0" width="6" height="38" fill="#000" />
-                    <rect x="119" y="0" width="3" height="38" fill="#000" />
-                    <rect x="124" y="0" width="2" height="38" fill="#000" />
-                    <rect x="129" y="0" width="5" height="38" fill="#000" />
-                    <rect x="136" y="0" width="4" height="38" fill="#000" />
-                    <rect x="142" y="0" width="2" height="38" fill="#000" />
-                    <rect x="147" y="0" width="5" height="38" fill="#000" />
-                    <rect x="154" y="0" width="3" height="38" fill="#000" />
-                    <rect x="160" y="0" width="6" height="38" fill="#000" />
-                    <rect x="168" y="0" width="2" height="38" fill="#000" />
-                    <rect x="173" y="0" width="4" height="38" fill="#000" />
-                    <rect x="180" y="0" width="3" height="38" fill="#000" />
-                    <rect x="185" y="0" width="5" height="38" fill="#000" />
-                    <rect x="192" y="0" width="2" height="38" fill="#000" />
-                    <rect x="197" y="0" width="6" height="38" fill="#000" />
-                    <rect x="206" y="0" width="3" height="38" fill="#000" />
-                    <rect x="211" y="0" width="2" height="38" fill="#000" />
-                    <rect x="216" y="0" width="5" height="38" fill="#000" />
-                    <rect x="223" y="0" width="4" height="38" fill="#000" />
-                    <rect x="229" y="0" width="2" height="38" fill="#000" />
-                    <rect x="234" y="0" width="6" height="38" fill="#000" />
-                    <rect x="242" y="0" width="3" height="38" fill="#000" />
-                    <rect x="247" y="0" width="2" height="38" fill="#000" />
-                    <rect x="252" y="0" width="5" height="38" fill="#000" />
-                    <rect x="259" y="0" width="3" height="38" fill="#000" />
-                    <rect x="265" y="0" width="5" height="38" fill="#000" />
-                    <rect x="272" y="0" width="2" height="38" fill="#000" />
-                    <rect x="276" y="0" width="4" height="38" fill="#000" />
-                </svg>
+                {!! \App\Services\Barcode\Code128BarcodeGenerator::generateSvg($waybill, 42, 2) !!}
             </div>
             <div class="waybill-text">{{ $waybill }}</div>
         </div>
