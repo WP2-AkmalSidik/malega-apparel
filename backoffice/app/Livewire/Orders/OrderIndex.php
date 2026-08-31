@@ -433,6 +433,25 @@ class OrderIndex extends Component
     }
 
     /**
+     * Synchronize tracking status directly from the Order Detail modal.
+     */
+    public function syncCurrentDetailShipment(SyncBiteshipTrackingAction $syncAction): void
+    {
+        if (! $this->selectedOrderId) {
+            return;
+        }
+
+        $order = Order::with(['shipment'])->findOrFail($this->selectedOrderId);
+        $res = $syncAction->execute($order);
+
+        $this->dispatch('toast', [
+            'type' => $res['success'] ? 'success' : 'error',
+            'title' => $res['success'] ? 'Sinkronisasi Berhasil' : 'Gagal Sinkronisasi',
+            'message' => $res['message'],
+        ]);
+    }
+
+    /**
      * Open Live Tracking Modal.
      */
     public function openTrackingModal(int $orderId, SyncBiteshipTrackingAction $syncAction): void
