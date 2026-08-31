@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Orders;
 
+use App\Actions\Logistics\CreateBiteshipShipmentAction;
+use App\Actions\Logistics\SyncBiteshipTrackingAction;
 use App\Actions\Orders\CreateOrderAction;
 use App\Actions\Orders\UpdateFulfillmentAction;
 use App\Actions\Orders\UpdateOrderStatusAction;
@@ -9,6 +11,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\ProductVariant;
+use Exception;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -62,12 +65,25 @@ class OrderIndex extends Component
 
     public string $notes = '';
 
-    // Order Detail Modal State
+    // Order Detail & Fulfillment Modal State
     public ?int $selectedOrderId = null;
+
+    public string $fulfillmentMode = 'biteship'; // 'biteship' | 'manual'
+
+    public string $biteshipCourier = 'jne';
+
+    public string $biteshipService = 'reg';
+
+    public string $biteshipNotes = '';
 
     public string $fulfillmentCourier = 'JNE';
 
     public string $fulfillmentTrackingNumber = '';
+
+    // Live Tracking Modal State
+    public ?int $trackingOrderId = null;
+
+    public ?array $liveTrackingData = null;
 
     /**
      * Define custom pagination template.
@@ -340,7 +356,47 @@ class OrderIndex extends Component
     }
 
     /**
-     * Submit Fulfillment with Courier & Tracking Number.
+     * Generate Auto-AWB via Biteship and deduct stock.
+     */
+    public function createBiteshipFulfillment(CreateBiteshipShipmentAction $createBiteshipShipment): void
+    {
+        $this->validate([
+            'biteshipCourier' => ['required', 'string', 'max:50'],
+            'biteshipService' => ['required', 'string', 'max:50'],
+        ]);
+
+        if (! $this->selectedOrderId) {
+            return;
+        }
+
+        $order = Order::findOrFail($this->selectedOrderId);
+
+        try {
+            $updatedOrder = $createBiteshipShipment->execute($order, [
+                'courier_company' => $this->biteshipCourier,
+                'courier_type' => $this->biteshipService,
+                'notes' => $this->biteshipNotes ?: null,
+                'user_id' => auth()->id(),
+            ]);
+
+            $waybill = $updatedOrder->shipment?->waybill_id;
+
+            $this->dispatch('toast', [
+                'type' => 'success',
+                'title' => 'Resi Auto-AWB Terbit!',
+                'message' => "Resi {$waybill} ({$this->biteshipCourier}) berhasil diterbitkan via Biteship & stok fisik telah dipotong.",
+            ]);
+        } catch (Exception $e) {
+            $this->dispatch('toast', [
+                'type' => 'error',
+                'title' => 'Gagal Generate Resi Biteship',
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Submit Manual Fulfillment with Courier & Tracking Number.
      */
     public function submitFulfillment(UpdateFulfillmentAction $updateFulfillment): void
     {
@@ -376,15 +432,59 @@ class OrderIndex extends Component
         }
     }
 
+    /**
+     * Open Live Tracking Modal.
+     */
+    public function openTrackingModal(int $orderId, SyncBiteshipTrackingAction $syncAction): void
+    {
+        $this->trackingOrderId = $orderId;
+        $order = Order::with(['shipment'])->findOrFail($orderId);
+
+        // Sync latest tracking data
+        $res = $syncAction->execute($order);
+        $this->liveTrackingData = $res['tracking'] ?? $order->shipment?->tracking_history;
+
+        $this->dispatch('open-modal-tracking-modal');
+    }
+
+    /**
+     * Refresh Live Tracking data inside modal.
+     */
+    public function refreshTracking(SyncBiteshipTrackingAction $syncAction): void
+    {
+        if (! $this->trackingOrderId) {
+            return;
+        }
+
+        $order = Order::with(['shipment'])->findOrFail($this->trackingOrderId);
+        $res = $syncAction->execute($order);
+        $this->liveTrackingData = $res['tracking'] ?? $order->shipment?->tracking_history;
+
+        if ($res['success']) {
+            $this->dispatch('toast', [
+                'type' => 'success',
+                'title' => 'Pelacakan Diperbarui',
+                'message' => 'Status pelacakan kurir berhasil disinkronkan.',
+            ]);
+        } else {
+            $this->dispatch('toast', [
+                'type' => 'error',
+                'title' => 'Gagal Sinkronisasi',
+                'message' => $res['message'],
+            ]);
+        }
+    }
+
     public function render()
     {
-        $query = Order::with(['customer', 'items', 'address'])
+        $query = Order::with(['customer', 'items', 'address', 'shipment'])
             ->when($this->search, function ($q) {
                 $term = '%'.$this->search.'%';
                 $q->where(function ($sub) use ($term) {
                     $sub->where('order_number', 'like', $term)
                         ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', $term)->orWhere('phone', 'like', $term))
-                        ->orWhereHas('items', fn ($i) => $i->where('sku', 'like', $term)->orWhere('product_name', 'like', $term));
+                        ->orWhereHas('items', fn ($i) => $i->where('sku', 'like', $term)->orWhere('product_name', 'like', $term))
+                        ->orWhereHas('shipment', fn ($s) => $s->where('waybill_id', 'like', $term));
                 });
             })
             ->when($this->statusFilter !== 'all', function ($q) {
@@ -409,11 +509,19 @@ class OrderIndex extends Component
 
         // Active Selected Order for Detail Modal
         $activeOrder = $this->selectedOrderId
-            ? Order::with(['customer', 'items', 'address', 'statusHistories.user'])->find($this->selectedOrderId)
+            ? Order::with(['customer', 'items', 'address', 'shipment', 'statusHistories.user'])->find($this->selectedOrderId)
+            : null;
+
+        // Active Tracking Order for Tracking Modal
+        $trackingOrder = $this->trackingOrderId
+            ? Order::with(['customer', 'address', 'shipment'])->find($this->trackingOrderId)
             : null;
 
         // Available variants for create order selection
         $availableVariants = ProductVariant::active()->with(['product', 'inventoryItem'])->get();
+
+        // Supported couriers from configuration
+        $couriersList = config('biteship.couriers', []);
 
         return view('livewire.orders.order-index', [
             'orders' => $orders,
@@ -423,7 +531,9 @@ class OrderIndex extends Component
             'completedCount' => $completedCount,
             'cancelledCount' => $cancelledCount,
             'activeOrder' => $activeOrder,
+            'trackingOrder' => $trackingOrder,
             'availableVariants' => $availableVariants,
+            'couriersList' => $couriersList,
         ]);
     }
 }

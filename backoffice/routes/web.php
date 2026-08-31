@@ -7,6 +7,7 @@ use App\Livewire\Customers\CustomerIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\Inventory\InventoryIndex;
 use App\Livewire\Orders\OrderIndex;
+use App\Livewire\Public\OrderTracking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 | Web Routes — Malega Apparel Backoffice
 |--------------------------------------------------------------------------
 */
+
+// Public Tracking Route (Accessible to customers & public)
+Route::get('/track/{order_number?}', OrderTracking::class)->name('order.track');
 
 // Guest Routes
 Route::middleware('guest')->group(function () {

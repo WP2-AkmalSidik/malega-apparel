@@ -57,6 +57,17 @@ class OrderResource extends JsonResource
                 'courier_name' => $this->address?->courier_name,
                 'tracking_number' => $this->address?->tracking_number,
             ],
+            'shipment' => $this->shipment ? [
+                'courier' => $this->shipment->courier_company,
+                'service' => $this->shipment->courier_service_name,
+                'waybill_id' => $this->shipment->waybill_id,
+                'status' => $this->shipment->status,
+                'status_label' => $this->shipment->status_label,
+                'tracking_url' => $this->shipment->tracking_url,
+                'tracking_history' => $this->shipment->tracking_history,
+                'shipped_at' => $this->shipment->shipped_at?->toIso8601String(),
+                'delivered_at' => $this->shipment->delivered_at?->toIso8601String(),
+            ] : null,
             'items' => $this->items->map(fn ($item) => [
                 'sku' => $item->sku,
                 'product_name' => $item->product_name,

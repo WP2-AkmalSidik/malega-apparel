@@ -81,6 +81,22 @@ class Order extends Model
     }
 
     /**
+     * Logistics shipment record (Biteship auto-AWB).
+     */
+    public function shipment(): HasOne
+    {
+        return $this->hasOne(Shipment::class)->latestOfMany();
+    }
+
+    /**
+     * All shipment records.
+     */
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class);
+    }
+
+    /**
      * Status transition audit history.
      */
     public function statusHistories(): HasMany

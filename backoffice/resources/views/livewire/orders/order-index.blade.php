@@ -139,25 +139,53 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $order->fulfillment_status->badgeClasses() }}">
                                 {{ $order->fulfillment_status->label() }}
                             </span>
-                            @if($order->address?->tracking_number)
-                                <p class="text-[10px] font-mono text-sky-400 mt-1 truncate max-w-[130px] mx-auto">
-                                    {{ $order->address->courier_name }}: {{ $order->address->tracking_number }}
-                                </p>
+                            @if($order->shipment?->waybill_id || $order->address?->tracking_number)
+                                @php
+                                    $waybill = $order->shipment?->waybill_id ?? $order->address?->tracking_number;
+                                    $courier = $order->shipment?->courier_company ?? $order->address?->courier_name ?? 'Kurir';
+                                @endphp
+                                <button
+                                    type="button"
+                                    wire:click="openTrackingModal({{ $order->id }})"
+                                    class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[10px] font-mono transition-colors cursor-pointer max-w-[140px] truncate"
+                                    title="Klik untuk melacak pengiriman real-time"
+                                >
+                                    <svg class="w-3 h-3 text-sky-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span class="truncate">{{ $courier }}: {{ $waybill }}</span>
+                                </button>
                             @endif
                         </td>
 
                         <!-- Action Button -->
                         <td class="px-4 py-3 text-right">
-                            <button
-                                type="button"
-                                wire:click="openDetailModal({{ $order->id }})"
-                                class="px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                            >
-                                <span>Detail</span>
-                                <svg class="w-3.5 h-3.5 text-[#CBAC70]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                </svg>
-                            </button>
+                            <div class="flex items-center justify-end gap-1.5">
+                                @if($order->shipment?->waybill_id)
+                                    <button
+                                        type="button"
+                                        wire:click="openTrackingModal({{ $order->id }})"
+                                        class="p-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 transition-colors cursor-pointer"
+                                        title="Lacak Kurir Real-time"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                        </svg>
+                                    </button>
+                                @endif
+
+                                <button
+                                    type="button"
+                                    wire:click="openDetailModal({{ $order->id }})"
+                                    class="px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                                >
+                                    <span>Detail</span>
+                                    <svg class="w-3.5 h-3.5 text-[#CBAC70]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -445,29 +473,184 @@
                     </div>
                 </div>
 
-                <!-- Courier Fulfillment Section -->
+                <!-- Logistics & Courier Fulfillment Section -->
                 @if($activeOrder->order_status->value !== 'cancelled')
-                    <div class="p-4 rounded-xl bg-[#070C1A] border border-slate-800 space-y-3">
-                        <p class="text-[11px] font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Input Kurir & Nomor Resi Pengiriman</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                            <div class="space-y-1">
-                                <label class="block text-[11px] text-slate-300">Ekspedisi Kurir</label>
-                                <input type="text" wire:model="fulfillmentCourier" placeholder="misal: JNE REG / SiCepat" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                    <div class="p-4 rounded-2xl bg-[#070C1A] border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-100 uppercase tracking-wider">Pemenuhan Logistik & Pengiriman</p>
+                                    <p class="text-[11px] text-slate-400">Penerbitan nomor resi otomatis via Biteship API atau input manual</p>
+                                </div>
                             </div>
-                            <div class="space-y-1">
-                                <label class="block text-[11px] text-slate-300">Nomor Resi</label>
-                                <input type="text" wire:model="fulfillmentTrackingNumber" placeholder="No. Resi Pengiriman" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 font-mono">
-                            </div>
-                            <div>
+
+                            <!-- Fulfillment Mode Switch Tabs -->
+                            <div class="flex items-center bg-slate-900 border border-slate-700/80 p-1 rounded-xl text-[11px]">
                                 <button
                                     type="button"
-                                    wire:click="submitFulfillment"
-                                    class="w-full py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors cursor-pointer"
+                                    wire:click="$set('fulfillmentMode', 'biteship')"
+                                    class="px-3 py-1 rounded-lg font-medium transition-colors {{ $fulfillmentMode === 'biteship' ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow' : 'text-slate-400 hover:text-slate-200' }}"
                                 >
-                                    Update Resi & Potong Stok
+                                    ⚡ Auto-AWB (Biteship)
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="$set('fulfillmentMode', 'manual')"
+                                    class="px-3 py-1 rounded-lg font-medium transition-colors {{ $fulfillmentMode === 'manual' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200' }}"
+                                >
+                                    Input Manual
                                 </button>
                             </div>
                         </div>
+
+                        <!-- If Shipment Record Already Exists (Resi already generated) -->
+                        @if($activeOrder->shipment?->waybill_id)
+                            <div class="p-3.5 rounded-xl bg-sky-950/20 border border-sky-500/30 flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-[10px] uppercase font-mono text-sky-400 font-bold">Resi Pengiriman Terbit (Biteship Auto-AWB)</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="font-mono font-bold text-sm text-slate-100 tracking-wide select-all">{{ $activeOrder->shipment->waybill_id }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/20 text-sky-300 font-bold">
+                                            {{ $activeOrder->shipment->courier_company }} ({{ $activeOrder->shipment->courier_service_name }})
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-1">
+                                        Status Kurir: <span class="text-slate-200 font-semibold">{{ $activeOrder->shipment->status_label }}</span>
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <a
+                                        href="{{ route('order.track', $activeOrder->order_number) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="px-3 py-1.5 rounded-lg border border-[#CBAC70]/40 bg-[#CBAC70]/10 hover:bg-[#CBAC70]/20 text-[#CBAC70] text-xs font-semibold transition-colors flex items-center gap-1"
+                                        title="Buka Portal Pelacakan Khusus Customer"
+                                    >
+                                        <span>🌐 Portal Web</span>
+                                        <span class="text-[10px]">↗</span>
+                                    </a>
+
+                                    <button
+                                        type="button"
+                                        wire:click="openTrackingModal({{ $activeOrder->id }})"
+                                        class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow transition-all cursor-pointer flex items-center gap-1.5"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span>Lacak Live</span>
+                                    </button>
+
+                                    @if($activeOrder->shipment->tracking_url)
+                                        <a
+                                            href="{{ $activeOrder->shipment->tracking_url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+                                        >
+                                            Biteship ↗
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <!-- MODE 1: AUTO-AWB BITESHIP FORM -->
+                            @if($fulfillmentMode === 'biteship')
+                                <div class="space-y-3 pt-1">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <!-- Courier Company -->
+                                        <div class="space-y-1">
+                                            <label class="block text-[11px] font-semibold uppercase text-slate-300">Pilih Ekspedisi Kurir</label>
+                                            <select
+                                                wire:model="biteshipCourier"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
+                                            >
+                                                @foreach($couriersList as $code => $name)
+                                                    <option value="{{ $code }}">{{ $name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Service Type -->
+                                        <div class="space-y-1">
+                                            <label class="block text-[11px] font-semibold uppercase text-slate-300">Layanan Kurir</label>
+                                            <select
+                                                wire:model="biteshipService"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
+                                            >
+                                                <option value="reg">Reguler (Standard)</option>
+                                                <option value="next_day">Next Day (1 Hari)</option>
+                                                <option value="instant">Instant (Motor / 1-3 Jam)</option>
+                                                <option value="same_day">Same Day (Hari Ini)</option>
+                                                <option value="cargo">Cargo / Trucking (Berat)</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Notes -->
+                                        <div class="space-y-1">
+                                            <label class="block text-[11px] font-semibold uppercase text-slate-300">Catatan Driver (Opsional)</label>
+                                            <input
+                                                type="text"
+                                                wire:model="biteshipNotes"
+                                                placeholder="misal: Paket busana Malega"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
+                                            >
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2 flex justify-end">
+                                        <button
+                                            type="button"
+                                            wire:click="createBiteshipFulfillment"
+                                            wire:loading.attr="disabled"
+                                            class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs shadow-md shadow-[#CBAC70]/20 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                                        >
+                                            <span wire:loading.remove wire:target="createBiteshipFulfillment" class="flex items-center gap-1.5">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                </svg>
+                                                <span>⚡ Generate Resi Otomatis (Biteship Auto-AWB)</span>
+                                            </span>
+                                            <span wire:loading.inline-flex wire:target="createBiteshipFulfillment" class="items-center gap-1.5">
+                                                <svg class="animate-spin h-3.5 w-3.5 text-[#0B132B]" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                                <span>Menghubungi Biteship API...</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                <!-- MODE 2: MANUAL ENTRY FORM -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-1">
+                                    <div class="space-y-1">
+                                        <label class="block text-[11px] text-slate-300">Ekspedisi Kurir</label>
+                                        <input type="text" wire:model="fulfillmentCourier" placeholder="misal: JNE REG / SiCepat" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[11px] text-slate-300">Nomor Resi</label>
+                                        <input type="text" wire:model="fulfillmentTrackingNumber" placeholder="No. Resi Pengiriman" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 font-mono">
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            wire:click="submitFulfillment"
+                                            class="w-full py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors cursor-pointer"
+                                        >
+                                            Update Resi & Potong Stok
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
                     </div>
                 @endif
 
@@ -512,7 +695,7 @@
                             </button>
                         @endif
 
-                        @if($activeOrder->order_status->value === 'processing')
+                        @if($activeOrder->order_status->value === 'processing' || $activeOrder->order_status->value === 'shipped')
                             <button
                                 type="button"
                                 wire:click="markAsCompleted"
@@ -534,4 +717,132 @@
             </div>
         @endif
     </x-modal>
+
+    <!-- Reusable Live Tracking Modal (Biteship Logistics) -->
+    <x-modal
+        id="tracking-modal"
+        :title="'Lacak Pengiriman #' . ($trackingOrder?->order_number ?? '')"
+        subtitle="Pantau pergerakan fisik kurir secara real-time via Biteship Live Logistics API"
+        maxWidth="2xl"
+    >
+        @if($trackingOrder)
+            <div class="space-y-5">
+                <!-- Tracking Header Summary Card -->
+                <div class="p-4 rounded-2xl bg-[#070C1A] border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-bold text-base text-sky-400 select-all">
+                                {{ $trackingOrder->shipment?->waybill_id ?? $trackingOrder->address?->tracking_number ?? 'Resi Belum Terbit' }}
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                                {{ $trackingOrder->shipment?->courier_company ?? $trackingOrder->address?->courier_name }}
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Tujuan: <span class="text-slate-200">{{ $trackingOrder->address?->recipient_name }}</span> ({{ $trackingOrder->address?->city }}, {{ $trackingOrder->address?->province }})
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <a
+                            href="{{ route('order.track', $trackingOrder->order_number) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="px-3 py-1.5 rounded-lg border border-[#CBAC70]/40 bg-[#CBAC70]/10 hover:bg-[#CBAC70]/20 text-[#CBAC70] text-xs font-semibold transition-colors flex items-center gap-1"
+                            title="Buka Halaman Pelacakan Khusus Customer di Web"
+                        >
+                            <span>🌐 Web Portal</span>
+                            <span class="text-[10px]">↗</span>
+                        </a>
+
+                        <button
+                            type="button"
+                            wire:click="refreshTracking"
+                            wire:loading.attr="disabled"
+                            class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                            <svg wire:loading.remove wire:target="refreshTracking" class="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <svg wire:loading.inline-flex wire:target="refreshTracking" class="animate-spin w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <span>Refresh</span>
+                        </button>
+
+                        @if($trackingOrder->shipment?->tracking_url)
+                            <a
+                                href="{{ $trackingOrder->shipment->tracking_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors"
+                            >
+                                Biteship ↗
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Vertical Milestone Timeline -->
+                <div class="space-y-2">
+                    <p class="text-[11px] font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Perjalanan Paket</p>
+                    
+                    @php
+                        $milestones = $liveTrackingData['history'] ?? $trackingOrder->shipment?->tracking_history ?? [];
+                    @endphp
+
+                    @if(!empty($milestones))
+                        <div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+                            @foreach(array_reverse($milestones) as $index => $item)
+                                <div class="relative group">
+                                    <!-- Indicator Dot -->
+                                    <div class="absolute -left-6 top-1 w-4 h-4 rounded-full border-2 {{ $index === 0 ? 'bg-sky-500 border-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.8)]' : 'bg-slate-900 border-slate-700' }}"></div>
+                                    
+                                    <div class="p-3 rounded-xl {{ $index === 0 ? 'bg-sky-950/20 border border-sky-500/30' : 'bg-[#070C1A] border border-slate-800/80' }} text-xs">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="font-semibold uppercase tracking-wider text-[11px] {{ $index === 0 ? 'text-sky-400' : 'text-slate-300' }}">
+                                                {{ ucfirst(str_replace('_', ' ', $item['status'] ?? 'Update')) }}
+                                            </span>
+                                            <span class="font-mono text-[10px] text-slate-500">
+                                                {{ !empty($item['updated_at']) ? \Carbon\Carbon::parse($item['updated_at'])->format('d M Y, H:i') : '-' }}
+                                            </span>
+                                        </div>
+                                        <p class="text-slate-200 mt-1 leading-relaxed">{{ $item['note'] ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="p-6 text-center rounded-xl bg-[#070C1A] border border-slate-800 text-slate-400">
+                            <p class="text-xs">Data perjalanan paket belum tersedia dari kurir.</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Status akan otomatis diperbarui saat kurir melakukan pemindaian barcode.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Footer -->
+                <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                    <a
+                        href="{{ route('order.track', $trackingOrder->order_number) }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-xs font-semibold text-[#CBAC70] hover:text-[#DFB67A] transition-colors flex items-center gap-1"
+                    >
+                        <span>🌐 Buka Halaman Pelacakan Web Penuh</span>
+                        <span>↗</span>
+                    </a>
+
+                    <button
+                        type="button"
+                        x-on:click="$dispatch('close-modal-tracking-modal')"
+                        class="px-4 py-2 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    >
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
 </div>
+

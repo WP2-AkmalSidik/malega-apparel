@@ -28,4 +28,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // 2. Order & Checkout Endpoints
     Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
     Route::get('/orders/{order_number}', [OrderController::class, 'track'])->name('orders.track');
+
+    // 3. Logistics & Webhooks (Biteship)
+    Route::post('/webhooks/biteship', [\App\Http\Controllers\Api\V1\BiteshipWebhookController::class, 'handle'])->name('webhooks.biteship');
 });
