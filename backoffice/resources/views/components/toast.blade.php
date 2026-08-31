@@ -15,13 +15,31 @@
                 this.addToast({ type: 'warning', message: '{{ session('warning') }}', title: 'Peringatan' });
             @endif
         },
-        addToast(toast) {
+        addToast(raw) {
+            // Robustly unwrap payload from Livewire 3/4 ($event.detail can be Array, indexed Object, or direct Object/String)
+            let toast = raw;
+            if (Array.isArray(raw) && raw.length > 0) {
+                toast = raw[0];
+            } else if (raw && typeof raw === 'object' && raw[0]) {
+                toast = raw[0];
+            }
+
+            if (typeof toast === 'string') {
+                toast = { message: toast };
+            }
+
+            toast = toast || {};
+
             const id = Date.now() + Math.random().toString(36).substr(2, 9);
+            const type = toast.type || 'info';
+            const title = toast.title || (type === 'success' ? 'Berhasil' : (type === 'error' || type === 'danger' ? 'Gagal' : (type === 'warning' ? 'Peringatan' : 'Pemberitahuan')));
+            const message = toast.message || '';
+
             const newToast = {
                 id,
-                type: toast.type || 'info',
-                title: toast.title || (toast.type === 'success' ? 'Berhasil' : (toast.type === 'error' ? 'Gagal' : 'Pemberitahuan')),
-                message: toast.message || (typeof toast === 'string' ? toast : ''),
+                type,
+                title,
+                message,
                 visible: true,
                 timeout: toast.timeout || 4000
             };
