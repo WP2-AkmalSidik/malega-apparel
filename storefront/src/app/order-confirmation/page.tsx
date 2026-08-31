@@ -252,19 +252,28 @@ export default function OrderConfirmationPage() {
               </div>
             </div>
 
+            {/* Live Tracking Portal Button */}
+            <Link
+              href={`/track?q=${order.invoiceNumber || order.trackingNumber}`}
+              className="w-full py-4 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-[#CBAC70]/20 transition-all active:scale-98"
+            >
+              <Truck className="w-4 h-4 text-[#0B132B]" />
+              <span>Lacak Pengiriman Paket (Live Tracking)</span>
+            </Link>
+
             {/* WhatsApp Notification Button */}
             <a
               href={`https://wa.me/6281234567890?text=${waText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98"
+              className="w-full py-3.5 bg-emerald-600/90 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98"
             >
               <MessageSquare className="w-4 h-4" />
               <span>Konfirmasi via WhatsApp Admin</span>
             </a>
 
             <Link
-              href="/products"
+              href="/katalog"
               className="w-full py-3.5 bg-[#111D42] hover:bg-[#172654] border border-[#CBAC70]/30 text-[#CBAC70] rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
             >
               <span>Belanja Koleksi Lainnya</span>

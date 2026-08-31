@@ -17,6 +17,7 @@ export default function Navbar() {
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Katalog', href: '/katalog' },
+    { label: 'Lacak Pesanan', href: '/track' },
   ];
 
   return (

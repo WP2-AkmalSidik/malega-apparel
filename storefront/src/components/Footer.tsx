@@ -37,6 +37,7 @@ export default function Footer() {
           <div className="md:col-span-3 space-y-2.5">
             <h4 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70]">Layanan Pelanggan</h4>
             <ul className="space-y-1.5 text-xs">
+              <li><Link href="/track" className="hover:text-[#CBAC70] font-semibold text-[#CBAC70]">🚚 Lacak Pengiriman Live</Link></li>
               <li><a href="#" className="hover:text-[#CBAC70]">Panduan Ukuran (Size Chart)</a></li>
               <li><a href="#" className="hover:text-[#CBAC70]">Perawatan Bahan & Pencucian</a></li>
               <li><a href="#" className="hover:text-[#CBAC70]">Pengiriman & Garansi Retur</a></li>

@@ -40,19 +40,44 @@ class OrderController extends Controller
     }
 
     /**
-     * Public Order Tracking endpoint by canonical order number (MLG-YYYYMMDD-XXXX).
+     * Public Order Tracking endpoint by canonical order number or AWB/Resi ID.
      */
-    public function track(string $orderNumber): JsonResponse
+    public function track(string $orderNumber, \App\Actions\Logistics\SyncBiteshipTrackingAction $syncAction): JsonResponse
     {
-        $order = Order::with(['customer', 'items', 'address', 'statusHistories'])
-            ->where('order_number', trim($orderNumber))
+        $term = trim($orderNumber);
+
+        // 1. Search by canonical order number
+        $order = Order::with(['customer', 'items', 'address', 'shipment'])
+            ->where('order_number', $term)
             ->first();
+
+        // 2. Search by waybill_id (AWB Resi)
+        if (! $order) {
+            $shipment = \App\Models\Shipment::where('waybill_id', $term)->first();
+            if ($shipment) {
+                $order = $shipment->order()->with(['customer', 'items', 'address', 'shipment'])->first();
+            }
+        }
+
+        // 3. Search by address tracking_number
+        if (! $order) {
+            $order = Order::with(['customer', 'items', 'address', 'shipment'])
+                ->whereHas('address', fn ($a) => $a->where('tracking_number', $term))
+                ->first();
+        }
 
         if (! $order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Pesanan dengan nomor tersebut tidak ditemukan di sistem Malega Apparel.',
+                'message' => 'Pesanan atau nomor resi tidak ditemukan di sistem Malega Apparel.',
             ], 404);
+        }
+
+        // Auto-sync real-time tracking if shipment exists
+        if ($order->shipment) {
+            $syncAction->execute($order);
+            $order->refresh();
+            $order->load(['customer', 'items', 'address', 'shipment']);
         }
 
         return response()->json([

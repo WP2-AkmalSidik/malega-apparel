@@ -122,3 +122,65 @@ export interface CatalogCollection {
   tags: string[];
   productIds: string[];
 }
+
+export interface TrackingMilestone {
+  title: string;
+  note: string;
+  status: string;
+  timestamp: string;
+  location?: string;
+  isActive?: boolean;
+}
+
+export interface LiveTrackingOrder {
+  orderNumber: string;
+  createdAt: string;
+  orderStatus: { code: string; label: string };
+  paymentStatus: { code: string; label: string };
+  fulfillmentStatus: { code: string; label: string };
+  pricing: {
+    subtotal: number;
+    discount_total: number;
+    shipping_total: number;
+    tax_total: number;
+    grand_total: number;
+    formatted_grand_total: string;
+  };
+  customer: {
+    name: string;
+    email?: string;
+    phone?: string;
+  };
+  shippingAddress: {
+    recipient_name: string;
+    phone: string;
+    address_line1: string;
+    address_line2?: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    courier_name?: string;
+    tracking_number?: string;
+  };
+  shipment?: {
+    courier: string;
+    service: string;
+    waybill_id: string;
+    status: string;
+    status_label: string;
+    tracking_url?: string;
+    tracking_history?: Array<{ status: string; note: string; updated_at?: string }>;
+    shipped_at?: string;
+    delivered_at?: string;
+  } | null;
+  items: Array<{
+    sku: string;
+    product_name: string;
+    variant_title: string;
+    unit_price: number;
+    formatted_unit_price: string;
+    quantity: number;
+    subtotal: number;
+    formatted_subtotal: string;
+  }>;
+}
