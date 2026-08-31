@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
     // Module 05: Order & Commerce Management
     Route::get('/orders', OrderIndex::class)->name('orders.index');
+    Route::get('/orders/{order}/shipping-label', [\App\Http\Controllers\ShippingLabelController::class, 'print'])->name('orders.shipping-label');
 
     // Module 06: Customer Management
     Route::get('/customers', CustomerIndex::class)->name('customers.index');

@@ -258,4 +258,49 @@ class OrderManagementTest extends TestCase
                 return $orders->count() === 15;
             });
     }
+
+    public function test_authenticated_staff_can_view_and_print_thermal_shipping_label(): void
+    {
+        $this->actingAs($this->admin);
+
+        $order = Order::create([
+            'order_number' => 'MLG-LABEL-TEST-01',
+            'subtotal' => 589000,
+            'grand_total' => 607000,
+            'order_status' => OrderStatus::Processing,
+            'payment_status' => PaymentStatus::Paid,
+            'fulfillment_status' => FulfillmentStatus::Fulfilled,
+        ]);
+
+        $order->address()->create([
+            'recipient_name' => 'Arya Bimasakti',
+            'phone' => '081298765432',
+            'address_line1' => 'Jl. Boulevard Barat Raya Blok LA-1 No. 12',
+            'city' => 'Jakarta Utara',
+            'province' => 'DKI Jakarta',
+            'postal_code' => '14240',
+            'courier_name' => 'JNE (REG)',
+            'tracking_number' => 'WYB-1788147864651',
+        ]);
+
+        $order->items()->create([
+            'product_variant_id' => $this->variant->id,
+            'sku' => $this->variant->sku,
+            'product_name' => 'Signature Shirt',
+            'variant_title' => 'Silver / L',
+            'unit_price' => 589000,
+            'quantity' => 1,
+            'subtotal' => 589000,
+        ]);
+
+        $response = $this->get(route('orders.shipping-label', $order->id));
+
+        $response->assertOk()
+            ->assertViewIs('orders.shipping-label')
+            ->assertSee('WYB-1788147864651')
+            ->assertSee('Arya Bimasakti')
+            ->assertSee('MALEGA APPAREL')
+            ->assertSee('Signature Shirt');
+    }
 }
+

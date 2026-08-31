@@ -525,6 +525,19 @@
                                 </div>
 
                                 <div class="flex items-center gap-2">
+                                    <a
+                                        href="{{ route('orders.shipping-label', $activeOrder->id) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] text-xs font-bold shadow-md shadow-[#CBAC70]/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                                        title="Cetak Label Pengiriman Stiker Thermal Ukuran 100mm x 150mm"
+                                    >
+                                        <svg class="w-3.5 h-3.5 text-[#0B132B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                        </svg>
+                                        <span>Cetak Resi Thermal</span>
+                                    </a>
+
                                     <button
                                         type="button"
                                         wire:click="syncCurrentDetailShipment"
@@ -761,6 +774,19 @@
                     </div>
 
                     <div class="flex items-center gap-2">
+                        <a
+                            href="{{ route('orders.shipping-label', $trackingOrder->id) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] text-xs font-bold shadow-md shadow-[#CBAC70]/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                            title="Cetak Label Pengiriman Stiker Thermal Ukuran 100mm x 150mm"
+                        >
+                            <svg class="w-3.5 h-3.5 text-[#0B132B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>Cetak Resi</span>
+                        </a>
+
                         <a
                             href="{{ route('order.track', $trackingOrder->order_number) }}"
                             target="_blank"
