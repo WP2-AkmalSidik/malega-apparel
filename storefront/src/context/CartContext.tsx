@@ -11,7 +11,7 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void;
   
   // Cart Actions
-  addToCart: (item: Omit<CartItem, 'id' | 'selected'>) => void;
+  addToCart: (item: Omit<CartItem, 'id' | 'selected'>, openDrawer?: boolean) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, qty: number) => void;
   updateCartItemVariant: (id: string, color: string, size: string, price: number, originalPrice: number, image: string) => void;
@@ -90,7 +90,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const addToCart = (newItem: Omit<CartItem, 'id' | 'selected'>) => {
+  const addToCart = (newItem: Omit<CartItem, 'id' | 'selected'>, openDrawer: boolean = false) => {
     setCart(prev => {
       const existingIdx = prev.findIndex(
         i => i.productId === newItem.productId && i.color === newItem.color && i.size === newItem.size
@@ -103,7 +103,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const uniqueId = `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
       return [...prev, { ...newItem, id: uniqueId, selected: true }];
     });
-    setIsCartOpen(true);
+    if (openDrawer) {
+      setIsCartOpen(true);
+    }
   };
 
   const removeFromCart = (id: string) => {

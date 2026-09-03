@@ -23,6 +23,7 @@ import {
 import { productsCatalog } from '../../../data/products';
 import { useCart } from '../../../context/CartContext';
 import { useWishlist } from '../../../context/WishlistContext';
+import { useFlyToCart } from '../../../context/FlyToCartContext';
 import { ColorOption, Product } from '../../../types';
 import ProductCard from '../../../components/ProductCard';
 
@@ -34,6 +35,7 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
   const router = useRouter();
   const { addToCart, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { triggerFly } = useFlyToCart();
 
   const product = productsCatalog.find(p => p.id === productId || p.slug === productId) || productsCatalog[0];
 
@@ -111,6 +113,20 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
 
   const handleAddToBag = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
+
+    // Calculate starting position from click event or clicked button
+    let startX = typeof window !== 'undefined' ? window.innerWidth / 2 : 200;
+    let startY = typeof window !== 'undefined' ? window.innerHeight / 2 : 200;
+
+    if (e && e.currentTarget) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      startX = rect.left + rect.width / 2;
+      startY = rect.top + rect.height / 2;
+    }
+
+    const flyImg = selectedColor.image || activeImage || product.gallery[0];
+    triggerFly(flyImg, startX, startY);
+
     addToCart({
       productId: product.id,
       variantId: activeVariant.id,

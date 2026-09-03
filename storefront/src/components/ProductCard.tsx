@@ -6,6 +6,7 @@ import { ShoppingBag, Star, Sparkles, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useFlyToCart } from '../context/FlyToCartContext';
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +15,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { triggerFly } = useFlyToCart();
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
 
   const isFavorited = isInWishlist(product.id) || isInWishlist(product.slug);
@@ -25,6 +27,18 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    let startX = typeof window !== 'undefined' ? window.innerWidth / 2 : 200;
+    let startY = typeof window !== 'undefined' ? window.innerHeight / 2 : 200;
+
+    if (e.currentTarget) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      startX = rect.left + rect.width / 2;
+      startY = rect.top + rect.height / 2;
+    }
+
+    triggerFly(selectedColor.image, startX, startY);
+
     addToCart({
       productId: product.id,
       slug: product.slug,

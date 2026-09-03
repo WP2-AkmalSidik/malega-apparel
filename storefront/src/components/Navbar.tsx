@@ -19,6 +19,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
+import { useFlyToCart } from '../context/FlyToCartContext';
 import BrandLogo from './BrandLogo';
 import SearchModal from './SearchModal';
 
@@ -28,11 +29,32 @@ export default function Navbar() {
   const { cart, cartCount, setIsCartOpen, addToCart } = useCart();
   const { wishlistProducts, wishlistCount, toggleWishlist } = useWishlist();
   const { customer, isAuthenticated, logout } = useAuth();
+  const { bagBounce, triggerFly } = useFlyToCart();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [wishlistDropdownOpen, setWishlistDropdownOpen] = useState(false);
+  const [isBagBouncing, setIsBagBouncing] = useState(false);
+  const [showPlusOne, setShowPlusOne] = useState(false);
+
+  // Trigger bounce animation when an item finishes flying to bag
+  useEffect(() => {
+    if (bagBounce > 0) {
+      setIsBagBouncing(true);
+      setShowPlusOne(true);
+      const timer = setTimeout(() => {
+        setIsBagBouncing(false);
+      }, 550);
+      const plusTimer = setTimeout(() => {
+        setShowPlusOne(false);
+      }, 900);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(plusTimer);
+      };
+    }
+  }, [bagBounce]);
 
   // Close dropdowns on outside click or escape
   useEffect(() => {
@@ -57,7 +79,19 @@ export default function Navbar() {
     setWishlistDropdownOpen(!wishlistDropdownOpen);
   };
 
-  const handleQuickAddFromWishlist = (product: any) => {
+  const handleQuickAddFromWishlist = (product: any, e?: React.MouseEvent) => {
+    let startX = typeof window !== 'undefined' ? window.innerWidth / 2 : 200;
+    let startY = typeof window !== 'undefined' ? window.innerHeight / 2 : 200;
+
+    if (e && e.currentTarget) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      startX = rect.left + rect.width / 2;
+      startY = rect.top + rect.height / 2;
+    }
+
+    const img = product.colors[0]?.image || product.gallery[0];
+    triggerFly(img, startX, startY);
+
     addToCart({
       productId: product.id,
       slug: product.slug,
@@ -209,7 +243,7 @@ export default function Navbar() {
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               type="button"
-                              onClick={() => handleQuickAddFromWishlist(p)}
+                              onClick={(e) => handleQuickAddFromWishlist(p, e)}
                               className="p-1.5 rounded-lg bg-[#CBAC70] text-[#0B132B] hover:bg-[#E3CD99] transition shadow text-xs font-bold cursor-pointer"
                               title="Beli / Tambah ke Bag"
                             >
@@ -334,19 +368,33 @@ export default function Navbar() {
             {/* 4. Shopping Bag Drawer Button */}
             <div className="relative">
               <button
+                id="navbar-bag-button"
                 type="button"
                 onClick={handleBagClick}
-                className="relative p-2 sm:px-3 sm:py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                className={`relative p-2 sm:px-3 sm:py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+                  isBagBouncing ? 'animate-bag-pop ring-2 ring-[#E3CD99]' : ''
+                }`}
                 aria-label="Open Shopping Bag"
               >
-                <ShoppingBag className="w-4 h-4" />
+                <ShoppingBag className={`w-4 h-4 transition-transform ${isBagBouncing ? 'scale-110' : ''}`} />
                 <span className="hidden sm:inline">Bag</span>
                 {cartCount > 0 && (
-                  <span className="bg-[#0B132B] text-[#CBAC70] text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                  <span className={`bg-[#0B132B] text-[#CBAC70] text-[10px] px-1.5 py-0.2 rounded-full font-mono transition-transform ${
+                    isBagBouncing ? 'animate-badge-bump ring-1 ring-[#E3CD99]' : ''
+                  }`}>
                     {cartCount}
                   </span>
                 )}
               </button>
+
+              {/* Luxury Floating +1 Notification Particle */}
+              {showPlusOne && (
+                <div className="absolute -top-3 right-0 transform translate-x-1 -translate-y-2 pointer-events-none z-50 animate-bounce">
+                  <span className="bg-gradient-to-r from-[#E3CD99] to-[#CBAC70] text-[#0B132B] text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-[0_0_12px_#CBAC70] border border-white/20">
+                    +1
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Toggle Button */}

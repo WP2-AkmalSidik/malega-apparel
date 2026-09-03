@@ -4,9 +4,11 @@ import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
 import { WishlistProvider } from "../context/WishlistContext";
+import { FlyToCartProvider } from "../context/FlyToCartContext";
 import Navbar from "../components/Navbar";
 import CartDrawer from "../components/CartDrawer";
 import WishlistModal from "../components/WishlistModal";
+import FlyToCartAnimation from "../components/FlyToCartAnimation";
 import Footer from "../components/Footer";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -34,13 +36,16 @@ export default function RootLayout({
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-              <CartDrawer />
-              <WishlistModal />
-              <Footer />
+              <FlyToCartProvider>
+                <Navbar />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <CartDrawer />
+                <WishlistModal />
+                <FlyToCartAnimation />
+                <Footer />
+              </FlyToCartProvider>
             </CartProvider>
           </WishlistProvider>
         </AuthProvider>
