@@ -243,6 +243,23 @@ class FabricSpecIndex extends Component
     }
 
     /**
+     * Disconnect/detach a product from its fabric specification.
+     */
+    public function detachProduct(int $productId): void
+    {
+        $product = Product::findOrFail($productId);
+        $product->update([
+            'fabric_spec_id' => null,
+        ]);
+
+        $this->dispatch('toast', [
+            'type' => 'info',
+            'title' => 'Produk Diputuskan',
+            'message' => "Produk \"{$product->name}\" berhasil diputuskan dari spesifikasi bahan.",
+        ]);
+    }
+
+    /**
      * Delete specification.
      */
     public function deleteSpec(): void
@@ -267,7 +284,7 @@ class FabricSpecIndex extends Component
 
     public function render()
     {
-        $query = FabricSpecification::withCount('products');
+        $query = FabricSpecification::with(['products:id,name,fabric_spec_id'])->withCount('products');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -285,12 +302,19 @@ class FabricSpecIndex extends Component
 
         $specs = $query->latest()->paginate(10);
 
-        // Products query for Apply modal
-        $availableProducts = Product::select('id', 'name', 'category_id', 'fabric_spec_id')
-            ->with('category')
-            ->when($this->productSearch, fn ($q) => $q->where('name', 'like', '%'.$this->productSearch.'%'))
-            ->orderBy('name')
-            ->get();
+        // Products query for Apply modal: ONLY unassigned products or products of THIS spec
+        $availableProducts = collect();
+        if ($this->applyingSpecId) {
+            $availableProducts = Product::select('id', 'name', 'category_id', 'fabric_spec_id')
+                ->with('category')
+                ->where(function ($q) {
+                    $q->whereNull('fabric_spec_id')
+                        ->orWhere('fabric_spec_id', $this->applyingSpecId);
+                })
+                ->when($this->productSearch, fn ($q) => $q->where('name', 'like', '%'.$this->productSearch.'%'))
+                ->orderBy('name')
+                ->get();
+        }
 
         return view('livewire.catalog.fabric-spec-index', [
             'specs' => $specs,

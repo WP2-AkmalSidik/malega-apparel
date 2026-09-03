@@ -1,7 +1,7 @@
 import { Product, ProductVariant } from '../types';
 import { productsCatalog } from '../data/products';
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'https://malega.my.id/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 export async function fetchProductsFromApi(params?: {
   category?: string;
@@ -19,7 +19,8 @@ export async function fetchProductsFromApi(params?: {
     if (params?.perPage) searchParams.set('per_page', String(params.perPage));
 
     const res = await fetch(`${API_BASE}/products?${searchParams.toString()}`, {
-      next: { revalidate: 60 }
+      next: { revalidate: 0 },
+      cache: 'no-store',
     });
 
     if (!res.ok) {
@@ -43,16 +44,16 @@ export async function fetchProductsFromApi(params?: {
         priceMax: item.price?.max,
         discountPercentage: item.price?.discount_percentage || 0,
         category: item.category?.name || 'Streetwear',
-        material: item.material || '',
-        gsm: item.gsm || 300,
-        fit: item.fit || '',
+        material: item.material || item.specifications?.Material || '',
+        gsm: item.gsm || (item.specifications?.Gramasi ? parseInt(item.specifications.Gramasi) : 300),
+        fit: item.fit || item.specifications?.Cutting || item.specifications?.['Fit / Cutting'] || '',
         origin: 'Bandung, Indonesia',
         stockTotal: item.variants_count * 10,
         colors: item.colors || [],
         sizes: item.sizes || [],
         gallery: [item.featured_image_url],
         features: [],
-        specifications: {},
+        specifications: item.specifications || {},
       }));
     }
   } catch (err) {
@@ -65,7 +66,8 @@ export async function fetchProductsFromApi(params?: {
 export async function fetchProductDetailFromApi(identifier: string): Promise<Product | null> {
   try {
     const res = await fetch(`${API_BASE}/products/${identifier}`, {
-      next: { revalidate: 60 }
+      next: { revalidate: 0 },
+      cache: 'no-store',
     });
 
     if (!res.ok) {
@@ -94,9 +96,9 @@ export async function fetchProductDetailFromApi(identifier: string): Promise<Pro
           : 0,
         description: item.description || '',
         category: item.category?.name || 'Streetwear',
-        material: item.material || '',
-        gsm: item.gsm || 300,
-        fit: item.fit || '',
+        material: item.material || item.specifications?.Material || '',
+        gsm: item.gsm || (item.specifications?.Gramasi ? parseInt(item.specifications.Gramasi) : 300),
+        fit: item.fit || item.specifications?.Cutting || item.specifications?.['Fit / Cutting'] || '',
         origin: item.origin || 'Bandung, Indonesia',
         stockTotal: item.total_stock || item.available_stock || 100,
         colors: item.colors || [],

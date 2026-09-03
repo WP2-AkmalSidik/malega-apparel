@@ -79,7 +79,7 @@ class ProductController extends Controller
     public function show(string $identifier): JsonResponse
     {
         $product = Product::active()
-            ->with(['category', 'collections', 'images', 'variants.inventoryItem'])
+            ->with(['category', 'collections', 'images', 'variants.inventoryItem', 'fabricSpecification'])
             ->where(function ($q) use ($identifier) {
                 $q->where('slug', $identifier);
                 if (is_numeric($identifier)) {

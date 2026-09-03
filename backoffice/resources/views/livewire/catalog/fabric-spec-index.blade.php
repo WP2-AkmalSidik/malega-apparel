@@ -127,6 +127,29 @@
                             <span class="leading-relaxed">{{ $spec->care_instructions }}</span>
                         </div>
                     @endif
+
+                    <!-- Daftar Produk Terikat dengan Aksi Putuskan -->
+                    @if($spec->products->isNotEmpty())
+                        <div class="mt-3 pt-2.5 border-t border-slate-800/60 space-y-1.5">
+                            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Produk Terikat ({{ $spec->products->count() }}):</span>
+                            <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                                @foreach($spec->products as $p)
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-[#070C1A] border border-[#CBAC70]/30 text-slate-200 text-[10px]">
+                                        <span class="truncate max-w-[140px]">{{ $p->name }}</span>
+                                        <button
+                                            type="button"
+                                            wire:click="detachProduct({{ $p->id }})"
+                                            wire:confirm="Putuskan produk '{{ $p->name }}' dari spesifikasi bahan ini?"
+                                            class="text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer px-0.5"
+                                            title="Putuskan Hubungan dari Spesifikasi Ini"
+                                        >
+                                            ✕
+                                        </button>
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Footer Actions -->
@@ -333,6 +356,16 @@
         maxWidth="2xl"
     >
         <div class="space-y-4">
+            <!-- Isolation Warning Info Banner -->
+            <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300 flex items-start gap-2">
+                <svg class="w-4 h-4 text-blue-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="leading-relaxed">
+                    Hanya menampilkan produk yang belum terikat ke spesifikasi manapun atau produk yang sedang terpasang pada spesifikasi ini. Hapus centang untuk memutuskan hubungan.
+                </span>
+            </div>
+
             <!-- Search in Apply Modal -->
             <div class="relative">
                 <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
