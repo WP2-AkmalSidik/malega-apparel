@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
+import { AuthProvider } from "../context/AuthContext";
+import { WishlistProvider } from "../context/WishlistContext";
 import Navbar from "../components/Navbar";
 import CartDrawer from "../components/CartDrawer";
+import WishlistModal from "../components/WishlistModal";
 import Footer from "../components/Footer";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -28,14 +31,19 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${plusJakarta.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#0B132B] text-[#FDFCFF] selection:bg-[#CBAC70] selection:text-[#0B132B]">
-        <CartProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <CartDrawer />
-          <Footer />
-        </CartProvider>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <CartDrawer />
+              <WishlistModal />
+              <Footer />
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
       </body>
     </html>
   );

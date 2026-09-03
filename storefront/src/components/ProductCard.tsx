@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Star, Sparkles } from 'lucide-react';
+import { ShoppingBag, Star, Sparkles, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
 
   const formatRupiah = (val: number) => {
@@ -75,12 +77,29 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Discount Badge */}
-          {product.discountPercentage > 0 && (
-            <div className="absolute top-2 right-2 bg-[#0B132B]/90 border border-[#CBAC70]/60 text-[#CBAC70] text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded shadow">
-              -{product.discountPercentage}%
-            </div>
-          )}
+          {/* Discount & Wishlist Heart Button Top Right */}
+          <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+            {product.discountPercentage > 0 && (
+              <div className="bg-[#0B132B]/90 border border-[#CBAC70]/60 text-[#CBAC70] text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded shadow">
+                -{product.discountPercentage}%
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(product.id);
+              }}
+              className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+                isInWishlist(product.id)
+                  ? 'bg-rose-500 text-white shadow-md scale-110'
+                  : 'bg-black/50 text-white/80 hover:text-rose-400 hover:bg-black/70'
+              }`}
+              title="Tambah ke Wishlist"
+            >
+              <Heart className={`w-3.5 h-3.5 ${isInWishlist(product.id) ? 'fill-white' : ''}`} />
+            </button>
+          </div>
 
           {/* GSM & Fit Pill Bottom Left */}
           <div className="absolute bottom-2 left-2 z-10">

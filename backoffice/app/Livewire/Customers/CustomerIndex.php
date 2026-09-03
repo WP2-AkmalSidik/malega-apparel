@@ -5,19 +5,24 @@ namespace App\Livewire\Customers;
 use App\Actions\Customers\CreateCustomerAction;
 use App\Actions\Customers\UpdateCustomerAction;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Manajemen Pelanggan | Malega Apparel Backoffice')]
+#[Title('Manajemen Pelanggan & CRM | Malega Apparel Backoffice')]
 #[Layout('layouts.app')]
 class CustomerIndex extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
+    public string $tierFilter = ''; // all, Silver, Gold, VIP Platinum
+
+    public string $marketingFilter = ''; // all, opt_in, opt_out
 
     public string $sortBy = 'latest'; // latest, spend_desc, orders_desc
 
@@ -29,6 +34,10 @@ class CustomerIndex extends Component
     public string $email = '';
 
     public string $phone = '';
+
+    public string $membershipTier = 'Silver';
+
+    public bool $marketingOptIn = true;
 
     // History Modal State
     public ?int $viewingCustomerId = null;
@@ -46,6 +55,16 @@ class CustomerIndex extends Component
         $this->resetPage();
     }
 
+    public function updatedTierFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMarketingFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedSortBy(): void
     {
         $this->resetPage();
@@ -54,7 +73,7 @@ class CustomerIndex extends Component
     public function openCreateModal(): void
     {
         $this->resetValidation();
-        $this->reset(['customerId', 'name', 'email', 'phone']);
+        $this->reset(['customerId', 'name', 'email', 'phone', 'membershipTier', 'marketingOptIn']);
         $this->dispatch('open-modal-customer-modal');
     }
 
@@ -66,6 +85,8 @@ class CustomerIndex extends Component
         $this->name = $customer->name;
         $this->email = $customer->email;
         $this->phone = $customer->phone;
+        $this->membershipTier = $customer->membership_tier ?: 'Silver';
+        $this->marketingOptIn = (bool) $customer->marketing_opt_in;
 
         $this->dispatch('open-modal-customer-modal');
     }
@@ -76,6 +97,8 @@ class CustomerIndex extends Component
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
+            'membershipTier' => ['required', 'string'],
+            'marketingOptIn' => ['boolean'],
         ]);
 
         try {
@@ -85,6 +108,8 @@ class CustomerIndex extends Component
                     'name' => $this->name,
                     'email' => $this->email,
                     'phone' => $this->phone,
+                    'membership_tier' => $this->membershipTier,
+                    'marketing_opt_in' => $this->marketingOptIn,
                 ]);
 
                 $this->dispatch('toast', [
@@ -97,6 +122,8 @@ class CustomerIndex extends Component
                     'name' => $this->name,
                     'email' => $this->email,
                     'phone' => $this->phone,
+                    'membership_tier' => $this->membershipTier,
+                    'marketing_opt_in' => $this->marketingOptIn,
                 ]);
 
                 $this->dispatch('toast', [
@@ -123,6 +150,63 @@ class CustomerIndex extends Component
         $this->dispatch('open-modal-customer-history-modal');
     }
 
+    /**
+     * Export customer audience to CSV for WhatsApp & Email Marketing broadcast.
+     */
+    public function exportMarketingCsv()
+    {
+        $query = Customer::query();
+
+        if ($this->tierFilter) {
+            $query->where('membership_tier', $this->tierFilter);
+        }
+
+        if ($this->marketingFilter === 'opt_in') {
+            $query->where('marketing_opt_in', true);
+        } elseif ($this->marketingFilter === 'opt_out') {
+            $query->where('marketing_opt_in', false);
+        }
+
+        $customers = $query->get();
+
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="malega_customers_marketing_'.date('Ymd_His').'.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($customers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Nama Pelanggan', 'Email', 'No WhatsApp', 'Tier Keanggotaan', 'Total Pesanan', 'Total Belanja (IDR)', 'Marketing Opt-in', 'Tanggal Bergabung']);
+
+            foreach ($customers as $c) {
+                fputcsv($file, [
+                    $c->id,
+                    $c->name,
+                    $c->email,
+                    $c->phone,
+                    $c->membership_tier,
+                    $c->total_orders_count,
+                    $c->total_spend_amount,
+                    $c->marketing_opt_in ? 'YA' : 'TIDAK',
+                    $c->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        $this->dispatch('toast', [
+            'type' => 'success',
+            'title' => 'Export CSV Berhasil',
+            'message' => 'Daftar kontak pelanggan siap diunduh untuk kebutuhan pemasaran.',
+        ]);
+
+        return Response::stream($callback, 200, $headers);
+    }
+
     public function render()
     {
         $query = Customer::withCount('orders')
@@ -131,6 +215,15 @@ class CustomerIndex extends Component
                 $q->where('name', 'like', $term)
                     ->orWhere('email', 'like', $term)
                     ->orWhere('phone', 'like', $term);
+            })
+            ->when($this->tierFilter, function ($q) {
+                $q->where('membership_tier', $this->tierFilter);
+            })
+            ->when($this->marketingFilter === 'opt_in', function ($q) {
+                $q->where('marketing_opt_in', true);
+            })
+            ->when($this->marketingFilter === 'opt_out', function ($q) {
+                $q->where('marketing_opt_in', false);
             });
 
         match ($this->sortBy) {
@@ -141,6 +234,8 @@ class CustomerIndex extends Component
 
         $customers = $query->paginate(15);
         $totalCustomersCount = Customer::count();
+        $vipCount = Customer::where('membership_tier', 'VIP Platinum')->count();
+        $marketingSubscribersCount = Customer::where('marketing_opt_in', true)->count();
 
         $activeCustomer = $this->viewingCustomerId
             ? Customer::with(['orders.items', 'orders.address'])->find($this->viewingCustomerId)
@@ -149,6 +244,8 @@ class CustomerIndex extends Component
         return view('livewire.customers.customer-index', [
             'customers' => $customers,
             'totalCustomersCount' => $totalCustomersCount,
+            'vipCount' => $vipCount,
+            'marketingSubscribersCount' => $marketingSubscribersCount,
             'activeCustomer' => $activeCustomer,
         ]);
     }

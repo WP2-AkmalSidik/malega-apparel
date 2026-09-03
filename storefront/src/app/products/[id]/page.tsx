@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { productsCatalog } from '../../../data/products';
 import { useCart } from '../../../context/CartContext';
+import { useWishlist } from '../../../context/WishlistContext';
 import ProductCard from '../../../components/ProductCard';
 
 interface PageProps {
@@ -30,6 +31,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const product = productsCatalog.find(p => p.id === resolvedParams.id || p.slug === resolvedParams.id) || productsCatalog[0];
 
@@ -372,10 +374,22 @@ export default function ProductDetailPage({ params }: PageProps) {
             </div>
 
             {/* Desktop Action Buttons */}
-            <div className="hidden sm:grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
+            <div className="hidden sm:flex items-center gap-3 pt-4 border-t border-white/10">
+              <button
+                onClick={() => toggleWishlist(product.id)}
+                className={`p-3.5 rounded-xl border transition-all active:scale-95 shadow flex items-center justify-center shrink-0 ${
+                  isInWishlist(product.id)
+                    ? 'bg-rose-500/20 border-rose-500/60 text-rose-400'
+                    : 'bg-[#14204A] border-[#CBAC70]/40 text-slate-300 hover:text-rose-400'
+                }`}
+                title="Simpan ke Wishlist"
+              >
+                <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+              </button>
+
               <button
                 onClick={handleAddToBag}
-                className="py-3.5 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow"
+                className="flex-1 py-3.5 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add to Bag</span>
@@ -383,7 +397,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
               <button
                 onClick={handleInstantBuy}
-                className="py-3.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl"
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl"
               >
                 <span>Instant Buy</span>
                 <ArrowRight className="w-4 h-4" />
@@ -597,6 +611,18 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       {/* Mobile Sticky Bottom Floating Bar (Mobile Experience Focus) */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#080E20]/95 backdrop-blur-xl border-t border-[#CBAC70]/30 px-3 py-2.5 flex items-center gap-2 shadow-2xl">
+        <button
+          onClick={() => toggleWishlist(product.id)}
+          className={`p-3 rounded-xl border transition-all active:scale-95 shadow flex items-center justify-center shrink-0 ${
+            isInWishlist(product.id)
+              ? 'bg-rose-500/20 border-rose-500/60 text-rose-400'
+              : 'bg-[#14204A] border-[#CBAC70]/40 text-slate-300'
+          }`}
+          title="Wishlist"
+        >
+          <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+        </button>
+
         <button
           onClick={handleAddToBag}
           className="flex-1 py-3 bg-[#14204A] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase rounded-xl flex items-center justify-center gap-1.5 active:scale-95 shadow"

@@ -184,3 +184,53 @@ export interface LiveTrackingOrder {
     formatted_subtotal: string;
   }>;
 }
+
+export interface CustomerProfile {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  membership_tier: 'Silver' | 'Gold' | 'VIP Platinum';
+  marketing_opt_in: boolean;
+  total_orders: number;
+  total_spend: number;
+  formatted_spend?: string;
+  wishlist: string[];
+  saved_addresses: Address[];
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    token: string;
+    customer: CustomerProfile;
+  };
+}
+
+export interface CustomerPastOrder {
+  id: number;
+  order_number: string;
+  status: string;
+  status_label: string;
+  total_amount: number;
+  formatted_total: string;
+  created_at: string;
+  items: Array<{
+    title: string;
+    sku: string;
+    price: number;
+    quantity: number;
+    subtotal: number;
+  }>;
+  shipping?: {
+    courier: string;
+    waybill: string;
+    tracking_url: string;
+  } | null;
+  payment?: {
+    method: string;
+    status: string;
+  } | null;
+}
+
