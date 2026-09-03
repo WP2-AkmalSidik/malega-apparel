@@ -23,8 +23,19 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'name',
+        'subtitle',
+        'badge',
+        'rating',
+        'review_count',
+        'sold_count',
         'slug',
         'description',
+        'material',
+        'gsm',
+        'fit',
+        'origin',
+        'features',
+        'specifications',
         'status',
         'featured_image',
     ];
@@ -38,6 +49,12 @@ class Product extends Model
     {
         return [
             'status' => ProductStatus::class,
+            'rating' => 'float',
+            'review_count' => 'integer',
+            'sold_count' => 'integer',
+            'gsm' => 'integer',
+            'features' => 'array',
+            'specifications' => 'array',
         ];
     }
 
@@ -92,6 +109,87 @@ class Product extends Model
                 }
 
                 return 'Rp '.number_format($min, 0, ',', '.').' - Rp '.number_format($max, 0, ',', '.');
+            }
+        );
+    }
+
+    /**
+     * Get distinct colors available across variants.
+     */
+    protected function colors(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->variants
+                    ->filter(fn ($v) => ! empty($v->color_name))
+                    ->unique('color_name')
+                    ->map(fn ($v) => [
+                        'name' => $v->color_name,
+                        'hex' => $v->color_hex ?? '#0B132B',
+                        'image' => $v->image_url ?? $this->featured_image_url,
+                    ])
+                    ->values()
+                    ->all();
+            }
+        );
+    }
+
+    /**
+     * Get distinct sizes available across variants.
+     */
+    protected function sizes(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->variants
+                    ->filter(fn ($v) => ! empty($v->size))
+                    ->pluck('size')
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+        );
+    }
+
+    /**
+     * Featured Image full URL accessor.
+     */
+    protected function featuredImageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (! $this->featured_image) {
+                    return null;
+                }
+                if (str_starts_with($this->featured_image, 'http://') || str_starts_with($this->featured_image, 'https://')) {
+                    return $this->featured_image;
+                }
+
+                return asset('storage/'.$this->featured_image);
+            }
+        );
+    }
+
+    /**
+     * Total stock units across all variants.
+     */
+    protected function totalStock(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return (int) $this->variants->sum(fn ($v) => $v->inventoryItem?->on_hand ?? 0);
+            }
+        );
+    }
+
+    /**
+     * Total available stock units across all variants.
+     */
+    protected function availableStock(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return (int) $this->variants->sum(fn ($v) => $v->inventoryItem?->available ?? 0);
             }
         );
     }

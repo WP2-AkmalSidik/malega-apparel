@@ -18,9 +18,20 @@ class Collection extends Model
      */
     protected $fillable = [
         'name',
+        'subtitle',
         'slug',
         'description',
+        'season',
+        'release_year',
+        'badge',
+        'cover_image',
+        'banner_image',
         'banner_path',
+        'featured_material',
+        'gsm_weight',
+        'storytelling',
+        'palette',
+        'tags',
         'is_active',
     ];
 
@@ -33,6 +44,9 @@ class Collection extends Model
     {
         return [
             'is_active' => 'boolean',
+            'gsm_weight' => 'integer',
+            'palette' => 'array',
+            'tags' => 'array',
         ];
     }
 

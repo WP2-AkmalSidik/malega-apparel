@@ -22,6 +22,10 @@ class ProductVariant extends Model
         'product_id',
         'sku',
         'title',
+        'color_name',
+        'color_hex',
+        'size',
+        'image_url',
         'price',
         'compare_at_price',
         'cost_price',
@@ -62,7 +66,7 @@ class ProductVariant extends Model
     }
 
     /**
-     * Formatted price accessor.
+     * Formatted Rupiah price accessor.
      */
     protected function formattedPrice(): Attribute
     {
@@ -72,7 +76,27 @@ class ProductVariant extends Model
     }
 
     /**
-     * Scope active variants.
+     * Formatted compare-at price accessor.
+     */
+    protected function formattedCompareAtPrice(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->compare_at_price ? 'Rp '.number_format($this->compare_at_price, 0, ',', '.') : null
+        );
+    }
+
+    /**
+     * Available stock accessor.
+     */
+    protected function available(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->inventoryItem ? $this->inventoryItem->available : 0
+        );
+    }
+
+    /**
+     * Scope a query to only include active variants.
      */
     public function scopeActive(Builder $query): void
     {

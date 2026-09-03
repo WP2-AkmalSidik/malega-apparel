@@ -65,8 +65,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 5. Seed Catalog & Inventory
-        $this->call(CatalogSeeder::class);
+        // 5. Seed Catalog, Lookbook Collections, & Rich Inventory
+        $this->call(StorefrontCatalogSeeder::class);
 
         // 6. Seed Sample Orders
         $this->call(OrderSeeder::class);

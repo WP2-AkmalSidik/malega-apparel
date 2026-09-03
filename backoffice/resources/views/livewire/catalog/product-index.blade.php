@@ -76,54 +76,103 @@
             <tbody class="divide-y divide-slate-800/60">
                 @forelse($products as $product)
                     <tr wire:key="prod-row-{{ $product->id }}" class="hover:bg-white/[0.02] transition-colors group">
-                        <!-- Product Info (Thumbnail + Name) -->
+                        <!-- Product Info (Thumbnail + Name + Subtitle + Badge) -->
                         <td class="px-4 py-3">
-                            <div class="flex items-center gap-2.5">
-                                <!-- Thumbnail Initials or Image -->
-                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-[#0B132B] border border-[#CBAC70]/30 flex items-center justify-center text-[#CBAC70] font-bold text-[10px] shrink-0 shadow-sm">
-                                    {{ strtoupper(substr($product->name, 0, 2)) }}
-                                </div>
+                            <div class="flex items-center gap-3">
+                                <!-- Thumbnail Image or Fallback Initials -->
+                                @if($product->featured_image_url)
+                                    <img 
+                                        src="{{ $product->featured_image_url }}" 
+                                        alt="{{ $product->name }}" 
+                                        class="w-11 h-11 rounded-lg object-cover border border-[#CBAC70]/30 shrink-0 shadow-sm bg-[#0B132B]"
+                                    >
+                                @else
+                                    <div class="w-11 h-11 rounded-lg bg-gradient-to-br from-slate-800 to-[#0B132B] border border-[#CBAC70]/30 flex items-center justify-center text-[#CBAC70] font-bold text-xs shrink-0 shadow-sm">
+                                        {{ strtoupper(substr($product->name, 0, 2)) }}
+                                    </div>
+                                @endif
+
                                 <div class="min-w-0">
-                                    <p class="font-semibold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-[13px] leading-tight">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        @if($product->badge)
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#CBAC70]/15 text-[#CBAC70] border border-[#CBAC70]/30">
+                                                {{ $product->badge }}
+                                            </span>
+                                        @endif
+                                        @if($product->gsm)
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-white/5 text-slate-300 border border-white/10">
+                                                {{ $product->gsm }}GSM
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="font-bold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-xs leading-tight mt-0.5">
                                         {{ $product->name }}
                                     </p>
-                                    <p class="text-slate-400 font-mono text-[10px] truncate max-w-xs mt-0.5">
-                                        slug: {{ $product->slug }}
-                                    </p>
+                                    @if($product->subtitle)
+                                        <p class="text-slate-400 text-[10px] truncate max-w-sm">
+                                            {{ $product->subtitle }}
+                                        </p>
+                                    @endif
                                 </div>
                             </div>
                         </td>
 
-                        <!-- Category -->
+                        <!-- Category & Collections -->
                         <td class="px-4 py-3 hidden md:table-cell">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800/80 text-slate-300 border border-slate-700/60">
                                 {{ $product->category->name }}
                             </span>
+                            @if($product->collections->isNotEmpty())
+                                <div class="text-[10px] text-[#CBAC70]/80 font-mono mt-1 truncate max-w-[130px]" title="{{ $product->collections->pluck('name')->join(', ') }}">
+                                    📁 {{ $product->collections->first()->name }}
+                                </div>
+                            @endif
                         </td>
 
-                        <!-- Variants / SKUs -->
+                        <!-- Variants, Colors & Sizes -->
                         <td class="px-4 py-3">
                             <div class="flex flex-col gap-1">
+                                <!-- Color Chips -->
+                                @if(!empty($product->colors))
+                                    <div class="flex items-center gap-1">
+                                        @foreach(array_slice($product->colors, 0, 4) as $c)
+                                            <span 
+                                                class="w-3 h-3 rounded-full border border-white/20 shadow-xs inline-block" 
+                                                style="background-color: {{ $c['hex'] }};"
+                                                title="{{ $c['name'] }}"
+                                            ></span>
+                                        @endforeach
+                                        @if(count($product->colors) > 4)
+                                            <span class="text-[9px] text-slate-400 font-mono">+{{ count($product->colors) - 4 }}</span>
+                                        @endif
+                                        <span class="text-[10px] text-slate-400 font-sans ml-1">({{ count($product->colors) }} warna)</span>
+                                    </div>
+                                @endif
+
+                                <!-- SKUs & Size Badges -->
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                    @foreach($product->variants->take(3) as $variant)
+                                    @foreach($product->variants->take(2) as $variant)
                                         <span class="font-mono text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">
                                             {{ $variant->sku }}
                                         </span>
                                     @endforeach
-                                    @if($product->variants->count() > 3)
+                                    @if($product->variants->count() > 2)
                                         <span class="text-[9px] text-slate-400 font-mono">
-                                            +{{ $product->variants->count() - 3 }} lagi
+                                            +{{ $product->variants->count() - 2 }} lagi
                                         </span>
                                     @endif
                                 </div>
-                                <span class="text-[10px] text-slate-400">
-                                    Total {{ $product->variants->count() }} SKU
-                                </span>
+
+                                <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                    <span>{{ $product->variants->count() }} SKU</span>
+                                    <span>•</span>
+                                    <span class="font-semibold text-emerald-400">Stok {{ $product->available_stock }} pcs</span>
+                                </div>
                             </div>
                         </td>
 
                         <!-- Price Range -->
-                        <td class="px-4 py-3 font-mono font-semibold text-[11px] text-[#CBAC70]">
+                        <td class="px-4 py-3 font-mono font-bold text-xs text-[#CBAC70]">
                             {{ $product->formatted_price_range }}
                         </td>
 
