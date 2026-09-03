@@ -19,6 +19,7 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState<boolean>(false);
 
   // Load from localStorage on mount
@@ -26,21 +27,31 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const saved = localStorage.getItem('malega_wishlist');
       if (saved) {
-        setWishlistIds(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setWishlistIds(parsed);
+        }
       }
     } catch (e) {
       console.error('Error loading wishlist from localStorage:', e);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  // Save to localStorage whenever wishlistIds changes
+  // Save to localStorage whenever wishlistIds changes (only after initial load)
   useEffect(() => {
+    if (!isLoaded) return;
     try {
-      localStorage.setItem('malega_wishlist', JSON.stringify(wishlistIds));
+      if (wishlistIds.length > 0) {
+        localStorage.setItem('malega_wishlist', JSON.stringify(wishlistIds));
+      } else {
+        localStorage.removeItem('malega_wishlist');
+      }
     } catch (e) {
       console.error('Error saving wishlist to localStorage:', e);
     }
-  }, [wishlistIds]);
+  }, [wishlistIds, isLoaded]);
 
   const toggleWishlist = (productId: string) => {
     setWishlistIds(prev => {

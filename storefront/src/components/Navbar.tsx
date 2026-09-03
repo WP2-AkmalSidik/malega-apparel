@@ -165,7 +165,12 @@ export default function Navbar() {
 
               {/* Wishlist Dropdown Content */}
               {wishlistDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/40 shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-3">
+                <>
+                  {/* Backdrop to close on outside click */}
+                  <div className="fixed inset-0 z-40" onClick={() => setWishlistDropdownOpen(false)} />
+                  <div 
+                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/40 shadow-2xl p-4 z-50 space-y-3 animate-[fadeInScale_0.25s_ease-out_forwards]"
+                  >
                   <div className="flex items-center justify-between pb-2 border-b border-white/10">
                     <div className="flex items-center gap-2">
                       <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
@@ -245,6 +250,7 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
+                </>
               )}
             </div>
 

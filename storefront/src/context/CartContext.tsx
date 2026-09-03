@@ -14,6 +14,7 @@ interface CartContextType {
   addToCart: (item: Omit<CartItem, 'id' | 'selected'>) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, qty: number) => void;
+  updateCartItemVariant: (id: string, color: string, size: string, price: number, originalPrice: number, image: string) => void;
   clearCart: () => void;
   
   // Checkout Details
@@ -120,6 +121,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCart(prev => prev.map(i => (i.id === id ? { ...i, quantity: qty } : i)));
   };
 
+  const updateCartItemVariant = (id: string, color: string, size: string, price: number, originalPrice: number, image: string) => {
+    setCart(prev => {
+      // Check if another item already has this exact variant
+      const targetItem = prev.find(i => i.id === id);
+      if (!targetItem) return prev;
+
+      const existingDuplicate = prev.find(
+        i => i.id !== id && i.productId === targetItem.productId && i.color === color && i.size === size
+      );
+
+      if (existingDuplicate) {
+        // Merge into existing: add qty, remove old
+        return prev
+          .map(i => i.id === existingDuplicate.id ? { ...i, quantity: i.quantity + targetItem.quantity } : i)
+          .filter(i => i.id !== id);
+      }
+
+      // Update variant in place
+      return prev.map(i => i.id === id ? { ...i, color, size, price, originalPrice, image } : i);
+    });
+  };
+
   const clearCart = () => {
     setCart([]);
     if (typeof window !== 'undefined') {
@@ -208,6 +231,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateCartItemVariant,
         clearCart,
         selectedAddress,
         setSelectedAddress,
