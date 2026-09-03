@@ -89,54 +89,39 @@ class StorefrontCatalogSeeder extends Seeder
                 'release_year' => '2026',
                 'badge' => 'TACTICAL & RAW DENIM',
                 'cover_image' => 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80',
-                'banner_image' => 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=1200&auto=format&fit=crop&q=80',
-                'featured_material' => 'Water-Repellent Ripstop & 14oz Raw Denim',
-                'description' => 'Celana fungsional dengan kompartemen taktis serbaguna dan denim selvedge kaku yang akan membentuk garis fade personal seiring pemakaian.',
-                'storytelling' => 'Memadukan ketahanan bahan militer dengan siluet relaxed straight modern untuk kenyamanan mobilitas urban harian.',
-                'palette' => ['#0B132B', '#1E293B', '#475569'],
-                'tags' => ['Ripstop', '14oz Denim', 'Multi-Pocket', 'YKK Zippers'],
+                'banner_image' => 'https://images.unsplash.com/photo-1542272604-780c96856592?w=1200&auto=format&fit=crop&q=80',
+                'featured_material' => 'Cotton Ripstop & Raw Rigid Selvedge',
+                'gsm_weight' => 400,
+                'description' => 'Koleksi celana kargo taktis dan selvedge jeans konstruksi heavy-duty dengan jahitan bar-tack penguat di setiap titik stres kain.',
+                'storytelling' => 'Mengawinkan fungsionalitas kompartemen taktis serbaguna dengan potongan modern yang pas untuk sepatu chunky maupun boots.',
+                'palette' => ['#1E293B', '#334155', '#A89F91', '#CBAC70'],
+                'tags' => ['Ripstop', 'Raw Denim', 'Modular Pockets', 'YKK Hardware'],
                 'is_active' => true,
             ]);
 
-            $colAtelier = Collection::firstOrCreate(['slug' => 'atelier-luxury-accessories'], [
-                'name' => 'Monogram Caps & Atelier Bags',
-                'subtitle' => 'Bespoke Gold Embroidery & Cordura 1000D',
-                'season' => 'Permanent Essentials',
-                'release_year' => '2026',
-                'badge' => 'GOLD EMBROIDERY',
-                'cover_image' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
-                'banner_image' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=1200&auto=format&fit=crop&q=80',
-                'featured_material' => 'Heavy Cotton Twill & Cordura Water-Resistant',
-                'description' => 'Kurasi aksesoris pelengkap gaya berpakaian dengan bordir monogram geometris benang emas dan konstruksi gesper logam brass solid.',
-                'storytelling' => 'Sentuhan akhir penyempurna busana streetwear mewah yang fungsional dan berdaya tahan jangka panjang.',
-                'palette' => ['#0B132B', '#CBAC70', '#FDFCFF'],
-                'tags' => ['Monogram', 'Gold Stitch', 'Cordura', 'Solid Brass'],
-                'is_active' => true,
-            ]);
-
-            $colObsidian = Collection::firstOrCreate(['slug' => 'ss26-capsule-drop-the-obsidian'], [
-                'name' => 'SS26 Capsule: The Obsidian Drop',
-                'subtitle' => 'Limited Production Run • Rilisan Musim 2026',
-                'season' => 'Limited Capsule SS26',
+            $colObsidian = Collection::firstOrCreate(['slug' => 'ss26-the-brutalist-monolith'], [
+                'name' => 'SS26: The Brutalist Monolith',
+                'subtitle' => 'Edisi Terbatas Monokromatik & Siluet Arsitektural',
+                'season' => 'SS26 Limited Release',
                 'release_year' => '2026',
                 'badge' => 'LIMITED CAPSULE',
                 'cover_image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80',
                 'banner_image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=1200&auto=format&fit=crop&q=80',
-                'featured_material' => 'Signature Heavy Combed & Corduroy Accents',
+                'featured_material' => 'Ultra-Dense Heavy Combed Cotton',
                 'gsm_weight' => 300,
-                'description' => 'Rilisan kapsul bertema Obsidian yang memadukan kegelapan pekat Cosmic Navy dengan aksen emas Champagne Bronze.',
-                'storytelling' => 'Setiap artikel diproduksi dalam kuota terbatas dengan nomor seri keaslian sertifikat otentik dari Malega Studio.',
-                'palette' => ['#0B132B', '#CBAC70', '#111D42'],
-                'tags' => ['Limited Drop', 'Obsidian Series', 'Numbered Edition'],
+                'description' => 'Kapsul terbatas bertema arsitektur brutalisme dengan gradasi warna pekat, bordir monokrom halus, dan double packaging mewah.',
+                'storytelling' => 'Hanya diproduksi sebanyak 250 unit per artikel secara bespoke di pabrik garmen rekanan Malega.',
+                'palette' => ['#050914', '#0B132B', '#CBAC70'],
+                'tags' => ['Limited Drop', 'Brutalist', 'SS26', 'Numbered Series'],
                 'is_active' => true,
             ]);
 
-            $colCore = Collection::firstOrCreate(['slug' => 'core-heritage-bestsellers'], [
-                'name' => 'Core Heritage Bestsellers Archive',
-                'subtitle' => 'Arsip Produk Terlaris Sepanjang Masa Malega',
-                'season' => 'Permanent Lineup',
+            $colCore = Collection::firstOrCreate(['slug' => 'signature-bestsellers-archive'], [
+                'name' => 'Signature Bestsellers Archive',
+                'subtitle' => 'Artikel Terfavorit Pilihan Komunitas Streetwear',
+                'season' => 'Core Permanent Line',
                 'release_year' => '2026',
-                'badge' => 'HERITAGE ARCHIVE',
+                'badge' => 'COMMUNITY CHOICE',
                 'cover_image' => 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80',
                 'banner_image' => 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1200&auto=format&fit=crop&q=80',
                 'featured_material' => 'Heritage Combed & Raw Denim',
@@ -147,7 +132,7 @@ class StorefrontCatalogSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            // 3. Define 8 Real Products Data
+            // 3. Define 8 Real Products Data with Explicit Variant Pricing Matrix
             $productsData = [
                 // --- PRODUCT 1: Obsidian Heavyweight Boxy Tee ---
                 [
@@ -190,13 +175,20 @@ class StorefrontCatalogSeeder extends Seeder
                     'compare_at_price' => 289000,
                     'weight_grams' => 350,
                     'colors' => [
-                        ['name' => 'Onyx Black', 'hex' => '#111827', 'code' => 'BLK', 'image' => 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Washed Olive', 'hex' => '#3f4834', 'code' => 'OLV', 'image' => 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Slate Charcoal', 'hex' => '#334155', 'code' => 'CHA', 'image' => 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Vintage Acid Wash', 'hex' => '#64748b', 'code' => 'ACD', 'image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Onyx Black', 'hex' => '#111827', 'code' => 'BLK', 'image' => 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Washed Olive', 'hex' => '#3f4834', 'code' => 'OLV', 'image' => 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80', 'price_extra' => 10000],
+                        ['name' => 'Slate Charcoal', 'hex' => '#334155', 'code' => 'CHA', 'image' => 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Vintage Acid Wash', 'hex' => '#64748b', 'code' => 'ACD', 'image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80', 'price_extra' => 20000],
                     ],
                     'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
-                    'stock_per_sku' => 5,
+                    'size_price_extra' => [
+                        'S' => 0,
+                        'M' => 0,
+                        'L' => 0,
+                        'XL' => 0,
+                        'XXL' => 15000,
+                    ],
+                    'stock_per_sku' => 8,
                 ],
 
                 // --- PRODUCT 2: Minimalist Boxy Fleece Hoodie ---
@@ -238,12 +230,19 @@ class StorefrontCatalogSeeder extends Seeder
                     'compare_at_price' => 549000,
                     'weight_grams' => 650,
                     'colors' => [
-                        ['name' => 'Midnight Black', 'hex' => '#0f172a', 'code' => 'BLK', 'image' => 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Washed Taupe', 'hex' => '#78716c', 'code' => 'TPE', 'image' => 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Forest Olive', 'hex' => '#2e3828', 'code' => 'OLV', 'image' => 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Midnight Black', 'hex' => '#0f172a', 'code' => 'BLK', 'image' => 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Washed Taupe', 'hex' => '#78716c', 'code' => 'TPE', 'image' => 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=900&auto=format&fit=crop&q=80', 'price_extra' => 15000],
+                        ['name' => 'Forest Olive', 'hex' => '#2e3828', 'code' => 'OLV', 'image' => 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900&auto=format&fit=crop&q=80', 'price_extra' => 10000],
                     ],
                     'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
-                    'stock_per_sku' => 3,
+                    'size_price_extra' => [
+                        'S' => 0,
+                        'M' => 0,
+                        'L' => 0,
+                        'XL' => 0,
+                        'XXL' => 25000,
+                    ],
+                    'stock_per_sku' => 6,
                 ],
 
                 // --- PRODUCT 3: Tactical Ripstop Utility Cargo Pants ---
@@ -283,10 +282,17 @@ class StorefrontCatalogSeeder extends Seeder
                     'compare_at_price' => 489000,
                     'weight_grams' => 500,
                     'colors' => [
-                        ['name' => 'Slate Charcoal', 'hex' => '#1e293b', 'code' => 'CHA', 'image' => 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Desert Khaki', 'hex' => '#a89f91', 'code' => 'KHK', 'image' => 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Slate Charcoal', 'hex' => '#1e293b', 'code' => 'CHA', 'image' => 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Desert Khaki', 'hex' => '#a89f91', 'code' => 'KHK', 'image' => 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=900&auto=format&fit=crop&q=80', 'price_extra' => 10000],
                     ],
                     'sizes' => ['28', '30', '32', '34', '36'],
+                    'size_price_extra' => [
+                        '28' => 0,
+                        '30' => 0,
+                        '32' => 0,
+                        '34' => 15000,
+                        '36' => 20000,
+                    ],
                     'stock_per_sku' => 5,
                 ],
 
@@ -327,10 +333,16 @@ class StorefrontCatalogSeeder extends Seeder
                     'compare_at_price' => 629000,
                     'weight_grams' => 600,
                     'colors' => [
-                        ['name' => 'Raw Deep Indigo', 'hex' => '#1e3a8a', 'code' => 'IND', 'image' => 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Acid Washed Grey', 'hex' => '#475569', 'code' => 'GRY', 'image' => 'https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Raw Deep Indigo', 'hex' => '#1e3a8a', 'code' => 'IND', 'image' => 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Acid Washed Grey', 'hex' => '#475569', 'code' => 'GRY', 'image' => 'https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=900&auto=format&fit=crop&q=80', 'price_extra' => 30000],
                     ],
                     'sizes' => ['S', 'M', 'L', 'XL'],
+                    'size_price_extra' => [
+                        'S' => 0,
+                        'M' => 0,
+                        'L' => 0,
+                        'XL' => 15000,
+                    ],
                     'stock_per_sku' => 4,
                 ],
 
@@ -349,134 +361,151 @@ class StorefrontCatalogSeeder extends Seeder
                     'fit' => 'Drop Shoulder Boxy',
                     'origin' => 'Bandung, Indonesia',
                     'featured_image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80',
-                    'description' => 'Memberikan estetika vintage autentik dengan kelembutan maksimal. Setiap lembar memiliki gradasi wash yang unik dan berkarakter.',
+                    'description' => 'Melalui proses pencucian enzym khusus untuk menghasilkan efek usang (vintage look) yang otentik dan tekstur lembut sejak pemakaian pertama.',
                     'features' => [
-                        'Proses stone wash & acid wash eksklusif',
-                        'Sentuhan lembut bertekstur vintage',
-                        'Pola fitting proporsional',
-                        'Kerah rib anti-melar',
+                        'Tekstur soft hand-feel berkat enzym wash',
+                        'Jahitan rantai ganda kokoh di pundak',
+                        'Efek pudar warna alami',
                     ],
                     'specifications' => [
                         'Brand' => 'Malega Apparel',
-                        'Gramasi' => '280 GSM Vintage',
-                        'Wash' => 'Garment Stone Wash',
+                        'Gramasi' => '280 GSM Cotton Combed',
+                        'Finishing' => 'Enzyme Washed',
                     ],
                     'collections' => [$col300Gsm->id, $colCore->id],
                     'gallery' => [
                         'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80',
-                        'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80',
+                        'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
                     ],
                     'price' => 219000,
                     'compare_at_price' => 269000,
                     'weight_grams' => 320,
                     'colors' => [
-                        ['name' => 'Washed Charcoal', 'hex' => '#334155', 'code' => 'CHA', 'image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Washed Moss', 'hex' => '#3d4a36', 'code' => 'MOS', 'image' => 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Washed Carbon', 'hex' => '#374151', 'code' => 'CRB', 'image' => 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Sun Faded Clay', 'hex' => '#9a3412', 'code' => 'CLY', 'image' => 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80', 'price_extra' => 15000],
                     ],
                     'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
+                    'size_price_extra' => [
+                        'S' => 0,
+                        'M' => 0,
+                        'L' => 0,
+                        'XL' => 0,
+                        'XXL' => 15000,
+                    ],
                     'stock_per_sku' => 6,
                 ],
 
-                // --- PRODUCT 6: Structured Minimal 6-Panel Gold Monogram Cap ---
+                // --- PRODUCT 6: Atelier Monogram Embroidered Cap ---
                 [
-                    'name' => 'Structured Minimal 6-Panel Gold Monogram Cap',
-                    'slug' => 'structured-minimal-6-panel-cap',
-                    'subtitle' => 'Heavy Cotton Twill • 3D Gold Embroidered MA • Brass Buckle',
-                    'badge' => 'SS26 DROP',
+                    'name' => 'Atelier Monogram Embroidered Cap',
+                    'slug' => 'atelier-monogram-embroidered-cap',
+                    'subtitle' => 'High-Density 3D Gold Embroidery • Brushed Cotton Twill',
+                    'badge' => 'ACCESSORIES',
                     'rating' => 4.90,
                     'review_count' => 410,
-                    'sold_count' => 980,
+                    'sold_count' => 1100,
                     'category_id' => $catAccessories->id,
-                    'material' => 'Premium Heavy Cotton Twill',
-                    'gsm' => 320,
-                    'fit' => 'Adjustable Unstructured / Semi-Structured',
+                    'material' => '100% Brushed Cotton Twill',
+                    'gsm' => 260,
+                    'fit' => 'Unstructured 6-Panel Low Profile',
                     'origin' => 'Bandung, Indonesia',
                     'featured_image' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
-                    'description' => 'Aksesori esensial harian dengan detail monogram emas eksklusif yang menyempurnakan outfit streetwear Anda.',
+                    'description' => 'Topi 6-panel dengan bordir timbul monogram MALEGA benang emas metalik, dilengkapi buckle besi kuningan di bagian belakang.',
                     'features' => [
-                        'Bordir 3D High-Density Monogram MA Emas (#CBAC70)',
-                        'Buckle belakang kuningan solid tahan karat',
-                        'Visor lengkung presisi dengan 6 jahitan',
+                        'Bordir 3D High Density benang emas',
+                        'Strap penyesuai logam kuningan antik',
+                        'Lapisan sweatband penyerap keringat',
                     ],
                     'specifications' => [
                         'Brand' => 'Malega Apparel',
-                        'Material' => 'Heavy Cotton Twill',
-                        'Hardware' => 'Antique Solid Brass',
+                        'Model' => '6-Panel Dad Cap',
+                        'Closure' => 'Antique Brass Buckle',
                     ],
-                    'collections' => [$colAtelier->id, $col300Gsm->id],
+                    'collections' => [$colCore->id],
                     'gallery' => [
                         'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
-                        'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=900&auto=format&fit=crop&q=80',
                     ],
-                    'price' => 189000,
-                    'compare_at_price' => 229000,
+                    'price' => 179000,
+                    'compare_at_price' => 219000,
                     'weight_grams' => 150,
                     'colors' => [
-                        ['name' => 'Onyx Black / Gold', 'hex' => '#0f172a', 'code' => 'BLK', 'image' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80'],
-                        ['name' => 'Navy Sand', 'hex' => '#1e293b', 'code' => 'NAV', 'image' => 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Obsidian Black', 'hex' => '#090d16', 'code' => 'BLK', 'image' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Gold Monogram Navy', 'hex' => '#0c1b33', 'code' => 'NVY', 'image' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80', 'price_extra' => 10000],
                     ],
-                    'sizes' => ['All Size (Adjustable)'],
-                    'stock_per_sku' => 20,
+                    'sizes' => ['One Size'],
+                    'size_price_extra' => [
+                        'One Size' => 0,
+                    ],
+                    'stock_per_sku' => 15,
                 ],
 
-                // --- PRODUCT 7: Modular Matte Leather & Cordura Crossbody Bag ---
+                // --- PRODUCT 7: Double Knee Heavy Canvas Carpenter Pants ---
                 [
-                    'name' => 'Modular Matte Leather & Cordura Crossbody Bag',
-                    'slug' => 'modular-matte-leather-crossbody-bag',
-                    'subtitle' => 'Waterproof YKK Hardware • Vegan Leather & Cordura 1000D',
-                    'badge' => 'SS26 DROP',
-                    'rating' => 5.00,
-                    'review_count' => 280,
-                    'sold_count' => 650,
-                    'category_id' => $catAccessories->id,
-                    'material' => 'Matte Vegan Leather + Cordura 1000D',
-                    'gsm' => 450,
-                    'fit' => 'Ergonomic Crossbody',
+                    'name' => 'Double Knee Heavy Canvas Carpenter Pants',
+                    'slug' => 'double-knee-heavy-canvas-carpenter-pants',
+                    'subtitle' => '12oz Heavy Duck Canvas • Reinforced Rivets • Hammer Loop',
+                    'badge' => 'WORKWEAR',
+                    'rating' => 4.85,
+                    'review_count' => 480,
+                    'sold_count' => 980,
+                    'category_id' => $catBottoms->id,
+                    'material' => '12oz Cotton Duck Canvas',
+                    'gsm' => 390,
+                    'fit' => 'Relaxed Straight Fit',
                     'origin' => 'Bandung, Indonesia',
-                    'featured_image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80',
-                    'description' => 'Tas selempang berdesain taktis dan modern untuk membawa kebutuhan harian esensial dengan aman dan penuh gaya.',
+                    'featured_image' => 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=900&auto=format&fit=crop&q=80',
+                    'description' => 'Konstruksi panel lutut ganda (double-knee) dengan paku keling tembaga yang menghadirkan siluet workwear tangguh khas tradisi pekerja.',
                     'features' => [
-                        'Kompartemen utama dengan slot tablet 8-inch',
-                        'Ritsleting YKK Aquaguard tahan air',
-                        'Strap nylon tebal dengan quick-release magnetic buckle',
+                        'Panel lutut ganda tahan gesekan',
+                        'Hammer loop dan saku penggaris samping',
+                        'Triple-needle stitch di setiap sambungan utama',
                     ],
                     'specifications' => [
                         'Brand' => 'Malega Apparel',
-                        'Material' => 'Cordura 1000D + Vegan Leather',
-                        'Dimensi' => '26 cm x 18 cm x 7 cm',
+                        'Material' => '12oz Heavy Duck Canvas',
+                        'Cut' => 'Straight Leg Carpenter',
                     ],
-                    'collections' => [$colAtelier->id, $colObsidian->id],
+                    'collections' => [$colTactical->id],
                     'gallery' => [
-                        'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80',
+                        'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=900&auto=format&fit=crop&q=80',
                     ],
-                    'price' => 279000,
-                    'compare_at_price' => 349000,
-                    'weight_grams' => 400,
+                    'price' => 419000,
+                    'compare_at_price' => 509000,
+                    'weight_grams' => 600,
                     'colors' => [
-                        ['name' => 'Matte Obsidian', 'hex' => '#090d16', 'code' => 'OBS', 'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Off-White Natural', 'hex' => '#f1f5f9', 'code' => 'NAT', 'image' => 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
+                        ['name' => 'Mocha Brown', 'hex' => '#451a03', 'code' => 'MCH', 'image' => 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=900&auto=format&fit=crop&q=80', 'price_extra' => 15000],
                     ],
-                    'sizes' => ['One Size'],
-                    'stock_per_sku' => 30,
+                    'sizes' => ['28', '30', '32', '34', '36'],
+                    'size_price_extra' => [
+                        '28' => 0,
+                        '30' => 0,
+                        '32' => 0,
+                        '34' => 15000,
+                        '36' => 20000,
+                    ],
+                    'stock_per_sku' => 5,
                 ],
 
-                // --- PRODUCT 8: Raw Indigo Relaxed Straight Jeans 13.5oz ---
+                // --- PRODUCT 8: Heritage 13.5oz Relaxed Raw Denim Jeans ---
                 [
-                    'name' => 'Raw Indigo Relaxed Straight Jeans 13.5oz',
-                    'slug' => 'raw-indigo-relaxed-straight-jeans',
-                    'subtitle' => 'Sanforized Raw Denim • Chainstitch Hem • Custom Gold Rivets',
+                    'name' => 'Heritage 13.5oz Relaxed Raw Denim Jeans',
+                    'slug' => 'heritage-relaxed-raw-denim-jeans',
+                    'subtitle' => '13.5oz Sanforized Raw Denim • Button Fly • Copper Rivets',
                     'badge' => 'HERITAGE',
-                    'rating' => 4.80,
-                    'review_count' => 190,
-                    'sold_count' => 480,
+                    'rating' => 4.95,
+                    'review_count' => 760,
+                    'sold_count' => 1650,
                     'category_id' => $catBottoms->id,
-                    'material' => '13.5oz Sanforized Raw Denim',
+                    'material' => '13.5oz 100% Cotton Raw Denim',
                     'gsm' => 400,
-                    'fit' => 'Relaxed Straight Leg',
+                    'fit' => 'Relaxed Straight Cut',
                     'origin' => 'Bandung, Indonesia',
                     'featured_image' => 'https://images.unsplash.com/photo-1542272604-780c96856592?w=900&auto=format&fit=crop&q=80',
-                    'description' => 'Celana jeans raw indigo potongan relaxed straight klasik yang memberikan ruang gerak leluasa dan siluet kokoh.',
+                    'description' => 'Jeans raw denim berpotongan relaxed klasik yang kaku pada awal pemakaian dan akan membentuk kontur tubuh serta pola fading menawan.',
                     'features' => [
-                        'Denim murni kaku yang siap fading',
+                        'Bahan 13.5oz Sanforized Raw Denim murni',
+                        'Button fly dengan kancing kuningan kustom',
                         'Jahitan rantai Union Special pada hem bawah',
                         'Rivet tembaga emas berlogo Malega',
                     ],
@@ -493,9 +522,16 @@ class StorefrontCatalogSeeder extends Seeder
                     'compare_at_price' => 529000,
                     'weight_grams' => 650,
                     'colors' => [
-                        ['name' => 'Deep Raw Indigo', 'hex' => '#1e3a8a', 'code' => 'IND', 'image' => 'https://images.unsplash.com/photo-1542272604-780c96856592?w=900&auto=format&fit=crop&q=80'],
+                        ['name' => 'Deep Raw Indigo', 'hex' => '#1e3a8a', 'code' => 'IND', 'image' => 'https://images.unsplash.com/photo-1542272604-780c96856592?w=900&auto=format&fit=crop&q=80', 'price_extra' => 0],
                     ],
                     'sizes' => ['28', '30', '32', '34', '36'],
+                    'size_price_extra' => [
+                        '28' => 0,
+                        '30' => 0,
+                        '32' => 0,
+                        '34' => 15000,
+                        '36' => 25000,
+                    ],
                     'stock_per_sku' => 7,
                 ],
             ];
@@ -540,11 +576,17 @@ class StorefrontCatalogSeeder extends Seeder
                     ]);
                 }
 
-                // Seed Matrix of Variants (Colors x Sizes)
+                // Seed Matrix of Variants (Colors x Sizes with Variant-Specific Pricing)
                 $skuPrefix = 'MLG-'.strtoupper(substr(str_replace('-', '', $pData['slug']), 0, 4));
 
                 foreach ($pData['colors'] as $color) {
+                    $colorExtra = $color['price_extra'] ?? 0;
+
                     foreach ($pData['sizes'] as $size) {
+                        $sizeExtra = $pData['size_price_extra'][$size] ?? 0;
+                        $finalVariantPrice = $pData['price'] + $colorExtra + $sizeExtra;
+                        $finalCompareAt = $pData['compare_at_price'] ? ($pData['compare_at_price'] + $colorExtra + $sizeExtra) : null;
+
                         $sizeClean = Str::slug($size);
                         $sku = "{$skuPrefix}-{$color['code']}-".strtoupper($sizeClean);
                         $variantTitle = "{$product->name} - {$color['name']} / {$size}";
@@ -558,9 +600,9 @@ class StorefrontCatalogSeeder extends Seeder
                                 'color_hex' => $color['hex'],
                                 'size' => $size,
                                 'image_url' => $color['image'],
-                                'price' => $pData['price'],
-                                'compare_at_price' => $pData['compare_at_price'],
-                                'cost_price' => (int) round($pData['price'] * 0.45),
+                                'price' => $finalVariantPrice,
+                                'compare_at_price' => $finalCompareAt,
+                                'cost_price' => (int) round($finalVariantPrice * 0.45),
                                 'weight_grams' => $pData['weight_grams'],
                                 'is_active' => true,
                             ]
@@ -578,16 +620,21 @@ class StorefrontCatalogSeeder extends Seeder
                         );
 
                         // Record Initial Stock Movement
-                        StockMovement::create([
-                            'inventory_item_id' => $inv->id,
-                            'type' => \App\Enums\StockMovementType::Inbound,
-                            'quantity_change' => $stockQty,
-                            'on_hand_before' => 0,
-                            'on_hand_after' => $stockQty,
-                            'reserved_before' => 0,
-                            'reserved_after' => 0,
-                            'reference_note' => 'Inisialisasi stok fisik katalog toko Malega SS26.',
-                        ]);
+                        StockMovement::firstOrCreate(
+                            [
+                                'inventory_item_id' => $inv->id,
+                                'reference_note' => 'Storefront Launch Initial Stock',
+                            ],
+                            [
+                                'type' => \App\Enums\StockMovementType::Inbound,
+                                'quantity_change' => $stockQty,
+                                'on_hand_before' => 0,
+                                'on_hand_after' => $stockQty,
+                                'reserved_before' => 0,
+                                'reserved_after' => 0,
+                                'created_at' => now(),
+                            ]
+                        );
                     }
                 }
             }

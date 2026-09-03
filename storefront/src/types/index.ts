@@ -2,6 +2,25 @@ export interface ColorOption {
   name: string;
   hex: string;
   image: string;
+  priceExtra?: number;
+}
+
+export interface ProductVariant {
+  id?: number | string;
+  sku: string;
+  title: string;
+  color: {
+    name: string;
+    hex: string;
+    image: string;
+  };
+  size: string;
+  price: number;
+  formattedPrice?: string;
+  compareAtPrice?: number | null;
+  weightGrams?: number;
+  availableStock: number;
+  isInStock: boolean;
 }
 
 export interface Product {
@@ -9,6 +28,7 @@ export interface Product {
   slug: string;
   title: string;
   subtitle: string;
+  badge?: string;
   isNewDrop?: boolean;
   isBestSeller?: boolean;
   rating: number;
@@ -16,9 +36,11 @@ export interface Product {
   soldCount: number;
   originalPrice: number;
   price: number;
+  priceMin?: number;
+  priceMax?: number;
   discountPercentage: number;
   description: string;
-  category: 'T-Shirts' | 'Outerwear' | 'Bottoms' | 'Accessories';
+  category: 'T-Shirts' | 'Outerwear' | 'Bottoms' | 'Accessories' | string;
   material: string;
   gsm: number;
   fit: string;
@@ -26,14 +48,18 @@ export interface Product {
   stockTotal: number;
   colors: ColorOption[];
   sizes: string[];
+  sizePriceExtra?: { [size: string]: number };
   gallery: string[];
   features: string[];
   specifications: { [key: string]: string };
+  variants?: ProductVariant[];
 }
 
 export interface CartItem {
   id: string;
   productId: string;
+  variantId?: number | string;
+  sku?: string;
   slug: string;
   title: string;
   color: string;

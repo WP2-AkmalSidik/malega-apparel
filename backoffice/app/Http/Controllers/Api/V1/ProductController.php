@@ -74,13 +74,18 @@ class ProductController extends Controller
     }
 
     /**
-     * Get single active product detail by slug.
+     * Get single active product detail by slug or ID.
      */
-    public function show(string $slug): JsonResponse
+    public function show(string $identifier): JsonResponse
     {
         $product = Product::active()
             ->with(['category', 'collections', 'images', 'variants.inventoryItem'])
-            ->where('slug', $slug)
+            ->where(function ($q) use ($identifier) {
+                $q->where('slug', $identifier);
+                if (is_numeric($identifier)) {
+                    $q->orWhere('id', $identifier);
+                }
+            })
             ->first();
 
         if (! $product) {
@@ -90,10 +95,18 @@ class ProductController extends Controller
             ], 404);
         }
 
+        $related = Product::active()
+            ->with(['category', 'variants.inventoryItem'])
+            ->where('id', '!=', $product->id)
+            ->where('category_id', $product->category_id)
+            ->limit(4)
+            ->get();
+
         return response()->json([
             'success' => true,
             'message' => 'Detail produk berhasil dimuat.',
             'data' => new ProductDetailResource($product),
+            'related' => ProductListResource::collection($related),
         ]);
     }
 }

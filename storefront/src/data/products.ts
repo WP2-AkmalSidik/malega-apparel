@@ -1,6 +1,41 @@
-import { Product, Voucher, ShippingOption, PaymentMethod, Address } from '../types';
+import { Product, ProductVariant, Voucher, ShippingOption, PaymentMethod, Address } from '../types';
 
-export const productsCatalog: Product[] = [
+function generateVariantsForProduct(
+  p: Omit<Product, 'variants'>,
+  colorPriceExtras: { [colorName: string]: number } = {},
+  sizePriceExtras: { [size: string]: number } = {}
+): ProductVariant[] {
+  const skuPrefix = 'MLG-' + p.slug.replace(/[^a-z0-9]/gi, '').substring(0, 4).toUpperCase();
+  const variants: ProductVariant[] = [];
+
+  for (const c of p.colors) {
+    const cExtra = colorPriceExtras[c.name] ?? c.priceExtra ?? 0;
+    for (const s of p.sizes) {
+      const sExtra = sizePriceExtras[s] ?? 0;
+      const finalPrice = p.price + cExtra + sExtra;
+      const compareAt = p.originalPrice ? (p.originalPrice + cExtra + sExtra) : undefined;
+      const sku = `${skuPrefix}-${c.name.substring(0, 3).toUpperCase()}-${s.replace(/\s+/g, '')}`;
+
+      variants.push({
+        id: `${p.id}-${sku}`,
+        sku,
+        title: `${p.title} - ${c.name} / ${s}`,
+        color: { name: c.name, hex: c.hex, image: c.image },
+        size: s,
+        price: finalPrice,
+        formattedPrice: `Rp ${finalPrice.toLocaleString('id-ID')}`,
+        compareAtPrice: compareAt,
+        weightGrams: p.gsm ? p.gsm + 50 : 350,
+        availableStock: 8,
+        isInStock: true
+      });
+    }
+  }
+
+  return variants;
+}
+
+const rawProducts: Product[] = [
   {
     id: 'mlg-001',
     slug: 'obsidian-heavyweight-boxy-tee-300gsm',
@@ -13,6 +48,8 @@ export const productsCatalog: Product[] = [
     soldCount: 3840,
     originalPrice: 289000,
     price: 229000,
+    priceMin: 229000,
+    priceMax: 264000,
     discountPercentage: 20,
     category: 'T-Shirts',
     material: '100% Combed Heavy Cotton 300 GSM',
@@ -24,25 +61,36 @@ export const productsCatalog: Product[] = [
       {
         name: 'Onyx Black',
         hex: '#111827',
-        image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Washed Olive',
         hex: '#3f4834',
-        image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 10000
       },
       {
         name: 'Slate Charcoal',
         hex: '#334155',
-        image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Vintage Acid Wash',
         hex: '#64748b',
-        image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 20000
       }
     ],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    sizePriceExtra: {
+      'S': 0,
+      'M': 0,
+      'L': 0,
+      'XL': 0,
+      'XXL': 15000
+    },
     gallery: [
       'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80',
@@ -77,6 +125,8 @@ export const productsCatalog: Product[] = [
     soldCount: 1950,
     originalPrice: 549000,
     price: 449000,
+    priceMin: 449000,
+    priceMax: 489000,
     discountPercentage: 18,
     category: 'Outerwear',
     material: '100% French Terry Cotton 380 GSM',
@@ -88,20 +138,30 @@ export const productsCatalog: Product[] = [
       {
         name: 'Midnight Black',
         hex: '#0f172a',
-        image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Washed Taupe',
         hex: '#78716c',
-        image: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 15000
       },
       {
         name: 'Forest Olive',
         hex: '#2e3828',
-        image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 10000
       }
     ],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    sizePriceExtra: {
+      'S': 0,
+      'M': 0,
+      'L': 0,
+      'XL': 0,
+      'XXL': 25000
+    },
     gallery: [
       'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=900&auto=format&fit=crop&q=80',
@@ -134,6 +194,8 @@ export const productsCatalog: Product[] = [
     soldCount: 1420,
     originalPrice: 489000,
     price: 399000,
+    priceMin: 399000,
+    priceMax: 429000,
     discountPercentage: 18,
     category: 'Bottoms',
     material: 'Cotton Twill Ripstop 280 GSM',
@@ -145,15 +207,24 @@ export const productsCatalog: Product[] = [
       {
         name: 'Slate Charcoal',
         hex: '#1e293b',
-        image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Desert Khaki',
         hex: '#a89f91',
-        image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 10000
       }
     ],
     sizes: ['28', '30', '32', '34', '36'],
+    sizePriceExtra: {
+      '28': 0,
+      '30': 0,
+      '32': 0,
+      '34': 15000,
+      '36': 20000
+    },
     gallery: [
       'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=900&auto=format&fit=crop&q=80'
@@ -184,6 +255,8 @@ export const productsCatalog: Product[] = [
     soldCount: 780,
     originalPrice: 629000,
     price: 529000,
+    priceMin: 529000,
+    priceMax: 574000,
     discountPercentage: 15,
     category: 'Outerwear',
     material: '14oz Raw Rigid Selvedge Denim',
@@ -195,15 +268,23 @@ export const productsCatalog: Product[] = [
       {
         name: 'Raw Deep Indigo',
         hex: '#1e3a8a',
-        image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Acid Washed Grey',
         hex: '#475569',
-        image: 'https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 30000
       }
     ],
     sizes: ['S', 'M', 'L', 'XL'],
+    sizePriceExtra: {
+      'S': 0,
+      'M': 0,
+      'L': 0,
+      'XL': 15000
+    },
     gallery: [
       'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=900&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=900&auto=format&fit=crop&q=80'
@@ -234,6 +315,8 @@ export const productsCatalog: Product[] = [
     soldCount: 2450,
     originalPrice: 269000,
     price: 219000,
+    priceMin: 219000,
+    priceMax: 249000,
     discountPercentage: 18,
     category: 'T-Shirts',
     material: '100% Combed Cotton Vintage Wash',
@@ -245,15 +328,24 @@ export const productsCatalog: Product[] = [
       {
         name: 'Washed Charcoal',
         hex: '#334155',
-        image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Washed Moss',
         hex: '#3d4a36',
-        image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 10000
       }
     ],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    sizePriceExtra: {
+      'S': 0,
+      'M': 0,
+      'L': 0,
+      'XL': 0,
+      'XXL': 15000
+    },
     gallery: [
       'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=80'
@@ -283,6 +375,8 @@ export const productsCatalog: Product[] = [
     soldCount: 980,
     originalPrice: 229000,
     price: 189000,
+    priceMin: 189000,
+    priceMax: 199000,
     discountPercentage: 17,
     category: 'Accessories',
     material: 'Premium Heavy Cotton Twill',
@@ -294,15 +388,20 @@ export const productsCatalog: Product[] = [
       {
         name: 'Onyx Black / Gold',
         hex: '#0f172a',
-        image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       },
       {
         name: 'Navy Sand',
         hex: '#1e293b',
-        image: 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 10000
       }
     ],
     sizes: ['All Size (Adjustable)'],
+    sizePriceExtra: {
+      'All Size (Adjustable)': 0
+    },
     gallery: [
       'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=900&auto=format&fit=crop&q=80'
@@ -331,6 +430,8 @@ export const productsCatalog: Product[] = [
     soldCount: 650,
     originalPrice: 349000,
     price: 279000,
+    priceMin: 279000,
+    priceMax: 279000,
     discountPercentage: 20,
     category: 'Accessories',
     material: 'Matte Vegan Leather + Cordura 1000D',
@@ -342,10 +443,14 @@ export const productsCatalog: Product[] = [
       {
         name: 'Matte Obsidian',
         hex: '#090d16',
-        image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       }
     ],
     sizes: ['One Size'],
+    sizePriceExtra: {
+      'One Size': 0
+    },
     gallery: [
       'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80'
     ],
@@ -373,6 +478,8 @@ export const productsCatalog: Product[] = [
     soldCount: 480,
     originalPrice: 529000,
     price: 439000,
+    priceMin: 439000,
+    priceMax: 464000,
     discountPercentage: 17,
     category: 'Bottoms',
     material: '13.5oz Sanforized Raw Denim',
@@ -384,10 +491,18 @@ export const productsCatalog: Product[] = [
       {
         name: 'Deep Raw Indigo',
         hex: '#1e3a8a',
-        image: 'https://images.unsplash.com/photo-1542272604-780c96856592?w=900&auto=format&fit=crop&q=80'
+        image: 'https://images.unsplash.com/photo-1542272604-780c96856592?w=900&auto=format&fit=crop&q=80',
+        priceExtra: 0
       }
     ],
     sizes: ['28', '30', '32', '34', '36'],
+    sizePriceExtra: {
+      '28': 0,
+      '30': 0,
+      '32': 0,
+      '34': 15000,
+      '36': 25000
+    },
     gallery: [
       'https://images.unsplash.com/photo-1542272604-780c96856592?w=900&auto=format&fit=crop&q=80'
     ],
@@ -404,6 +519,20 @@ export const productsCatalog: Product[] = [
     }
   }
 ];
+
+// Populate variants on each product
+export const productsCatalog: Product[] = rawProducts.map(p => {
+  const variants = generateVariantsForProduct(p, {}, p.sizePriceExtra);
+  const minP = Math.min(...variants.map(v => v.price));
+  const maxP = Math.max(...variants.map(v => v.price));
+
+  return {
+    ...p,
+    priceMin: minP,
+    priceMax: maxP,
+    variants
+  };
+});
 
 export const availableVouchers: Voucher[] = [
   {

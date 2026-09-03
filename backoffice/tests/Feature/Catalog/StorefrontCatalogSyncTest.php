@@ -50,13 +50,12 @@ class StorefrontCatalogSyncTest extends TestCase
 
     public function test_storefront_can_get_single_product_detail_with_specifications_and_colors(): void
     {
-        $response = $this->getJson('/api/v1/products/structured-minimal-6-panel-cap');
+        $response = $this->getJson('/api/v1/products/atelier-monogram-embroidered-cap');
 
         $response->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.name', 'Structured Minimal 6-Panel Gold Monogram Cap')
+            ->assertJsonPath('data.name', 'Atelier Monogram Embroidered Cap')
             ->assertJsonPath('data.specifications.Brand', 'Malega Apparel')
-            ->assertJsonPath('data.specifications.Hardware', 'Antique Solid Brass')
             ->assertJsonStructure([
                 'data' => [
                     'id',
@@ -85,7 +84,7 @@ class StorefrontCatalogSyncTest extends TestCase
 
         $colors = $response->json('data.colors');
         $this->assertCount(2, $colors);
-        $this->assertEquals('Onyx Black / Gold', $colors[0]['name']);
+        $this->assertEquals('Obsidian Black', $colors[0]['name']);
     }
 
     public function test_storefront_can_fetch_lookbook_collections_with_rich_metadata(): void
@@ -112,6 +111,6 @@ class StorefrontCatalogSyncTest extends TestCase
                 ],
             ]);
 
-        $this->assertGreaterThanOrEqual(6, count($response->json('data')));
+        $this->assertGreaterThanOrEqual(5, count($response->json('data')));
     }
 }

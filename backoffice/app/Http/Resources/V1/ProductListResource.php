@@ -48,6 +48,7 @@ class ProductListResource extends JsonResource
                 'formatted' => $this->formatted_price_range,
             ],
             'colors' => $this->colors,
+            'sizes' => $this->sizes,
             'variants_count' => $this->variants->count(),
             'is_in_stock' => $this->variants->some(fn ($v) => ($v->inventoryItem?->available ?? 0) > 0),
         ];
