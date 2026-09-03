@@ -89,8 +89,12 @@ class ProductIndex extends Component
         $this->variants[] = [
             'id' => null,
             'sku' => '',
-            'title' => 'Standard / All Size',
-            'price' => 0,
+            'title' => 'Ukuran L',
+            'color_name' => 'Onyx Black',
+            'color_hex' => '#0B132B',
+            'size' => 'L',
+            'image_url' => '',
+            'price' => 299000,
             'compare_at_price' => null,
             'cost_price' => null,
             'weight_grams' => 250,
@@ -122,12 +126,15 @@ class ProductIndex extends Component
     {
         $baseSku = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $this->name ?: 'MLG'), 0, 6));
         $defaultPrice = ! empty($this->variants[0]['price']) ? (int) $this->variants[0]['price'] : 299000;
+        $defaultColor = ! empty($this->variants[0]['color_name']) ? $this->variants[0]['color_name'] : 'Onyx Black';
+        $defaultHex = ! empty($this->variants[0]['color_hex']) ? $this->variants[0]['color_hex'] : '#0B132B';
+        $defaultImg = ! empty($this->variants[0]['image_url']) ? $this->variants[0]['image_url'] : '';
 
         $this->variants = [
-            ['id' => null, 'sku' => "{$baseSku}-S", 'title' => 'Ukuran S', 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
-            ['id' => null, 'sku' => "{$baseSku}-M", 'title' => 'Ukuran M', 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
-            ['id' => null, 'sku' => "{$baseSku}-L", 'title' => 'Ukuran L', 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
-            ['id' => null, 'sku' => "{$baseSku}-XL", 'title' => 'Ukuran XL', 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-S", 'title' => 'Ukuran S', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => 'S', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-M", 'title' => 'Ukuran M', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => 'M', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-L", 'title' => 'Ukuran L', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => 'L', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-XL", 'title' => 'Ukuran XL', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => 'XL', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 250, 'is_active' => true],
         ];
 
         $this->dispatch('toast', [
@@ -155,6 +162,10 @@ class ProductIndex extends Component
                 'id' => null,
                 'sku' => '',
                 'title' => 'All Size / Standar',
+                'color_name' => 'Onyx Black',
+                'color_hex' => '#0B132B',
+                'size' => 'L',
+                'image_url' => '',
                 'price' => 299000,
                 'compare_at_price' => null,
                 'cost_price' => null,
@@ -187,6 +198,10 @@ class ProductIndex extends Component
             'id' => $v->id,
             'sku' => $v->sku,
             'title' => $v->title,
+            'color_name' => $v->color_name ?? '',
+            'color_hex' => $v->color_hex ?? '#0B132B',
+            'size' => $v->size ?? '',
+            'image_url' => $v->image_url ?? '',
             'price' => $v->price,
             'compare_at_price' => $v->compare_at_price,
             'cost_price' => $v->cost_price,
@@ -215,9 +230,12 @@ class ProductIndex extends Component
             'variants' => ['required', 'array', 'min:1'],
             'variants.*.sku' => ['required', 'string', 'max:64'],
             'variants.*.title' => ['required', 'string', 'max:255'],
+            'variants.*.color_name' => ['nullable', 'string', 'max:64'],
+            'variants.*.color_hex' => ['nullable', 'string', 'max:16'],
+            'variants.*.size' => ['nullable', 'string', 'max:32'],
+            'variants.*.image_url' => ['nullable', 'string', 'max:1000'],
             'variants.*.price' => ['required', 'numeric', 'min:0'],
             'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.cost_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.weight_grams' => ['required', 'integer', 'min:1'],
             'variants.*.is_active' => ['boolean'],
         ]);

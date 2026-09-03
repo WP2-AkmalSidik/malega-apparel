@@ -86,7 +86,11 @@ class CreateProductAction
             foreach ($data['variants'] as $variantData) {
                 $variant = $product->variants()->create([
                     'sku' => strtoupper(trim($variantData['sku'])),
-                    'title' => $variantData['title'],
+                    'title' => $variantData['title'] ?? 'Standard Variant',
+                    'color_name' => ! empty($variantData['color_name']) ? trim($variantData['color_name']) : null,
+                    'color_hex' => ! empty($variantData['color_hex']) ? trim($variantData['color_hex']) : null,
+                    'size' => ! empty($variantData['size']) ? trim($variantData['size']) : null,
+                    'image_url' => ! empty($variantData['image_url']) ? trim($variantData['image_url']) : null,
                     'price' => (int) $variantData['price'],
                     'compare_at_price' => ! empty($variantData['compare_at_price']) ? (int) $variantData['compare_at_price'] : null,
                     'cost_price' => ! empty($variantData['cost_price']) ? (int) $variantData['cost_price'] : null,

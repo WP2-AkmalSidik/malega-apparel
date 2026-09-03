@@ -292,22 +292,34 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Product Name -->
-                    <x-input
-                        wire:model="name"
-                        label="Nama Produk"
-                        name="name"
-                        placeholder="misal: Malega Oxford Signature Shirt — Obsidian Navy"
-                        required="true"
-                    />
+                    <div class="sm:col-span-2">
+                        <x-input
+                            wire:model="name"
+                            label="Nama Produk"
+                            name="name"
+                            placeholder="misal: Obsidian Heavyweight Boxy Tee 300GSM"
+                            required="true"
+                        />
+                    </div>
 
                     <!-- Slug (Optional) -->
                     <x-input
                         wire:model="slug"
                         label="Slug URL (Opsional)"
                         name="slug"
-                        placeholder="misal: oxford-signature-navy"
+                        placeholder="misal: m-boxy-tee-heavyweight-300gsm"
+                    />
+                </div>
+
+                <!-- Featured Image URL -->
+                <div class="grid grid-cols-1 gap-4">
+                    <x-input
+                        wire:model="featured_image"
+                        label="Foto Utama Produk (Featured Image URL)"
+                        name="featured_image"
+                        placeholder="https://images.unsplash.com/... atau storage/products/utama.jpg"
                     />
                 </div>
 
@@ -329,14 +341,14 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: Matriks Varian & SKU (ADR-002 & ADR-005) -->
+            <!-- SECTION 2: Matriks Varian, Warna & Gambar (ADR-002 & ADR-005) -->
             <div class="space-y-4 pt-2">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-white/5">
                     <div class="flex items-center gap-2">
                         <span class="w-5 h-5 rounded-full bg-[#CBAC70]/20 text-[#CBAC70] font-bold text-xs flex items-center justify-center">2</span>
                         <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Matriks Varian & SKU</h3>
-                            <p class="text-[11px] text-slate-400">Harga dalam Rupiah integer & berat dalam gram (ADR-002, ADR-005)</p>
+                            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Matriks Varian, Warna & Gambar</h3>
+                            <p class="text-[11px] text-slate-400">Atur kombinasi warna, foto varian, ukuran, dan harga khusus tiap SKU</p>
                         </div>
                     </div>
 
@@ -363,17 +375,19 @@
 
                 <!-- Variants Dynamic Table -->
                 <div class="rounded-2xl border border-slate-800 bg-[#070C1A] overflow-hidden">
-                    <div class="overflow-x-auto max-h-72">
+                    <div class="overflow-x-auto max-h-80">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-white/[0.02] border-b border-slate-800 font-mono text-[10px] text-slate-400 uppercase">
                                 <tr>
-                                    <th class="px-3 py-2.5">Kode SKU</th>
-                                    <th class="px-3 py-2.5">Judul Varian (Ukuran/Warna)</th>
-                                    <th class="px-3 py-2.5">Harga Jual (Rp)</th>
-                                    <th class="px-3 py-2.5 hidden sm:table-cell">Harga Coret (Rp)</th>
-                                    <th class="px-3 py-2.5 hidden md:table-cell">Berat (g)</th>
-                                    <th class="px-3 py-2.5 text-center">Aktif</th>
-                                    <th class="px-3 py-2.5 text-center w-10"></th>
+                                    <th class="px-2.5 py-2.5">Kode SKU</th>
+                                    <th class="px-2.5 py-2.5 min-w-[140px]">Warna & Hex</th>
+                                    <th class="px-2.5 py-2.5 w-24">Ukuran</th>
+                                    <th class="px-2.5 py-2.5 min-w-[160px]">Foto Varian (URL)</th>
+                                    <th class="px-2.5 py-2.5 w-28">Harga (Rp)</th>
+                                    <th class="px-2.5 py-2.5 hidden sm:table-cell w-28">Coret (Rp)</th>
+                                    <th class="px-2.5 py-2.5 hidden md:table-cell w-20">Berat (g)</th>
+                                    <th class="px-2.5 py-2.5 text-center w-12">Aktif</th>
+                                    <th class="px-2.5 py-2.5 text-center w-8"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/50">
@@ -385,20 +399,62 @@
                                                 type="text"
                                                 wire:model="variants.{{ $index }}.sku"
                                                 placeholder="MLG-TS-BLK-M"
-                                                class="w-full uppercase font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-[#CBAC70] focus:outline-none focus:border-[#CBAC70]"
+                                                class="w-full uppercase font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-xs text-[#CBAC70] focus:outline-none focus:border-[#CBAC70]"
                                                 required
                                             >
                                         </td>
 
-                                        <!-- Title -->
+                                        <!-- Color & Hex -->
                                         <td class="p-2">
-                                            <input
-                                                type="text"
-                                                wire:model="variants.{{ $index }}.title"
-                                                placeholder="Ukuran M"
-                                                class="w-full bg-[#0B132B] border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
-                                                required
+                                            <div class="flex items-center gap-1.5">
+                                                <input
+                                                    type="color"
+                                                    wire:model="variants.{{ $index }}.color_hex"
+                                                    title="Pilih Warna Hex"
+                                                    class="w-6 h-6 rounded-md bg-transparent border-0 cursor-pointer p-0 shrink-0"
+                                                >
+                                                <input
+                                                    type="text"
+                                                    wire:model="variants.{{ $index }}.color_name"
+                                                    placeholder="Onyx Black"
+                                                    class="w-full bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
+                                                >
+                                            </div>
+                                        </td>
+
+                                        <!-- Size -->
+                                        <td class="p-2">
+                                            <select
+                                                wire:model="variants.{{ $index }}.size"
+                                                class="w-full bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] cursor-pointer"
                                             >
+                                                <option value="S">S</option>
+                                                <option value="M">M</option>
+                                                <option value="L">L</option>
+                                                <option value="XL">XL</option>
+                                                <option value="XXL">XXL</option>
+                                                <option value="28">28</option>
+                                                <option value="30">30</option>
+                                                <option value="32">32</option>
+                                                <option value="34">34</option>
+                                                <option value="36">36</option>
+                                                <option value="All Size">All Size</option>
+                                            </select>
+                                        </td>
+
+                                        <!-- Image URL -->
+                                        <td class="p-2">
+                                            <div class="flex items-center gap-1.5">
+                                                @if(!empty($variant['image_url']))
+                                                    <img src="{{ $variant['image_url'] }}" alt="" class="w-6 h-6 rounded object-cover border border-white/20 shrink-0 bg-[#0B132B]">
+                                                @endif
+                                                <input
+                                                    type="text"
+                                                    wire:model.lazy="variants.{{ $index }}.image_url"
+                                                    placeholder="URL Foto..."
+                                                    class="w-full bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-[#CBAC70]"
+                                                >
+                                            </div>
                                         </td>
 
                                         <!-- Price -->
@@ -408,7 +464,7 @@
                                                 wire:model="variants.{{ $index }}.price"
                                                 min="0"
                                                 placeholder="299000"
-                                                class="w-full font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
+                                                class="w-full font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
                                                 required
                                             >
                                         </td>
@@ -420,18 +476,18 @@
                                                 wire:model="variants.{{ $index }}.compare_at_price"
                                                 min="0"
                                                 placeholder="349000"
-                                                class="w-full font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-[#CBAC70]"
+                                                class="w-full font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-[#CBAC70]"
                                             >
                                         </td>
 
                                         <!-- Weight -->
-                                        <td class="p-2 hidden md:table-cell w-24">
+                                        <td class="p-2 hidden md:table-cell">
                                             <input
                                                 type="number"
                                                 wire:model="variants.{{ $index }}.weight_grams"
                                                 min="1"
                                                 placeholder="250"
-                                                class="w-full font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70]"
+                                                class="w-full font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-[#CBAC70]"
                                                 required
                                             >
                                         </td>
