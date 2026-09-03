@@ -12,12 +12,14 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 #[Title('Katalog Produk | Malega Apparel Backoffice')]
 #[Layout('layouts.app')]
 class ProductIndex extends Component
 {
+    use WithFileUploads;
     use WithPagination;
 
     public string $search = '';
@@ -44,9 +46,26 @@ class ProductIndex extends Component
     public ?string $featured_image = null;
 
     /**
+     * Size format type: 'letter' (Abjad) or 'numeric' (Angka/Nomor).
+     */
+    public string $sizeType = 'letter';
+
+    /**
+     * Uploaded main featured image file from device.
+     */
+    public $featured_image_file = null;
+
+    /**
+     * Uploaded variant image files from device.
+     *
+     * @var array<int, mixed>
+     */
+    public array $variant_image_files = [];
+
+    /**
      * List of variants for the product form.
      *
-     * @var array<int, array{id?: int|null, sku: string, title: string, price: int|string, compare_at_price?: int|string|null, cost_price?: int|string|null, weight_grams: int, is_active: bool}>
+     * @var array<int, array{id?: int|null, sku: string, title: string, color_name?: string|null, color_hex?: string|null, size?: string|null, image_url?: string|null, price: int|string, compare_at_price?: int|string|null, cost_price?: int|string|null, weight_grams: int, is_active: bool}>
      */
     public array $variants = [];
 
@@ -82,17 +101,40 @@ class ProductIndex extends Component
     }
 
     /**
+     * Handle size type toggle (Abjad vs Angka).
+     */
+    public function updatedSizeType(string $value): void
+    {
+        if ($value === 'numeric') {
+            foreach ($this->variants as &$v) {
+                if (! empty($v['size']) && ! is_numeric($v['size'])) {
+                    $v['size'] = '30';
+                }
+            }
+        } else {
+            foreach ($this->variants as &$v) {
+                if (! empty($v['size']) && is_numeric($v['size'])) {
+                    $v['size'] = 'L';
+                }
+            }
+        }
+        unset($v);
+    }
+
+    /**
      * Add an empty variant row to the form.
      */
     public function addVariant(): void
     {
+        $defaultSize = $this->sizeType === 'numeric' ? '30' : 'L';
+
         $this->variants[] = [
             'id' => null,
             'sku' => '',
-            'title' => 'Ukuran L',
+            'title' => 'Ukuran '.$defaultSize,
             'color_name' => 'Onyx Black',
             'color_hex' => '#0B132B',
-            'size' => 'L',
+            'size' => $defaultSize,
             'image_url' => '',
             'price' => 299000,
             'compare_at_price' => null,
@@ -120,7 +162,7 @@ class ProductIndex extends Component
     }
 
     /**
-     * Quick generator for standard sizes (S, M, L, XL).
+     * Quick generator for standard letter sizes (S, M, L, XL).
      */
     public function generateStandardSizes(): void
     {
@@ -139,8 +181,33 @@ class ProductIndex extends Component
 
         $this->dispatch('toast', [
             'type' => 'info',
-            'title' => 'Varian Digenerate',
-            'message' => '4 varian ukuran standar (S, M, L, XL) berhasil dibuat.',
+            'title' => 'Varian Abjad Dibuat',
+            'message' => '4 varian ukuran abjad (S, M, L, XL) berhasil dibuat.',
+        ]);
+    }
+
+    /**
+     * Quick generator for standard number sizes (28, 30, 32, 34).
+     */
+    public function generateNumberSizes(): void
+    {
+        $baseSku = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $this->name ?: 'MLG'), 0, 6));
+        $defaultPrice = ! empty($this->variants[0]['price']) ? (int) $this->variants[0]['price'] : 349000;
+        $defaultColor = ! empty($this->variants[0]['color_name']) ? $this->variants[0]['color_name'] : 'Raw Indigo';
+        $defaultHex = ! empty($this->variants[0]['color_hex']) ? $this->variants[0]['color_hex'] : '#1A2A4E';
+        $defaultImg = ! empty($this->variants[0]['image_url']) ? $this->variants[0]['image_url'] : '';
+
+        $this->variants = [
+            ['id' => null, 'sku' => "{$baseSku}-28", 'title' => 'Size 28', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => '28', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 450, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-30", 'title' => 'Size 30', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => '30', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 450, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-32", 'title' => 'Size 32', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => '32', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 450, 'is_active' => true],
+            ['id' => null, 'sku' => "{$baseSku}-34", 'title' => 'Size 34', 'color_name' => $defaultColor, 'color_hex' => $defaultHex, 'size' => '34', 'image_url' => $defaultImg, 'price' => $defaultPrice, 'compare_at_price' => null, 'cost_price' => null, 'weight_grams' => 450, 'is_active' => true],
+        ];
+
+        $this->dispatch('toast', [
+            'type' => 'info',
+            'title' => 'Varian Nomor Dibuat',
+            'message' => '4 varian ukuran nomor celana (28, 30, 32, 34) berhasil dibuat.',
         ]);
     }
 
@@ -152,9 +219,10 @@ class ProductIndex extends Component
         $this->resetValidation();
         $firstCategory = Category::active()->orderBy('sort_order')->first();
 
-        $this->reset(['editingProductId', 'name', 'slug', 'description', 'featured_image']);
+        $this->reset(['editingProductId', 'name', 'slug', 'description', 'featured_image', 'featured_image_file', 'variant_image_files']);
         $this->category_id = $firstCategory?->id;
         $this->status = 'active';
+        $this->sizeType = 'letter';
         $this->isEditing = false;
 
         $this->variants = [
@@ -192,7 +260,12 @@ class ProductIndex extends Component
         $this->description = $product->description;
         $this->status = $product->status->value;
         $this->featured_image = $product->featured_image;
+        $this->featured_image_file = null;
+        $this->variant_image_files = [];
         $this->isEditing = true;
+
+        $firstSize = $product->variants->first()?->size ?? '';
+        $this->sizeType = is_numeric($firstSize) ? 'numeric' : 'letter';
 
         $this->variants = $product->variants->map(fn ($v) => [
             'id' => $v->id,
@@ -227,6 +300,7 @@ class ProductIndex extends Component
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:draft,active,inactive,archived'],
+            'featured_image_file' => ['nullable', 'image', 'max:5120'],
             'variants' => ['required', 'array', 'min:1'],
             'variants.*.sku' => ['required', 'string', 'max:64'],
             'variants.*.title' => ['required', 'string', 'max:255'],
@@ -240,14 +314,30 @@ class ProductIndex extends Component
             'variants.*.is_active' => ['boolean'],
         ]);
 
+        // 1. Process Main Featured Image Upload
+        $featuredImagePath = $this->featured_image;
+        if ($this->featured_image_file) {
+            $featuredImagePath = $this->featured_image_file->store('products', 'public');
+        }
+
+        // 2. Process Variant Images Uploads
+        $processedVariants = $this->variants;
+        foreach ($processedVariants as $idx => &$variant) {
+            if (isset($this->variant_image_files[$idx]) && is_object($this->variant_image_files[$idx])) {
+                $variantPath = $this->variant_image_files[$idx]->store('products/variants', 'public');
+                $variant['image_url'] = 'storage/' . $variantPath;
+            }
+        }
+        unset($variant);
+
         $payload = [
             'category_id' => (int) $this->category_id,
             'name' => $this->name,
             'slug' => $this->slug ?: null,
             'description' => $this->description ?: null,
             'status' => ProductStatus::from($this->status),
-            'featured_image' => $this->featured_image ?: null,
-            'variants' => $this->variants,
+            'featured_image' => $featuredImagePath ?: null,
+            'variants' => $processedVariants,
         ];
 
         try {
