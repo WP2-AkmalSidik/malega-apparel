@@ -350,16 +350,23 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
               </p>
             </div>
 
-            {/* Dynamic Price Box (Calculated Real-Time per Variant) */}
+            {/* Single Unified Synchronized Price Box */}
             <div className="p-3.5 sm:p-4 rounded-xl bg-[#0B132B] border border-[#CBAC70]/30 flex items-baseline justify-between shadow-inner">
-              <div className="flex items-baseline gap-2.5">
-                <span className="text-2xl sm:text-3xl font-black text-[#CBAC70] gold-gradient-pure">
-                  {formatRupiah(currentPrice)}
-                </span>
-                {currentCompareAt && currentCompareAt > currentPrice && (
-                  <span className="text-xs text-[#94A3B8] line-through">
-                    {formatRupiah(currentCompareAt)}
+              <div className="space-y-0.5">
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-2xl sm:text-3xl font-black text-[#CBAC70] gold-gradient-pure">
+                    {formatRupiah(currentPrice * quantity)}
                   </span>
+                  {currentCompareAt && currentCompareAt > currentPrice && (
+                    <span className="text-xs text-[#94A3B8] line-through">
+                      {formatRupiah(currentCompareAt * quantity)}
+                    </span>
+                  )}
+                </div>
+                {quantity > 1 && (
+                  <p className="text-[10px] font-mono text-[#94A3B8]">
+                    ({formatRupiah(currentPrice)} × {quantity} pcs)
+                  </p>
                 )}
               </div>
 
@@ -425,10 +432,10 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
               </div>
             </div>
 
-            {/* 3. Quantity Stepper & Subtotal */}
+            {/* 3. Quantity Stepper */}
             <div className="space-y-2 pt-2 border-t border-white/10">
               <span className="font-bold text-xs text-[#FDFCFF] block">Jumlah Pesanan:</span>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="flex items-center border border-white/20 rounded-xl bg-[#0B132B] overflow-hidden">
                   <button
                     type="button"
@@ -451,8 +458,8 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
                   </button>
                 </div>
 
-                <span className="text-xs text-[#94A3B8]">
-                  Subtotal: <strong className="text-[#CBAC70] font-mono text-sm font-black">{formatRupiah(currentPrice * quantity)}</strong>
+                <span className="text-[11px] text-[#94A3B8] font-mono">
+                  Maks. {activeVariant.availableStock || product.stockTotal} pcs
                 </span>
               </div>
             </div>
