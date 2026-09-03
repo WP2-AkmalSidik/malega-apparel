@@ -46,22 +46,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([
-    {
-      id: 'init-item-1',
-      productId: 'mlg-001',
-      slug: 'obsidian-heavyweight-boxy-tee-300gsm',
-      title: 'Obsidian Heavyweight Boxy Tee 300GSM',
-      color: 'Onyx Black',
-      size: 'L',
-      price: 229000,
-      originalPrice: 289000,
-      quantity: 1,
-      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
-      selected: true
-    }
-  ]);
-
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address>(defaultAddress);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption>(shippingCouriers[0]);
@@ -69,6 +55,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [vouchers, setVouchers] = useState<Voucher[]>(availableVouchers);
   const [buyerNote, setBuyerNote] = useState('');
   const [lastOrder, setLastOrder] = useState<OrderReceipt | null>(null);
+
+  // 1. Load cart from localStorage cache on initial mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('malega_cart');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setCart(parsed);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to restore cart from cache:', err);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  // 2. Persist or clear cart cache in localStorage on change
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      if (cart.length > 0) {
+        localStorage.setItem('malega_cart', JSON.stringify(cart));
+      } else {
+        localStorage.removeItem('malega_cart');
+      }
+    } catch (err) {
+      console.error('Failed to sync cart cache to localStorage:', err);
+    }
+  }, [cart, isLoaded]);
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -82,14 +99,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updated[existingIdx].quantity += newItem.quantity;
         return updated;
       }
-      const uniqueId = `cart-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      const uniqueId = `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
       return [...prev, { ...newItem, id: uniqueId, selected: true }];
     });
     setIsCartOpen(true);
   };
 
   const removeFromCart = (id: string) => {
-    setCart(prev => prev.filter(i => i.id !== id));
+    setCart(prev => {
+      const next = prev.filter(i => i.id !== id);
+      if (next.length === 0 && typeof window !== 'undefined') {
+        localStorage.removeItem('malega_cart');
+      }
+      return next;
+    });
   };
 
   const updateQuantity = (id: string, qty: number) => {
@@ -99,6 +122,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setCart([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('malega_cart');
+    }
   };
 
   const toggleVoucher = (code: string) => {

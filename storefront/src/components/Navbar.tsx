@@ -14,8 +14,7 @@ import {
   Sparkles, 
   Trash2, 
   ArrowRight,
-  ShieldCheck,
-  Lock
+  ShieldCheck
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -34,7 +33,6 @@ export default function Navbar() {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [wishlistDropdownOpen, setWishlistDropdownOpen] = useState(false);
-  const [cartLoginDropdownOpen, setCartLoginDropdownOpen] = useState(false);
 
   // Close dropdowns on outside click or escape
   useEffect(() => {
@@ -42,7 +40,6 @@ export default function Navbar() {
       if (e.key === 'Escape') {
         setUserDropdownOpen(false);
         setWishlistDropdownOpen(false);
-        setCartLoginDropdownOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -50,21 +47,13 @@ export default function Navbar() {
   }, []);
 
   const handleBagClick = () => {
-    // Close other dropdowns
     setUserDropdownOpen(false);
     setWishlistDropdownOpen(false);
-
-    if (!isAuthenticated) {
-      setCartLoginDropdownOpen(!cartLoginDropdownOpen);
-    } else {
-      setIsCartOpen(true);
-    }
+    setIsCartOpen(true);
   };
 
   const handleHeartClick = () => {
-    // Close other dropdowns
     setUserDropdownOpen(false);
-    setCartLoginDropdownOpen(false);
     setWishlistDropdownOpen(!wishlistDropdownOpen);
   };
 
@@ -267,7 +256,6 @@ export default function Navbar() {
                     type="button"
                     onClick={() => {
                       setWishlistDropdownOpen(false);
-                      setCartLoginDropdownOpen(false);
                       setUserDropdownOpen(!userDropdownOpen);
                     }}
                     className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-[#CBAC70]/30 transition cursor-pointer"
@@ -337,7 +325,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* 4. Shopping Bag Drawer Button & Login Prompt Dropdown */}
+            {/* 4. Shopping Bag Drawer Button */}
             <div className="relative">
               <button
                 type="button"
@@ -353,55 +341,6 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
-
-              {/* Login Required Prompt Dropdown when guest clicks Bag */}
-              {cartLoginDropdownOpen && !isAuthenticated && (
-                <div className="absolute right-0 mt-2 w-80 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/50 shadow-2xl p-5 z-50 animate-in fade-in zoom-in-95 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#CBAC70]/15 border border-[#CBAC70]/40 flex items-center justify-center text-[#CBAC70] shrink-0">
-                      <Lock className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wide">
-                        Shopping Bag & Checkout
-                      </h4>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
-                        Masuk ke akun anggota untuk menyimpan keranjang belanja dan melanjutkan transaksi dengan aman.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-1">
-                    <Link
-                      href="/login"
-                      onClick={() => setCartLoginDropdownOpen(false)}
-                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] text-[#0B132B] font-bold text-xs flex items-center justify-center gap-2 shadow hover:opacity-95 transition"
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Masuk ke Akun Saya</span>
-                    </Link>
-
-                    <Link
-                      href="/login?tab=register"
-                      onClick={() => setCartLoginDropdownOpen(false)}
-                      className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center transition"
-                    >
-                      <span>Daftar Anggota Baru</span>
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCartLoginDropdownOpen(false);
-                        setIsCartOpen(true);
-                      }}
-                      className="w-full text-center text-[11px] text-[#CBAC70] hover:underline pt-1 block cursor-pointer"
-                    >
-                      Tetap lihat keranjang sebagai Tamu →
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Mobile Menu Toggle Button */}
