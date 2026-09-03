@@ -1,9 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ShoppingBag, Search, Menu, X, Heart, User, LogOut, Sparkles } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { 
+  ShoppingBag, 
+  Search, 
+  Menu, 
+  X, 
+  Heart, 
+  User, 
+  LogOut, 
+  Sparkles, 
+  Trash2, 
+  ArrowRight,
+  ShieldCheck,
+  Lock
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -12,17 +25,67 @@ import SearchModal from './SearchModal';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { cartCount, setIsCartOpen } = useCart();
-  const { wishlistCount, setIsWishlistOpen } = useWishlist();
+  const router = useRouter();
+  const { cart, cartCount, setIsCartOpen, addToCart } = useCart();
+  const { wishlistProducts, wishlistCount, toggleWishlist } = useWishlist();
   const { customer, isAuthenticated, logout } = useAuth();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [wishlistDropdownOpen, setWishlistDropdownOpen] = useState(false);
+  const [cartLoginDropdownOpen, setCartLoginDropdownOpen] = useState(false);
+
+  // Close dropdowns on outside click or escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setUserDropdownOpen(false);
+        setWishlistDropdownOpen(false);
+        setCartLoginDropdownOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleBagClick = () => {
+    // Close other dropdowns
+    setUserDropdownOpen(false);
+    setWishlistDropdownOpen(false);
+
+    if (!isAuthenticated) {
+      setCartLoginDropdownOpen(!cartLoginDropdownOpen);
+    } else {
+      setIsCartOpen(true);
+    }
+  };
+
+  const handleHeartClick = () => {
+    // Close other dropdowns
+    setUserDropdownOpen(false);
+    setCartLoginDropdownOpen(false);
+    setWishlistDropdownOpen(!wishlistDropdownOpen);
+  };
+
+  const handleQuickAddFromWishlist = (product: any) => {
+    addToCart({
+      productId: product.id,
+      slug: product.slug,
+      title: product.title,
+      color: product.colors[0]?.name || 'Standard',
+      size: product.sizes[0] || 'L',
+      price: product.price,
+      originalPrice: product.originalPrice,
+      quantity: 1,
+      image: product.colors[0]?.image || product.gallery[0]
+    });
+  };
 
   const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Katalog', href: '/katalog' },
-    { label: 'Produk', href: '/products' },
+    { label: 'Lookbook Koleksi', href: '/katalog' },
+    { label: 'Semua Produk', href: '/products' },
     { label: 'Lacak Pesanan', href: '/track' },
   ];
 
@@ -54,8 +117,8 @@ export default function Navbar() {
             <BrandLogo size="md" />
           </div>
 
-          {/* Center: Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-8 text-xs font-bold uppercase tracking-[0.2em] text-[#94A3B8]">
+          {/* Center: Desktop Navigation Links with Clear Labels */}
+          <nav className="hidden lg:flex items-center gap-7 text-xs font-bold uppercase tracking-[0.18em] text-[#94A3B8]">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
               return (
@@ -80,8 +143,9 @@ export default function Navbar() {
             
             {/* 1. Instant Search Trigger */}
             <button
+              type="button"
               onClick={() => setSearchModalOpen(true)}
-              className="p-2 rounded-xl text-slate-300 hover:text-[#CBAC70] hover:bg-[#14204A] transition flex items-center gap-1.5 group"
+              className="p-2 rounded-xl text-slate-300 hover:text-[#CBAC70] hover:bg-[#14204A] transition flex items-center gap-1.5 group cursor-pointer"
               title="Pencarian Cepat (Ctrl+K)"
             >
               <Search className="w-4 h-4" />
@@ -90,27 +154,123 @@ export default function Navbar() {
               </span>
             </button>
 
-            {/* 2. Wishlist / Favorites Trigger */}
-            <button
-              onClick={() => setIsWishlistOpen(true)}
-              className="relative p-2 rounded-xl text-slate-300 hover:text-rose-400 hover:bg-[#14204A] transition group"
-              title="Daftar Favorit (Wishlist)"
-            >
-              <Heart className="w-4 h-4 group-hover:fill-rose-500/20" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow">
-                  {wishlistCount}
-                </span>
-              )}
-            </button>
+            {/* 2. Wishlist / Favorites Dropdown Trigger */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleHeartClick}
+                className={`relative p-2 rounded-xl transition cursor-pointer group ${
+                  wishlistDropdownOpen
+                    ? 'bg-[#14204A] text-rose-400 ring-1 ring-rose-500/50'
+                    : 'text-slate-300 hover:text-rose-400 hover:bg-[#14204A]'
+                }`}
+                title="Daftar Favorit Tersimpan (Cache)"
+              >
+                <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'text-rose-500 fill-rose-500' : ''}`} />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow">
+                    {wishlistCount}
+                  </span>
+                )}
+              </button>
 
-            {/* 3. Customer Account / Member Portal */}
+              {/* Wishlist Dropdown Content */}
+              {wishlistDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/40 shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Favorit Saya ({wishlistCount})
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-mono text-[#CBAC70] bg-[#CBAC70]/10 px-2 py-0.5 rounded-full border border-[#CBAC70]/30">
+                      Tersimpan di Cache
+                    </span>
+                  </div>
+
+                  {/* List of Wishlist Products */}
+                  <div className="max-h-64 overflow-y-auto space-y-2.5 pr-1 divide-y divide-white/5">
+                    {wishlistProducts.length > 0 ? (
+                      wishlistProducts.map(p => (
+                        <div key={p.id} className="pt-2 flex items-center justify-between gap-3">
+                          <img
+                            src={p.colors[0]?.image || p.gallery[0]}
+                            alt={p.title}
+                            className="w-12 h-12 rounded-xl object-cover border border-white/10 bg-[#070D1F] shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              href={`/products/${p.slug}`}
+                              onClick={() => setWishlistDropdownOpen(false)}
+                              className="text-xs font-bold text-slate-100 hover:text-[#CBAC70] transition line-clamp-1 block"
+                            >
+                              {p.title}
+                            </Link>
+                            <p className="text-[11px] font-mono font-bold text-[#CBAC70]">
+                              Rp {p.price.toLocaleString('id-ID')}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickAddFromWishlist(p)}
+                              className="p-1.5 rounded-lg bg-[#CBAC70] text-[#0B132B] hover:bg-[#E3CD99] transition shadow text-xs font-bold cursor-pointer"
+                              title="Beli / Tambah ke Bag"
+                            >
+                              <ShoppingBag className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleWishlist(p.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-white/5 transition cursor-pointer"
+                              title="Hapus dari Favorit"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-8 text-center text-slate-400 space-y-1">
+                        <p className="text-xs font-semibold text-slate-300">Belum ada produk favorit</p>
+                        <p className="text-[11px] text-slate-500">
+                          Klik tombol hati pada produk untuk menyimpannya di sini tanpa perlu login.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer Link */}
+                  {wishlistProducts.length > 0 && (
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                      <Link
+                        href="/favorites"
+                        onClick={() => setWishlistDropdownOpen(false)}
+                        className="text-[#CBAC70] hover:underline font-semibold flex items-center gap-1"
+                      >
+                        <span>Buka Halaman Favorit Penuh</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 3. Customer Account / Member Portal Dropdown */}
             <div className="relative">
               {isAuthenticated && customer ? (
-                <div className="relative">
+                <div>
                   <button
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-[#CBAC70]/30 transition"
+                    type="button"
+                    onClick={() => {
+                      setWishlistDropdownOpen(false);
+                      setCartLoginDropdownOpen(false);
+                      setUserDropdownOpen(!userDropdownOpen);
+                    }}
+                    className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-[#CBAC70]/30 transition cursor-pointer"
                   >
                     <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#CBAC70] to-[#997732] flex items-center justify-center text-[#0B132B] font-black text-[10px]">
                       {customer.name.substring(0, 1).toUpperCase()}
@@ -120,12 +280,9 @@ export default function Navbar() {
                     </span>
                   </button>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu Logged-In */}
                   {userDropdownOpen && (
-                    <div 
-                      className="absolute right-0 mt-2 w-52 rounded-2xl bg-[#0E1736] border border-[#CBAC70]/30 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 space-y-1"
-                      onClick={() => setUserDropdownOpen(false)}
-                    >
+                    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0E1736] border border-[#CBAC70]/30 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 space-y-1">
                       <div className="p-2 border-b border-white/5 space-y-0.5">
                         <p className="text-xs font-bold text-white truncate">{customer.name}</p>
                         <span className="text-[10px] font-mono text-[#CBAC70] block">★ {customer.membership_tier} Member</span>
@@ -133,6 +290,7 @@ export default function Navbar() {
 
                       <Link
                         href="/account"
+                        onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition"
                       >
                         <User className="w-3.5 h-3.5 text-[#CBAC70]" />
@@ -141,6 +299,7 @@ export default function Navbar() {
 
                       <Link
                         href="/favorites"
+                        onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition"
                       >
                         <Heart className="w-3.5 h-3.5 text-rose-400" />
@@ -149,6 +308,7 @@ export default function Navbar() {
 
                       <Link
                         href="/track"
+                        onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition"
                       >
                         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -156,8 +316,9 @@ export default function Navbar() {
                       </Link>
 
                       <button
-                        onClick={logout}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition text-left"
+                        type="button"
+                        onClick={() => { logout(); setUserDropdownOpen(false); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition text-left cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         <span>Keluar (Logout)</span>
@@ -176,25 +337,78 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* 4. Shopping Bag Drawer Button */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2 sm:px-3 sm:py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5"
-              aria-label="Open Shopping Bag"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span className="hidden sm:inline">Bag</span>
-              {cartCount > 0 && (
-                <span className="bg-[#0B132B] text-[#CBAC70] text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                  {cartCount}
-                </span>
+            {/* 4. Shopping Bag Drawer Button & Login Prompt Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleBagClick}
+                className="relative p-2 sm:px-3 sm:py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                aria-label="Open Shopping Bag"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span className="hidden sm:inline">Bag</span>
+                {cartCount > 0 && (
+                  <span className="bg-[#0B132B] text-[#CBAC70] text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Login Required Prompt Dropdown when guest clicks Bag */}
+              {cartLoginDropdownOpen && !isAuthenticated && (
+                <div className="absolute right-0 mt-2 w-80 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/50 shadow-2xl p-5 z-50 animate-in fade-in zoom-in-95 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#CBAC70]/15 border border-[#CBAC70]/40 flex items-center justify-center text-[#CBAC70] shrink-0">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wide">
+                        Shopping Bag & Checkout
+                      </h4>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                        Masuk ke akun anggota untuk menyimpan keranjang belanja dan melanjutkan transaksi dengan aman.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    <Link
+                      href="/login"
+                      onClick={() => setCartLoginDropdownOpen(false)}
+                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] text-[#0B132B] font-bold text-xs flex items-center justify-center gap-2 shadow hover:opacity-95 transition"
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Masuk ke Akun Saya</span>
+                    </Link>
+
+                    <Link
+                      href="/login?tab=register"
+                      onClick={() => setCartLoginDropdownOpen(false)}
+                      className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-semibold flex items-center justify-center transition"
+                    >
+                      <span>Daftar Anggota Baru</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCartLoginDropdownOpen(false);
+                        setIsCartOpen(true);
+                      }}
+                      className="w-full text-center text-[11px] text-[#CBAC70] hover:underline pt-1 block cursor-pointer"
+                    >
+                      Tetap lihat keranjang sebagai Tamu →
+                    </button>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Mobile Menu Toggle Button */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10"
+              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

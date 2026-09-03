@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -16,11 +16,13 @@ import {
   Zap,
   CheckCircle,
   ThumbsUp,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Check
 } from 'lucide-react';
 import { productsCatalog } from '../../../data/products';
 import { useCart } from '../../../context/CartContext';
 import { useWishlist } from '../../../context/WishlistContext';
+import { ColorOption } from '../../../types';
 import ProductCard from '../../../components/ProductCard';
 
 interface PageProps {
@@ -30,37 +32,50 @@ interface PageProps {
 export default function ProductDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   const product = productsCatalog.find(p => p.id === resolvedParams.id || p.slug === resolvedParams.id) || productsCatalog[0];
 
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] || 'L');
-  const [quantity, setQuantity] = useState(1);
-  const [activeImage, setActiveImage] = useState(product.gallery[0] || product.colors[0].image);
-  const [showSizeChart, setShowSizeChart] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [addedToast, setAddedToast] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<ColorOption>(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0] || 'L');
+  const [quantity, setQuantity] = useState<number>(1);
+  const [activeImage, setActiveImage] = useState<string>(product.colors[0]?.image || product.gallery[0]);
+  const [showSizeChart, setShowSizeChart] = useState<boolean>(false);
+  const [addedToast, setAddedToast] = useState<boolean>(false);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'photo' | '5star'>('all');
+
+  // Synchronize state whenever product changes
+  useEffect(() => {
+    if (product && product.colors && product.colors.length > 0) {
+      setSelectedColor(product.colors[0]);
+      setSelectedSize(product.sizes[0] || 'L');
+      setActiveImage(product.colors[0]?.image || product.gallery[0]);
+      setQuantity(1);
+    }
+  }, [product.id, product.slug]);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
   };
 
-  const handleColorChange = (color: typeof product.colors[0]) => {
+  const handleColorChange = (color: ColorOption) => {
     setSelectedColor(color);
     setActiveImage(color.image);
   };
 
   const handleQuantity = (delta: number) => {
-    const next = quantity + delta;
-    if (next >= 1 && next <= product.stockTotal) {
-      setQuantity(next);
-    }
+    setQuantity(prev => {
+      const next = prev + delta;
+      if (next >= 1 && next <= (product.stockTotal || 99)) {
+        return next;
+      }
+      return prev;
+    });
   };
 
-  const handleAddToBag = () => {
+  const handleAddToBag = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     addToCart({
       productId: product.id,
       slug: product.slug,
@@ -74,10 +89,11 @@ export default function ProductDetailPage({ params }: PageProps) {
     });
 
     setAddedToast(true);
-    setTimeout(() => setAddedToast(false), 2500);
+    setTimeout(() => setAddedToast(false), 3000);
   };
 
-  const handleInstantBuy = () => {
+  const handleInstantBuy = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     addToCart({
       productId: product.id,
       slug: product.slug,
@@ -99,7 +115,7 @@ export default function ProductDetailPage({ params }: PageProps) {
       avatar: 'D',
       rating: 5,
       date: '2 hari yang lalu',
-      variant: `${selectedColor.name} • Size L`,
+      variant: `${selectedColor.name} • Size ${selectedSize}`,
       bodyProfile: 'TB 175cm / BB 72kg (Pas & Boxy Proporsional)',
       comment: 'Beneran tebel 300GSM padat tapi adem dipakai seharian. Jahitan kerah rib-nya kokoh banget gak gampang melar abis dicuci. Potongan bahu drop shoulder-nya beneran pas streetwear look.',
       photos: [
@@ -114,7 +130,7 @@ export default function ProductDetailPage({ params }: PageProps) {
       avatar: 'A',
       rating: 5,
       date: '5 hari yang lalu',
-      variant: 'Vintage Black • Size XL',
+      variant: 'Midnight Black • Size XL',
       bodyProfile: 'TB 180cm / BB 80kg',
       comment: 'Warna deep black-nya pekat dan mewah banget. Kerah rib 3.5cm rapi gak kopong. Ini brand lokal kualitasnya beneran enterprise standar internasional.',
       photos: [
@@ -154,101 +170,123 @@ export default function ProductDetailPage({ params }: PageProps) {
     return true;
   });
 
-  const relatedProducts = productsCatalog
-    .filter(p => p.id !== product.id && (p.category === product.category || p.isBestSeller))
-    .slice(0, 4);
+  const relatedProducts = productsCatalog.filter(p => p.id !== product.id).slice(0, 4);
+
+  const isCurrentProductFavorited = isInWishlist(product.id) || isInWishlist(product.slug);
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8 sm:space-y-12 pb-24 md:pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 sm:space-y-12">
       
-      {/* Toast Notification */}
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center gap-2 text-xs font-mono text-[#94A3B8]">
+        <Link href="/" className="hover:text-[#CBAC70] transition-colors">HOME</Link>
+        <ChevronRight className="w-3.5 h-3.5" />
+        <Link href="/products" className="hover:text-[#CBAC70] transition-colors">PRODUK</Link>
+        <ChevronRight className="w-3.5 h-3.5" />
+        <span className="text-[#CBAC70] uppercase font-bold truncate max-w-xs">{product.title}</span>
+      </nav>
+
+      {/* Floating Toast when Added to Bag */}
       {addedToast && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-[#111D42] text-[#FDFCFF] border border-[#CBAC70] px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
-          <div className="w-6 h-6 rounded-full bg-[#CBAC70] text-[#0B132B] flex items-center justify-center font-bold text-xs">
-            ✓
+        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-[#0E1736] border border-[#CBAC70] p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <Check className="w-5 h-5" />
           </div>
-          <div className="text-xs">
-            <p className="font-bold text-[#FDFCFF]">Berhasil ditambahkan ke Shopping Bag!</p>
-            <p className="text-[11px] text-[#CBAC70]">{selectedColor.name} • Size {selectedSize} ({quantity}x)</p>
+          <div>
+            <p className="text-xs font-bold text-white">Berhasil Ditambahkan ke Bag!</p>
+            <p className="text-[11px] text-slate-400 font-mono">{product.title} ({selectedColor.name}, {selectedSize})</p>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="ml-2 px-3 py-1.5 rounded-lg bg-[#CBAC70] text-[#0B132B] font-bold text-xs hover:bg-[#E3CD99] transition cursor-pointer"
+          >
+            Buka Bag
+          </button>
         </div>
       )}
 
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] overflow-x-auto whitespace-nowrap">
-        <Link href="/" className="hover:text-[#CBAC70]">Store</Link>
-        <ChevronRight className="w-3 h-3 opacity-50" />
-        <Link href="/products" className="hover:text-[#CBAC70]">Katalog</Link>
-        <ChevronRight className="w-3 h-3 opacity-50" />
-        <span className="text-[#FDFCFF] font-semibold truncate max-w-xs">{product.title}</span>
-      </nav>
-
-      {/* Main Product Showcase Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10">
+      {/* Main Product Showcase Grid (Double-Framed Packaging) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         
-        {/* Left Gallery with Nested Double Card */}
-        <div className="lg:col-span-6 space-y-3 sm:space-y-4">
-          
-          {/* Outer Card Frame */}
-          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2 sm:p-3 border border-[#CBAC70]/30 shadow-2xl">
+        {/* LEFT COLUMN: Gallery & Lookbook Pictures (6 cols) */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 sm:p-3 border border-[#CBAC70]/30 shadow-2xl relative">
             
-            {/* Inner Image Canvas */}
-            <div className="aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden bg-[#050914] border border-white/10 relative group">
+            {/* Primary Visual Picture */}
+            <div className="relative aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden bg-[#050914] border border-white/10">
               <img
                 src={activeImage}
                 alt={product.title}
-                className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+                className="w-full h-full object-cover transition-all duration-300"
               />
 
-              {/* Badges */}
+              {/* Badges Overlay */}
               <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-                {product.isNewDrop && (
-                  <span className="bg-[#CBAC70] text-[#0B132B] font-black text-[9px] sm:text-[10px] tracking-widest uppercase px-2.5 py-0.5 rounded shadow">
-                    SS26 DROP
-                  </span>
-                )}
+                <span className="bg-[#CBAC70] text-[#0B132B] text-[9px] sm:text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md shadow-lg">
+                  SS26 DROP
+                </span>
                 {product.discountPercentage > 0 && (
-                  <span className="bg-[#0B132B]/90 border border-[#CBAC70]/50 text-[#CBAC70] text-[10px] font-black px-2 py-0.5 rounded shadow">
+                  <span className="bg-[#0B132B]/90 border border-[#CBAC70]/60 text-[#CBAC70] text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded shadow">
                     -{product.discountPercentage}% OFF
                   </span>
                 )}
               </div>
 
-              <button
-                onClick={() => setIsFavorited(!isFavorited)}
-                className="absolute top-3 right-3 p-2.5 rounded-full bg-[#0B132B]/80 hover:bg-[#0B132B] border border-white/20 text-white transition-colors"
-                title="Favoritkan"
-              >
-                <Heart className={`w-4 h-4 ${isFavorited ? 'fill-[#CBAC70] text-[#CBAC70]' : ''}`} />
-              </button>
+              {/* Wishlist Heart Button on Image */}
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+                {isCurrentProductFavorited && (
+                  <span className="px-2 py-1 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-mono font-bold backdrop-blur-md">
+                    ♥ FAVORIT ANDA
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => toggleWishlist(product.id)}
+                  className={`p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-lg ${
+                    isCurrentProductFavorited
+                      ? 'bg-rose-500 text-white scale-110'
+                      : 'bg-black/60 text-white/80 hover:text-rose-400 hover:bg-black/80'
+                  }`}
+                  title="Simpan ke Wishlist (Cache)"
+                >
+                  <Heart className={`w-4 h-4 ${isCurrentProductFavorited ? 'fill-white' : ''}`} />
+                </button>
+              </div>
+
+              {/* Active Color Info Tag */}
+              <div className="absolute bottom-3 left-3 bg-[#080E20]/90 border border-[#CBAC70]/30 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-mono text-[#CBAC70] flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: selectedColor.hex }} />
+                <span>Warna: {selectedColor.name}</span>
+              </div>
+            </div>
+
+            {/* Thumbnail Gallery Row */}
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 pt-3">
+              {product.gallery.map((img, idx) => (
+                <button
+                  type="button"
+                  key={idx}
+                  onClick={() => setActiveImage(img)}
+                  className={`aspect-square rounded-xl overflow-hidden border transition-all cursor-pointer ${
+                    activeImage === img
+                      ? 'border-[#CBAC70] ring-2 ring-[#CBAC70] scale-102'
+                      : 'border-white/10 hover:border-white/40 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
 
           </div>
-
-          {/* Thumbnails Reel */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
-            {product.gallery.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImage(img)}
-                className={`aspect-square rounded-xl border-2 overflow-hidden bg-[#070D1F] transition-all ${
-                  activeImage === img
-                    ? 'border-[#CBAC70] ring-2 ring-[#CBAC70]/40 scale-96'
-                    : 'border-white/10 hover:border-white/40'
-                }`}
-              >
-                <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* Right Info & Purchasing Panel (Outer & Inner Card Packaging) */}
-        <div className="lg:col-span-6 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 sm:p-3 border border-[#CBAC70]/30 shadow-2xl flex flex-col justify-between">
-          
-          <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1">
+        {/* RIGHT COLUMN: Product Specifications & Action Studio (6 cols) */}
+        <div className="lg:col-span-6 space-y-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-[#0E1736] border border-[#CBAC70]/30 shadow-2xl p-5 sm:p-7 space-y-6">
             
-            {/* Header info */}
+            {/* Title & Category Header */}
             <div className="space-y-2 border-b border-white/10 pb-4">
               <div className="flex items-center gap-2 text-[11px]">
                 <span className="font-mono text-[#CBAC70] font-bold uppercase tracking-widest">
@@ -289,51 +327,54 @@ export default function ProductDetailPage({ params }: PageProps) {
               </span>
             </div>
 
-            {/* Colorway Selection */}
+            {/* 1. Colorway Selection Swatches */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-[#FDFCFF]">Warna:</span>
-                <span className="text-[#CBAC70] font-semibold">{selectedColor.name}</span>
+                <span className="font-bold text-[#FDFCFF]">Pilihan Warna:</span>
+                <span className="text-[#CBAC70] font-semibold font-mono">{selectedColor.name}</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
                 {product.colors.map((c, idx) => (
                   <button
+                    type="button"
                     key={idx}
                     onClick={() => handleColorChange(c)}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all ${
+                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                       selectedColor.name === c.name
-                        ? 'border-[#CBAC70] bg-[#14204A] text-[#FDFCFF] ring-1 ring-[#CBAC70] shadow'
-                        : 'border-white/10 hover:border-white/30 text-[#94A3B8] bg-[#0B132B]'
+                        ? 'border-[#CBAC70] bg-[#14204A] text-[#FDFCFF] ring-2 ring-[#CBAC70] shadow-md scale-102 font-bold'
+                        : 'border-white/15 hover:border-white/40 text-[#94A3B8] bg-[#0B132B]'
                     }`}
                   >
-                    <span className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: c.hex }} />
+                    <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" style={{ backgroundColor: c.hex }} />
                     <span>{c.name}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Size Selection */}
+            {/* 2. Size Selection */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-[#FDFCFF]">Ukuran:</span>
+                <span className="font-bold text-[#FDFCFF]">Pilih Ukuran:</span>
                 <button
+                  type="button"
                   onClick={() => setShowSizeChart(true)}
-                  className="text-[#CBAC70] hover:underline flex items-center gap-1 font-semibold text-[11px]"
+                  className="text-[#CBAC70] hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
                 >
                   <Ruler className="w-3.5 h-3.5" /> Panduan Ukuran
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <div className="flex flex-wrap gap-2">
                 {product.sizes.map((s) => (
                   <button
+                    type="button"
                     key={s}
                     onClick={() => setSelectedSize(s)}
-                    className={`min-w-[42px] sm:min-w-[48px] py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-xl border text-xs font-bold transition-all ${
+                    className={`min-w-[48px] py-2 px-3.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                       selectedSize === s
-                        ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B] shadow-md scale-102'
+                        ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B] shadow-md scale-102 font-black'
                         : 'border-white/15 bg-[#0B132B] text-[#94A3B8] hover:text-white hover:border-[#CBAC70]/50'
                     }`}
                   >
@@ -343,25 +384,27 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Quantity Stepper */}
+            {/* 3. Quantity Stepper */}
             <div className="space-y-2 pt-2 border-t border-white/10">
-              <span className="font-bold text-xs text-[#FDFCFF] block">Jumlah:</span>
+              <span className="font-bold text-xs text-[#FDFCFF] block">Jumlah Pesanan:</span>
               <div className="flex items-center gap-4">
                 <div className="flex items-center border border-white/20 rounded-xl bg-[#0B132B] overflow-hidden">
                   <button
+                    type="button"
                     onClick={() => handleQuantity(-1)}
                     disabled={quantity <= 1}
-                    className="w-9 h-9 flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white disabled:opacity-30"
+                    className="w-10 h-10 flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white hover:bg-white/5 transition disabled:opacity-30 cursor-pointer"
                   >
                     -
                   </button>
-                  <span className="w-10 h-9 flex items-center justify-center text-center font-black text-xs text-[#FDFCFF]">
+                  <span className="w-12 h-10 flex items-center justify-center text-center font-black text-sm text-[#FDFCFF] font-mono">
                     {quantity}
                   </span>
                   <button
+                    type="button"
                     onClick={() => handleQuantity(1)}
                     disabled={quantity >= product.stockTotal}
-                    className="w-9 h-9 flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white disabled:opacity-30"
+                    className="w-10 h-10 flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white hover:bg-white/5 transition disabled:opacity-30 cursor-pointer"
                   >
                     +
                   </button>
@@ -373,39 +416,41 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Desktop Action Buttons */}
+            {/* 4. Desktop Action Buttons */}
             <div className="hidden sm:flex items-center gap-3 pt-4 border-t border-white/10">
               <button
+                type="button"
                 onClick={() => toggleWishlist(product.id)}
-                className={`p-3.5 rounded-xl border transition-all active:scale-95 shadow flex items-center justify-center shrink-0 ${
-                  isInWishlist(product.id)
+                className={`p-3.5 rounded-xl border transition-all active:scale-95 shadow flex items-center justify-center shrink-0 cursor-pointer ${
+                  isCurrentProductFavorited
                     ? 'bg-rose-500/20 border-rose-500/60 text-rose-400'
                     : 'bg-[#14204A] border-[#CBAC70]/40 text-slate-300 hover:text-rose-400'
                 }`}
-                title="Simpan ke Wishlist"
+                title="Simpan ke Wishlist (Cache)"
               >
-                <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+                <Heart className={`w-5 h-5 ${isCurrentProductFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
               </button>
 
               <button
+                type="button"
                 onClick={handleAddToBag}
-                className="flex-1 py-3.5 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow"
+                className="flex-1 py-3.5 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow cursor-pointer"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add to Bag</span>
               </button>
 
               <button
+                type="button"
                 onClick={handleInstantBuy}
-                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl"
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xl cursor-pointer"
               >
+                <Zap className="w-4 h-4 fill-current" />
                 <span>Instant Buy</span>
-                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
           </div>
-
         </div>
 
       </div>
@@ -420,7 +465,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             </h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3.5 text-xs">
-              {Object.entries(product.specifications).map(([key, val], idx) => (
+              {Object.entries(product.specifications || {}).map(([key, val], idx) => (
                 <div key={idx} className="flex justify-between p-2.5 sm:p-3 rounded-xl bg-[#0B132B] border border-white/5">
                   <span className="text-[#94A3B8]">{key}</span>
                   <span className="font-bold text-[#FDFCFF]">{val}</span>
@@ -436,158 +481,81 @@ export default function ProductDetailPage({ params }: PageProps) {
             </p>
           </div>
 
-          {product.features && (
-            <div className="space-y-1.5 border-t border-white/10 pt-4">
-              <h3 className="font-bold text-xs sm:text-sm text-[#FDFCFF] uppercase tracking-wider">Keunggulan Konstruksi</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {product.features.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-[#94A3B8]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#CBAC70]" />
-                    <span>{feat}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
       </div>
 
-      {/* NEW: Customer Reviews & Ratings Section (Double-Framed Card) */}
-      <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2.5 sm:p-3 border border-[#CBAC70]/30 shadow-2xl">
-        <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-6 space-y-6">
-          
-          {/* Section Header & Rating Overview */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div className="space-y-1">
-              <h2 className="text-sm sm:text-base font-black uppercase tracking-wide text-[#FDFCFF] flex items-center gap-2">
-                <span>Ulasan Pembeli</span>
-                <span className="text-xs text-[#CBAC70] font-normal font-mono">({product.reviewCount} ulasan)</span>
-              </h2>
-              <p className="text-xs text-[#94A3B8]">100% Ulasan dari pembeli terverifikasi Malega Studio</p>
-            </div>
-
-            {/* Score Pill */}
-            <div className="flex items-center gap-3 bg-[#0B132B] border border-[#CBAC70]/30 p-3 rounded-2xl shrink-0 self-start sm:self-auto">
-              <div className="text-2xl font-black text-[#CBAC70] gold-gradient-pure leading-none">
-                {product.rating}
-              </div>
-              <div className="space-y-1">
-                <div className="flex text-[#CBAC70]">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                  ))}
-                </div>
-                <p className="text-[10px] text-[#94A3B8] font-medium">99% Pembeli Puas</p>
-              </div>
-            </div>
+      {/* Verified Reviews Section */}
+      <div className="rounded-2xl sm:rounded-3xl bg-[#0E1736] border border-[#CBAC70]/30 p-5 sm:p-8 space-y-6 shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 gap-3">
+          <div>
+            <h2 className="text-sm sm:text-base font-black text-[#FDFCFF] uppercase tracking-wider flex items-center gap-2">
+              <Star className="w-4 h-4 text-[#CBAC70] fill-current" />
+              <span>Ulasan Pembeli Terverifikasi ({product.reviewCount})</span>
+            </h2>
+            <p className="text-xs text-[#94A3B8] mt-0.5">Rating Kepuasan 4.9/5 dari pelanggan streetwear se-Indonesia</p>
           </div>
 
-          {/* Review Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 text-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto">
             <button
+              type="button"
               onClick={() => setReviewFilter('all')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 ${
-                reviewFilter === 'all'
-                  ? 'bg-[#CBAC70] text-[#0B132B]'
-                  : 'bg-[#0B132B] border border-white/10 text-[#94A3B8] hover:text-white'
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                reviewFilter === 'all' ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow' : 'bg-[#0B132B] text-[#94A3B8] hover:text-white'
               }`}
             >
-              Semua Ulasan ({reviewsList.length})
+              Semua ({reviewsList.length})
             </button>
-
             <button
+              type="button"
               onClick={() => setReviewFilter('photo')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                reviewFilter === 'photo'
-                  ? 'bg-[#CBAC70] text-[#0B132B]'
-                  : 'bg-[#0B132B] border border-white/10 text-[#94A3B8] hover:text-white'
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1 ${
+                reviewFilter === 'photo' ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow' : 'bg-[#0B132B] text-[#94A3B8] hover:text-white'
               }`}
             >
               <ImageIcon className="w-3.5 h-3.5" />
-              <span>Dengan Foto ({reviewsList.filter(r => r.photos.length > 0).length})</span>
-            </button>
-
-            <button
-              onClick={() => setReviewFilter('5star')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                reviewFilter === '5star'
-                  ? 'bg-[#CBAC70] text-[#0B132B]'
-                  : 'bg-[#0B132B] border border-white/10 text-[#94A3B8] hover:text-white'
-              }`}
-            >
-              <Star className="w-3.5 h-3.5 fill-current text-[#CBAC70]" />
-              <span>Bintang 5 ({reviewsList.filter(r => r.rating === 5).length})</span>
+              <span>Dengan Foto</span>
             </button>
           </div>
+        </div>
 
-          {/* Reviews List */}
-          <div className="divide-y divide-white/5 space-y-4">
-            {filteredReviews.map((rev) => (
-              <div key={rev.id} className="pt-4 space-y-2.5 text-xs">
-                
-                {/* Author row */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#14204A] border border-[#CBAC70]/40 text-[#CBAC70] font-black flex items-center justify-center text-xs shrink-0">
-                      {rev.avatar}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-[#FDFCFF]">{rev.author}</span>
-                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
-                          <CheckCircle className="w-2.5 h-2.5" /> Terverifikasi
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-[#94A3B8]">{rev.date}</span>
-                    </div>
+        {/* Reviews List */}
+        <div className="space-y-4">
+          {filteredReviews.map((rev) => (
+            <div key={rev.id} className="p-4 rounded-2xl bg-[#070D1F] border border-white/5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#14204A] border border-[#CBAC70]/40 flex items-center justify-center text-xs font-bold text-[#CBAC70]">
+                    {rev.avatar}
                   </div>
-
-                  {/* Stars */}
-                  <div className="flex text-[#CBAC70] shrink-0">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 fill-current" />
-                    ))}
+                  <div>
+                    <p className="font-bold text-xs text-[#FDFCFF]">{rev.author}</p>
+                    <p className="text-[10px] text-[#94A3B8] font-mono">{rev.variant}</p>
                   </div>
                 </div>
 
-                {/* Variant & Fitting info */}
-                <div className="p-2 rounded-lg bg-[#0B132B] border border-white/5 text-[11px] text-[#94A3B8] flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span><strong className="text-white">Varian:</strong> {rev.variant}</span>
-                  <span><strong className="text-white">Fitting:</strong> {rev.bodyProfile}</span>
+                <div className="flex items-center gap-1 text-[#CBAC70]">
+                  {[...Array(rev.rating)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                  ))}
                 </div>
-
-                {/* Comment */}
-                <p className="text-xs text-[#FDFCFF]/90 leading-relaxed">
-                  {rev.comment}
-                </p>
-
-                {/* Photos if any */}
-                {rev.photos.length > 0 && (
-                  <div className="flex items-center gap-2 pt-1 overflow-x-auto">
-                    {rev.photos.map((photo, pIdx) => (
-                      <img
-                        key={pIdx}
-                        src={photo}
-                        alt="Customer Fit Pic"
-                        className="w-16 h-20 rounded-xl object-cover border border-white/10 shrink-0 hover:scale-105 transition-transform"
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Helpful count */}
-                <div className="pt-1 flex items-center gap-1 text-[10px] text-[#94A3B8]">
-                  <button className="flex items-center gap-1 hover:text-[#CBAC70] transition-colors">
-                    <ThumbsUp className="w-3 h-3" />
-                    <span>Membantu ({rev.helpful})</span>
-                  </button>
-                </div>
-
               </div>
-            ))}
-          </div>
 
+              <p className="text-xs text-slate-300 leading-relaxed">{rev.comment}</p>
+
+              {rev.photos.length > 0 && (
+                <div className="flex items-center gap-2 pt-1">
+                  {rev.photos.map((img, pIdx) => (
+                    <img
+                      key={pIdx}
+                      src={img}
+                      alt="Fit pic"
+                      className="w-16 h-16 rounded-xl object-cover border border-white/10"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -595,10 +563,10 @@ export default function ProductDetailPage({ params }: PageProps) {
       <div className="space-y-4">
         <div className="border-b border-white/10 pb-3 flex items-center justify-between">
           <h3 className="font-bold text-base sm:text-lg text-[#FDFCFF] uppercase tracking-wide">
-            Koleksi Terkait
+            Koleksi Terkait Lainnya
           </h3>
           <Link href="/products" className="text-xs font-bold text-[#CBAC70] hover:underline">
-            Lihat Semua →
+            Lihat Semua Produk →
           </Link>
         </div>
 
@@ -612,28 +580,31 @@ export default function ProductDetailPage({ params }: PageProps) {
       {/* Mobile Sticky Bottom Floating Bar (Mobile Experience Focus) */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#080E20]/95 backdrop-blur-xl border-t border-[#CBAC70]/30 px-3 py-2.5 flex items-center gap-2 shadow-2xl">
         <button
+          type="button"
           onClick={() => toggleWishlist(product.id)}
-          className={`p-3 rounded-xl border transition-all active:scale-95 shadow flex items-center justify-center shrink-0 ${
-            isInWishlist(product.id)
+          className={`p-3 rounded-xl border transition-all active:scale-95 shadow flex items-center justify-center shrink-0 cursor-pointer ${
+            isCurrentProductFavorited
               ? 'bg-rose-500/20 border-rose-500/60 text-rose-400'
               : 'bg-[#14204A] border-[#CBAC70]/40 text-slate-300'
           }`}
-          title="Wishlist"
+          title="Wishlist (Cache)"
         >
-          <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+          <Heart className={`w-4 h-4 ${isCurrentProductFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
 
         <button
+          type="button"
           onClick={handleAddToBag}
-          className="flex-1 py-3 bg-[#14204A] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase rounded-xl flex items-center justify-center gap-1.5 active:scale-95 shadow"
+          className="flex-1 py-3 bg-[#14204A] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase rounded-xl flex items-center justify-center gap-1.5 active:scale-95 shadow cursor-pointer"
         >
           <ShoppingBag className="w-3.5 h-3.5" />
           <span>+ Bag</span>
         </button>
 
         <button
+          type="button"
           onClick={handleInstantBuy}
-          className="flex-1 py-3 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] font-black text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 shadow-lg active:scale-95"
+          className="flex-1 py-3 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] font-black text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 shadow-lg active:scale-95 cursor-pointer"
         >
           <Zap className="w-3.5 h-3.5 fill-current" />
           <span>Beli ({formatRupiah(product.price * quantity)})</span>
@@ -648,7 +619,13 @@ export default function ProductDetailPage({ params }: PageProps) {
               <h3 className="font-bold text-xs sm:text-sm text-[#CBAC70] uppercase tracking-wider flex items-center gap-2">
                 <Ruler className="w-4 h-4" /> Size Chart Guide (Boxy Oversized)
               </h3>
-              <button onClick={() => setShowSizeChart(false)} className="text-[#94A3B8] hover:text-white">✕</button>
+              <button 
+                type="button"
+                onClick={() => setShowSizeChart(false)} 
+                className="text-[#94A3B8] hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
 
             <div className="overflow-x-auto text-xs">
@@ -672,8 +649,9 @@ export default function ProductDetailPage({ params }: PageProps) {
             </div>
 
             <button
+              type="button"
               onClick={() => setShowSizeChart(false)}
-              className="w-full py-2.5 bg-[#CBAC70] text-[#0B132B] font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#E3CD99]"
+              className="w-full py-2.5 bg-[#CBAC70] text-[#0B132B] font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#E3CD99] transition cursor-pointer"
             >
               Tutup Panduan
             </button>

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
   User, 
   Package, 
@@ -18,14 +19,16 @@ import {
   Plus,
   Mail,
   Phone,
-  Edit3
+  Edit3,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { CustomerPastOrder } from '../../types';
 
-export default function CustomerAccountPage() {
-  const { customer, isAuthenticated, token, logout, updateProfile } = useAuth();
+function CustomerAccountContent() {
+  const searchParams = useSearchParams();
+  const { customer, isAuthenticated, token, logout, updateProfile, login, register } = useAuth();
   const { wishlistProducts } = useWishlist();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'wishlist' | 'settings'>('orders');
@@ -33,7 +36,7 @@ export default function CustomerAccountPage() {
   const [isLoadingOrders, setIsLoadingOrders] = useState<boolean>(false);
 
   // Auth Form State (if not logged in)
-  const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+  const [isLoginMode, setIsLoginMode] = useState<boolean>(searchParams?.get('tab') !== 'register');
   const [loginEmailOrPhone, setLoginEmailOrPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [regName, setRegName] = useState('');
@@ -45,6 +48,15 @@ export default function CustomerAccountPage() {
   const [authSuccess, setAuthSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Sync tab with URL search params if changed
+  useEffect(() => {
+    if (searchParams?.get('tab') === 'register') {
+      setIsLoginMode(false);
+    } else if (searchParams?.get('tab') === 'login') {
+      setIsLoginMode(true);
+    }
+  }, [searchParams]);
+
   // New Address State
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addrName, setAddrName] = useState('');
@@ -54,8 +66,6 @@ export default function CustomerAccountPage() {
   const [addrCity, setAddrCity] = useState('');
   const [addrProvince, setAddrProvince] = useState('');
   const [addrPostal, setAddrPostal] = useState('');
-
-  const { login, register } = useAuth();
 
   const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'https://malega.my.id/api/v1';
 
@@ -137,52 +147,69 @@ export default function CustomerAccountPage() {
   // If Guest (Not Authenticated), Show Luxury Auth Gateway
   if (!isAuthenticated) {
     return (
-      <div className="max-w-md mx-auto px-4 py-12 sm:py-20">
+      <div className="max-w-md mx-auto px-4 py-10 sm:py-16">
         <div className="rounded-3xl bg-[#0E1736] border border-[#CBAC70]/30 shadow-2xl p-6 sm:p-8 space-y-6">
           
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-[#CBAC70]/15 border border-[#CBAC70]/40 flex items-center justify-center text-[#CBAC70] mx-auto shadow-md">
-              <User className="w-6 h-6" />
+              {isLoginMode ? <User className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
             </div>
             <h1 className="text-2xl font-black text-white uppercase tracking-wide">
               {isLoginMode ? 'Masuk ke Akun Malega' : 'Daftar Anggota Eksklusif'}
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 leading-relaxed">
               {isLoginMode 
-                ? 'Akses riwayat pesanan, status pengiriman langsung, dan reward loyalty Anda.' 
-                : 'Nikmati penawaran limited drop SS26 dan voucher khusus anggota baru.'}
+                ? 'Akses riwayat pesanan, status pengiriman langsung, dan status loyalty member Anda.' 
+                : 'Buat akun dalam 30 detik untuk menikmati voucher diskon member dan update rilisan limited SS26.'}
             </p>
           </div>
 
-          {/* Toggle Tabs */}
-          <div className="flex rounded-xl bg-[#070D1F] p-1 border border-white/5">
+          {/* Explicitly Interactive Toggle Tabs */}
+          <div className="flex rounded-2xl bg-[#070D1F] p-1.5 border border-white/10 gap-1 relative z-20">
             <button
-              onClick={() => { setIsLoginMode(true); setAuthError(''); }}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${
-                isLoginMode ? 'bg-[#CBAC70] text-[#0B132B] shadow' : 'text-slate-400 hover:text-white'
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsLoginMode(true);
+                setAuthError('');
+              }}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                isLoginMode
+                  ? 'bg-gradient-to-r from-[#CBAC70] to-[#A58645] text-[#0B132B] shadow-md font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              Masuk (Login)
+              <User className="w-3.5 h-3.5" />
+              <span>Masuk (Login)</span>
             </button>
             <button
-              onClick={() => { setIsLoginMode(false); setAuthError(''); }}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition ${
-                !isLoginMode ? 'bg-[#CBAC70] text-[#0B132B] shadow' : 'text-slate-400 hover:text-white'
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsLoginMode(false);
+                setAuthError('');
+              }}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                !isLoginMode
+                  ? 'bg-gradient-to-r from-[#CBAC70] to-[#A58645] text-[#0B132B] shadow-md font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              Daftar Baru
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Daftar Baru</span>
             </button>
           </div>
 
           {authError && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-              {authError}
+            <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping shrink-0" />
+              <span>{authError}</span>
             </div>
           )}
 
-          {/* Login Form */}
-          {isLoginMode ? (
+          {/* 1. Login Form */}
+          {isLoginMode && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Email atau No. WhatsApp</label>
@@ -211,13 +238,15 @@ export default function CustomerAccountPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs shadow-lg transition active:scale-95 disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] text-[#0B132B] font-black text-xs shadow-lg transition active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                {isSubmitting ? 'Memproses...' : 'Masuk Sekarang'}
+                {isSubmitting ? 'Memverifikasi...' : 'Masuk Sekarang'}
               </button>
             </form>
-          ) : (
-            /* Register Form */
+          )}
+
+          {/* 2. Register Form */}
+          {!isLoginMode && (
             <form onSubmit={handleRegister} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Nama Lengkap</label>
@@ -232,7 +261,7 @@ export default function CustomerAccountPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Email</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Email Aktif</label>
                 <input
                   type="email"
                   required
@@ -273,10 +302,10 @@ export default function CustomerAccountPage() {
                     type="checkbox"
                     checked={regMarketing}
                     onChange={(e) => setRegMarketing(e.target.checked)}
-                    className="rounded border-slate-700 bg-[#070D1F] text-[#CBAC70] focus:ring-[#CBAC70] mt-0.5"
+                    className="rounded border-slate-700 bg-[#070D1F] text-[#CBAC70] focus:ring-[#CBAC70] mt-0.5 cursor-pointer"
                   />
                   <span className="text-[11px] text-slate-400 leading-tight">
-                    Saya ingin menerima penawaran rilis limited drops, diskon eksklusif, dan update via WhatsApp & Email.
+                    Saya ingin menerima penawaran rilis limited drops, diskon eksklusif, dan promo via WhatsApp & Email.
                   </span>
                 </label>
               </div>
@@ -284,9 +313,9 @@ export default function CustomerAccountPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs shadow-lg transition active:scale-95 disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] text-[#0B132B] font-black text-xs shadow-lg transition active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                {isSubmitting ? 'Mendaftarkan...' : 'Buat Akun Member'}
+                {isSubmitting ? 'Mendaftarkan Akun...' : 'Buat Akun Member Sekarang'}
               </button>
             </form>
           )}
@@ -297,7 +326,7 @@ export default function CustomerAccountPage() {
               href="/track"
               className="text-xs text-slate-400 hover:text-[#CBAC70] transition inline-flex items-center gap-1 font-mono"
             >
-              <span>Lacak Pesanan Tanpa Login (Guest Tracking)</span>
+              <span>Lacak Status Pesanan Tanpa Login (Guest Tracking)</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -348,8 +377,9 @@ export default function CustomerAccountPage() {
           </div>
 
           <button
+            type="button"
             onClick={logout}
-            className="p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition"
+            className="p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition cursor-pointer"
             title="Keluar (Logout)"
           >
             <LogOut className="w-5 h-5" />
@@ -360,8 +390,9 @@ export default function CustomerAccountPage() {
       {/* 2. Navigation Tabs */}
       <div className="flex rounded-2xl bg-[#0E1736] p-1.5 border border-white/10 gap-1 overflow-x-auto scrollbar-none">
         <button
+          type="button"
           onClick={() => setActiveTab('orders')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === 'orders' ? 'bg-[#CBAC70] text-[#0B132B] shadow' : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -370,8 +401,9 @@ export default function CustomerAccountPage() {
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('addresses')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === 'addresses' ? 'bg-[#CBAC70] text-[#0B132B] shadow' : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -380,8 +412,9 @@ export default function CustomerAccountPage() {
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('wishlist')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === 'wishlist' ? 'bg-[#CBAC70] text-[#0B132B] shadow' : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -390,8 +423,9 @@ export default function CustomerAccountPage() {
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === 'settings' ? 'bg-[#CBAC70] text-[#0B132B] shadow' : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -498,8 +532,9 @@ export default function CustomerAccountPage() {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-200">Alamat Pengiriman Tersimpan</h3>
               <button
+                type="button"
                 onClick={() => setShowAddressModal(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-[#CBAC70] text-[#0B132B] font-bold text-xs shadow flex items-center gap-1.5 transition hover:bg-[#E3CD99]"
+                className="px-3.5 py-1.5 rounded-xl bg-[#CBAC70] text-[#0B132B] font-bold text-xs shadow flex items-center gap-1.5 transition hover:bg-[#E3CD99] cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Alamat Baru</span>
@@ -585,7 +620,7 @@ export default function CustomerAccountPage() {
                   onChange={async (e) => {
                     await updateProfile({ marketing_opt_in: e.target.checked });
                   }}
-                  className="w-5 h-5 rounded border-slate-700 bg-[#0E1736] text-[#CBAC70] focus:ring-[#CBAC70]"
+                  className="w-5 h-5 rounded border-slate-700 bg-[#0E1736] text-[#CBAC70] focus:ring-[#CBAC70] cursor-pointer"
                 />
               </div>
             </div>
@@ -594,5 +629,13 @@ export default function CustomerAccountPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function CustomerAccountPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-xs font-mono text-slate-400">Memuat portal akun...</div>}>
+      <CustomerAccountContent />
+    </Suspense>
   );
 }

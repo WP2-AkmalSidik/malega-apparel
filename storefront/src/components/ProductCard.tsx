@@ -16,6 +16,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
 
+  const isFavorited = isInWishlist(product.id) || isInWishlist(product.slug);
+
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
   };
@@ -51,7 +53,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* Visual Product Image Container */}
         <Link 
-          href={`/products/${product.id}`} 
+          href={`/products/${product.slug}`} 
           className="relative aspect-[4/5] bg-[#050914] overflow-hidden block group-hover:opacity-95 transition-opacity"
         >
           <img
@@ -65,12 +67,17 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Top Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+            {isFavorited && (
+              <span className="bg-rose-500 text-white text-[8px] sm:text-[9px] font-black tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow">
+                ♥ FAVORIT
+              </span>
+            )}
             {product.isNewDrop && (
               <span className="bg-[#CBAC70] text-[#0B132B] text-[8px] sm:text-[9px] font-black tracking-widest uppercase px-1.5 sm:px-2 py-0.5 rounded shadow">
                 NEW
               </span>
             )}
-            {product.isBestSeller && (
+            {product.isBestSeller && !isFavorited && (
               <span className="bg-[#0B132B]/85 border border-[#CBAC70]/40 text-[#CBAC70] text-[8px] sm:text-[9px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow backdrop-blur-md">
                 TOP
               </span>
@@ -85,19 +92,20 @@ export default function ProductCard({ product }: ProductCardProps) {
               </div>
             )}
             <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 toggleWishlist(product.id);
               }}
-              className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
-                isInWishlist(product.id)
+              className={`p-1.5 rounded-full backdrop-blur-md transition-all cursor-pointer ${
+                isFavorited
                   ? 'bg-rose-500 text-white shadow-md scale-110'
                   : 'bg-black/50 text-white/80 hover:text-rose-400 hover:bg-black/70'
               }`}
-              title="Tambah ke Wishlist"
+              title="Tambah ke Wishlist (Cache)"
             >
-              <Heart className={`w-3.5 h-3.5 ${isInWishlist(product.id) ? 'fill-white' : ''}`} />
+              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-white' : ''}`} />
             </button>
           </div>
 
@@ -117,13 +125,14 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="flex items-center gap-1.5">
               {product.colors.map((c, idx) => (
                 <button
+                  type="button"
                   key={idx}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setSelectedColor(c);
                   }}
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer ${
                     selectedColor.name === c.name
                       ? 'border-[#CBAC70] ring-1.5 ring-[#CBAC70] scale-110'
                       : 'border-white/30 hover:border-white/80'
@@ -138,7 +147,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
 
             {/* Title */}
-            <Link href={`/products/${product.id}`} className="block">
+            <Link href={`/products/${product.slug}`} className="block">
               <h3 className="text-xs sm:text-sm font-bold text-[#FDFCFF] group-hover:text-[#CBAC70] transition-colors line-clamp-1 leading-snug">
                 {product.title}
               </h3>
@@ -163,8 +172,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
             {/* Quick Add Button */}
             <button
+              type="button"
               onClick={handleQuickAdd}
-              className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] border border-[#CBAC70]/40 transition-all duration-200 shadow active:scale-90 shrink-0"
+              className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] border border-[#CBAC70]/40 transition-all duration-200 shadow active:scale-90 shrink-0 cursor-pointer"
               title="Add to Bag"
               aria-label="Add to Bag"
             >
