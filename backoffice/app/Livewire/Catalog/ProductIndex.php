@@ -35,6 +35,8 @@ class ProductIndex extends Component
 
     public ?int $category_id = null;
 
+    public ?int $fabric_spec_id = null;
+
     public string $name = '';
 
     public string $slug = '';
@@ -218,9 +220,11 @@ class ProductIndex extends Component
     {
         $this->resetValidation();
         $firstCategory = Category::active()->orderBy('sort_order')->first();
+        $firstSpec = \App\Models\FabricSpecification::where('is_active', true)->first();
 
         $this->reset(['editingProductId', 'name', 'slug', 'description', 'featured_image', 'featured_image_file', 'variant_image_files']);
         $this->category_id = $firstCategory?->id;
+        $this->fabric_spec_id = $firstSpec?->id;
         $this->status = 'active';
         $this->sizeType = 'letter';
         $this->isEditing = false;
@@ -255,6 +259,7 @@ class ProductIndex extends Component
 
         $this->editingProductId = $product->id;
         $this->category_id = $product->category_id;
+        $this->fabric_spec_id = $product->fabric_spec_id;
         $this->name = $product->name;
         $this->slug = $product->slug;
         $this->description = $product->description;
@@ -332,6 +337,7 @@ class ProductIndex extends Component
 
         $payload = [
             'category_id' => (int) $this->category_id,
+            'fabric_spec_id' => $this->fabric_spec_id ? (int) $this->fabric_spec_id : null,
             'name' => $this->name,
             'slug' => $this->slug ?: null,
             'description' => $this->description ?: null,
@@ -361,7 +367,7 @@ class ProductIndex extends Component
             }
 
             $this->dispatch('close-modal-product-modal');
-            $this->reset(['editingProductId', 'category_id', 'name', 'slug', 'description', 'status', 'featured_image', 'variants', 'isEditing']);
+            $this->reset(['editingProductId', 'category_id', 'fabric_spec_id', 'name', 'slug', 'description', 'status', 'featured_image', 'variants', 'isEditing']);
         } catch (ValidationException $e) {
             $this->dispatch('toast', [
                 'type' => 'error',
@@ -416,8 +422,9 @@ class ProductIndex extends Component
     public function render()
     {
         $categories = Category::active()->orderBy('name')->get();
+        $fabricSpecs = \App\Models\FabricSpecification::where('is_active', true)->orderBy('name')->get();
 
-        $query = Product::with(['category', 'variants'])
+        $query = Product::with(['category', 'variants', 'fabricSpecification'])
             ->when($this->search, function ($q) {
                 $term = '%'.$this->search.'%';
                 $q->where(function ($sub) use ($term) {
@@ -436,6 +443,7 @@ class ProductIndex extends Component
         return view('livewire.catalog.product-index', [
             'products' => $products,
             'categories' => $categories,
+            'fabricSpecs' => $fabricSpecs,
             'totalCount' => $totalCount,
         ]);
     }

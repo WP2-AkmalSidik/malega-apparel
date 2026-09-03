@@ -1,11 +1,14 @@
 @props([
-    'id' => 'modal',
+    'id' => null,
+    'name' => null,
     'title' => null,
     'subtitle' => null,
     'maxWidth' => '2xl', // sm, md, lg, xl, 2xl, 3xl, 4xl, full
 ])
 
 @php
+$modalId = $id ?? $name ?? 'modal';
+
 $maxWidthClass = match ($maxWidth) {
     'sm' => 'sm:max-w-sm',
     'md' => 'sm:max-w-md',
@@ -32,8 +35,10 @@ $maxWidthClass = match ($maxWidth) {
             document.body.classList.remove('overflow-hidden');
         }
     }"
-    x-on:open-modal-{{ $id }}.window="openModal()"
-    x-on:close-modal-{{ $id }}.window="closeModal()"
+    x-on:open-modal-{{ $modalId }}.window="openModal()"
+    x-on:close-modal-{{ $modalId }}.window="closeModal()"
+    x-on:open-modal.window="$event.detail === '{{ $modalId }}' ? openModal() : null"
+    x-on:close-modal.window="$event.detail === '{{ $modalId }}' ? closeModal() : null"
     x-on:keydown.escape.window="closeModal()"
     class="relative z-50"
     style="display: none;"

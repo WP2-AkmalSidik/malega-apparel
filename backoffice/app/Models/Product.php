@@ -22,6 +22,7 @@ class Product extends Model
      */
     protected $fillable = [
         'category_id',
+        'fabric_spec_id',
         'name',
         'subtitle',
         'badge',
@@ -56,6 +57,11 @@ class Product extends Model
             'features' => 'array',
             'specifications' => 'array',
         ];
+    }
+
+    public function fabricSpecification(): BelongsTo
+    {
+        return $this->belongsTo(FabricSpecification::class, 'fabric_spec_id');
     }
 
     /**

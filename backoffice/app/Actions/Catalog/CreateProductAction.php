@@ -70,11 +70,16 @@ class CreateProductAction
                 $count++;
             }
 
+            $fabricSpec = ! empty($data['fabric_spec_id']) ? \App\Models\FabricSpecification::find($data['fabric_spec_id']) : null;
+            $specifications = $fabricSpec ? $fabricSpec->toProductSpecifications() : ($data['specifications'] ?? null);
+
             $product = Product::create([
                 'category_id' => $data['category_id'],
+                'fabric_spec_id' => $data['fabric_spec_id'] ?? null,
                 'name' => $data['name'],
                 'slug' => $slug,
                 'description' => $data['description'] ?? null,
+                'specifications' => $specifications,
                 'status' => $data['status'] ?? ProductStatus::Active,
                 'featured_image' => $data['featured_image'] ?? null,
             ]);

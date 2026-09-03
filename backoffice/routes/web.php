@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('catalog')->name('catalog.')->group(function () {
         Route::get('/categories', CategoryIndex::class)->name('categories');
         Route::get('/products', ProductIndex::class)->name('products');
+        Route::get('/fabric-specs', \App\Livewire\Catalog\FabricSpecIndex::class)->name('fabric-specs');
     });
 
     // Module 04: Inventory Management & Ledger

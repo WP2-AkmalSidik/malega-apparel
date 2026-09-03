@@ -108,7 +108,16 @@
                                     <p class="font-bold text-slate-100 group-hover:text-[#CBAC70] transition-colors text-xs leading-tight mt-0.5">
                                         {{ $product->name }}
                                     </p>
-                                    @if($product->subtitle)
+                                    @if($product->fabricSpecification)
+                                        <div class="mt-0.5">
+                                            <span class="inline-flex items-center gap-1 text-[9px] font-mono text-[#CBAC70] bg-[#CBAC70]/10 px-1.5 py-0.5 rounded border border-[#CBAC70]/20 max-w-[220px] truncate" title="{{ $product->fabricSpecification->name }}">
+                                                <svg class="w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                </svg>
+                                                <span class="truncate">{{ $product->fabricSpecification->name }}</span>
+                                            </span>
+                                        </div>
+                                    @elseif($product->subtitle)
                                         <p class="text-slate-400 text-[10px] truncate max-w-sm">
                                             {{ $product->subtitle }}
                                         </p>
@@ -251,7 +260,7 @@
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Informasi Utama Produk</h3>
                 </div>
 
-                <!-- Row 1: Kategori, Status, Nama Produk -->
+                <!-- Row 1: Kategori, Template Spesifikasi Bahan, Status, Nama Produk -->
                 <div class="grid grid-cols-12 gap-2.5">
                     <!-- Category (3 cols) -->
                     <div class="col-span-12 sm:col-span-3 space-y-1">
@@ -272,25 +281,45 @@
                         @enderror
                     </div>
 
-                    <!-- Status (3 cols) -->
+                    <!-- Template Spesifikasi Bahan (3 cols) -->
                     <div class="col-span-12 sm:col-span-3 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label for="prod-fabric-spec" class="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#CBAC70]">
+                                Master Bahan
+                            </label>
+                            <a href="{{ route('catalog.fabric-specs') }}" target="_blank" class="text-[9px] text-[#CBAC70] hover:underline" title="Kelola Master Bahan">+ CRUD</a>
+                        </div>
+                        <select
+                            id="prod-fabric-spec"
+                            wire:model="fabric_spec_id"
+                            class="w-full h-8.5 bg-[#070C1A] border border-[#CBAC70]/40 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors cursor-pointer"
+                        >
+                            <option value="">-- Tanpa Template Bahan --</option>
+                            @foreach($fabricSpecs as $fSpec)
+                                <option value="{{ $fSpec->id }}">{{ $fSpec->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Status (2 cols) -->
+                    <div class="col-span-12 sm:col-span-2 space-y-1">
                         <label for="prod-status" class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
                             Status <span class="text-rose-400">*</span>
                         </label>
                         <select
                             id="prod-status"
                             wire:model="status"
-                            class="w-full h-8.5 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors"
+                            class="w-full h-8.5 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors cursor-pointer"
                         >
-                            <option value="active">Aktif (Live)</option>
+                            <option value="active">Aktif</option>
                             <option value="draft">Draft</option>
                             <option value="inactive">Nonaktif</option>
                             <option value="archived">Diarsipkan</option>
                         </select>
                     </div>
 
-                    <!-- Product Name (6 cols) -->
-                    <div class="col-span-12 sm:col-span-6 space-y-1">
+                    <!-- Product Name (4 cols) -->
+                    <div class="col-span-12 sm:col-span-4 space-y-1">
                         <label for="prod-name" class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
                             Nama Produk Busana <span class="text-rose-400">*</span>
                         </label>
@@ -298,7 +327,7 @@
                             type="text"
                             id="prod-name"
                             wire:model="name"
-                            placeholder="misal: Obsidian Heavyweight Boxy Tee 300GSM"
+                            placeholder="misal: Obsidian Heavy Boxy Tee"
                             class="w-full h-8.5 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
                             required
                         >
@@ -312,8 +341,16 @@
                 <div class="grid grid-cols-12 gap-2.5 items-stretch">
                     <!-- Foto Utama (5 cols) -->
                     <div class="col-span-12 sm:col-span-5 p-2 rounded-xl bg-[#070C1A] border border-slate-800 flex items-center gap-2.5">
-                        <!-- Preview Thumbnail -->
-                        <div class="w-12 h-12 rounded-lg border border-white/20 bg-[#0B132B] overflow-hidden shrink-0 flex items-center justify-center">
+                        <!-- Preview Thumbnail with Perfectly Centered Loading Overlay -->
+                        <div class="w-12 h-12 rounded-lg border border-white/20 bg-[#0B132B] overflow-hidden shrink-0 relative flex items-center justify-center" style="position: relative; display: flex; align-items: center; justify-content: center;">
+                            <!-- Loading Spinner Overlay Centered in Middle -->
+                            <div wire:loading.flex wire:target="featured_image_file" style="position: absolute; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(11, 19, 43, 0.85); z-index: 20;">
+                                <svg class="animate-spin h-5 w-5 text-[#CBAC70]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="margin: auto;">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                </svg>
+                            </div>
+
                             @if($featured_image_file)
                                 <img src="{{ $featured_image_file->temporaryUrl() }}" alt="Preview" class="w-full h-full object-cover">
                             @elseif($featured_image)
@@ -328,10 +365,15 @@
                             <label class="cursor-pointer block">
                                 <input type="file" wire:model="featured_image_file" accept="image/*" class="hidden">
                                 <span class="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-md bg-[#CBAC70]/15 hover:bg-[#CBAC70]/25 border border-[#CBAC70]/40 text-[#CBAC70] text-[10px] font-bold transition-colors w-full">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg wire:loading.remove wire:target="featured_image_file" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                     </svg>
-                                    <span>Upload Foto Perangkat</span>
+                                    <svg wire:loading wire:target="featured_image_file" class="animate-spin w-3 h-3 text-[#CBAC70]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                    <span wire:loading.remove wire:target="featured_image_file">Upload Foto Perangkat</span>
+                                    <span wire:loading wire:target="featured_image_file" class="animate-pulse">Mengunggah...</span>
                                 </span>
                             </label>
                             <input
@@ -481,12 +523,20 @@
                                     </select>
                                 </div>
 
-                                <!-- Foto Varian Upload (4 cols) -->
+                                <!-- Foto Varian Upload with Loading Indicator (4 cols) -->
                                 <div class="col-span-6 sm:col-span-4">
                                     <label class="block text-[9px] font-mono text-slate-400 font-bold uppercase mb-0.5">Foto Varian Warna</label>
                                     <div class="flex items-center gap-1.5 h-8">
-                                        <!-- Thumbnail Box -->
-                                        <div class="w-8 h-8 rounded-lg border border-white/20 bg-[#0B132B] overflow-hidden shrink-0 flex items-center justify-center">
+                                        <!-- Thumbnail Box with Perfectly Centered Loading Overlay -->
+                                        <div class="w-8 h-8 rounded-lg border border-white/20 bg-[#0B132B] overflow-hidden shrink-0 relative flex items-center justify-center" style="position: relative; display: flex; align-items: center; justify-content: center;">
+                                            <!-- Spinner Overlay Centered in Middle -->
+                                            <div wire:loading.flex wire:target="variant_image_files.{{ $index }}" style="position: absolute; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(11, 19, 43, 0.85); z-index: 20;">
+                                                <svg class="animate-spin h-4 w-4 text-[#CBAC70]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="margin: auto;">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                            </div>
+
                                             @if(isset($variant_image_files[$index]) && is_object($variant_image_files[$index]))
                                                 <img src="{{ $variant_image_files[$index]->temporaryUrl() }}" alt="" class="w-full h-full object-cover">
                                             @elseif(!empty($variant['image_url']))
@@ -496,23 +546,28 @@
                                             @endif
                                         </div>
 
-                                        <!-- Upload File Button -->
+                                        <!-- Upload File Button with Loading Indicator -->
                                         <label class="flex-1 cursor-pointer">
                                             <input type="file" wire:model="variant_image_files.{{ $index }}" accept="image/*" class="hidden">
                                             <span class="flex items-center justify-center gap-1 h-8 px-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 font-medium transition-colors w-full">
-                                                <svg class="w-3.5 h-3.5 text-[#CBAC70]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <svg wire:loading.remove wire:target="variant_image_files.{{ $index }}" class="w-3.5 h-3.5 text-[#CBAC70]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
-                                                <span>Pilih Foto</span>
+                                                <svg wire:loading wire:target="variant_image_files.{{ $index }}" class="animate-spin w-3.5 h-3.5 text-[#CBAC70]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                                <span wire:loading.remove wire:target="variant_image_files.{{ $index }}">Pilih Foto</span>
+                                                <span wire:loading wire:target="variant_image_files.{{ $index }}" class="text-[#CBAC70] animate-pulse">Mengunggah...</span>
                                             </span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- BARIS 2: FINANSIAL & AKSI -->
+                            <!-- BARIS 2: FINANSIAL & AKSI (Format Rupiah Otomatis: Ribuan, Puluhan, Ratusan, Jutaan) -->
                             <div class="grid grid-cols-12 gap-2.5 items-end pt-1.5 border-t border-slate-800/80">
-                                <!-- Harga Jual (4 cols) -->
+                                <!-- Harga Jual (4 cols) dengan Live Rupiah Thousand Separator Formatter -->
                                 <div class="col-span-12 sm:col-span-4">
                                     <div class="flex items-center justify-between mb-0.5">
                                         <label class="text-[9px] font-mono text-[#CBAC70] font-bold uppercase">Harga Jual</label>
@@ -520,20 +575,47 @@
                                             Rp {{ number_format((int) ($variant['price'] ?? 0), 0, ',', '.') }}
                                         </span>
                                     </div>
-                                    <div class="relative">
+                                    <div
+                                        x-data="{
+                                            display: '',
+                                            init() {
+                                                this.updateDisplay($wire.get('variants.{{ $index }}.price'));
+                                                this.$watch('$wire.variants.{{ $index }}.price', val => this.updateDisplay(val));
+                                            },
+                                            updateDisplay(val) {
+                                                if (val === null || val === undefined || val === '') {
+                                                    this.display = '';
+                                                    return;
+                                                }
+                                                let raw = String(val).replace(/\D/g, '');
+                                                this.display = raw ? new Intl.NumberFormat('id-ID').format(raw) : '';
+                                            },
+                                            formatVal(e) {
+                                                let raw = e.target.value.replace(/\D/g, '');
+                                                if (!raw) {
+                                                    this.display = '';
+                                                    $wire.set('variants.{{ $index }}.price', 0);
+                                                    return;
+                                                }
+                                                this.display = new Intl.NumberFormat('id-ID').format(raw);
+                                                $wire.set('variants.{{ $index }}.price', parseInt(raw, 10));
+                                            }
+                                        }"
+                                        class="relative"
+                                    >
                                         <span class="absolute left-2.5 top-2 text-[11px] text-slate-400 font-mono font-bold">Rp</span>
                                         <input
-                                            type="number"
-                                            wire:model.live="variants.{{ $index }}.price"
-                                            min="0"
-                                            placeholder="299000"
+                                            type="text"
+                                            x-model="display"
+                                            x-on:input="formatVal($event)"
+                                            placeholder="299.000"
                                             class="w-full h-8 font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg pl-8 pr-2 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70]"
                                             required
                                         >
                                     </div>
                                 </div>
 
-                                <!-- Harga Coret (3 cols) -->
+                                <!-- Harga Coret (3 cols) dengan Live Rupiah Thousand Separator Formatter -->
                                 <div class="col-span-12 sm:col-span-3">
                                     <div class="flex items-center justify-between mb-0.5">
                                         <label class="text-[9px] font-mono text-slate-400 font-bold uppercase">Harga Coret</label>
@@ -543,13 +625,40 @@
                                             </span>
                                         @endif
                                     </div>
-                                    <div class="relative">
+                                    <div
+                                        x-data="{
+                                            display: '',
+                                            init() {
+                                                this.updateDisplay($wire.get('variants.{{ $index }}.compare_at_price'));
+                                                this.$watch('$wire.variants.{{ $index }}.compare_at_price', val => this.updateDisplay(val));
+                                            },
+                                            updateDisplay(val) {
+                                                if (val === null || val === undefined || val === '') {
+                                                    this.display = '';
+                                                    return;
+                                                }
+                                                let raw = String(val).replace(/\D/g, '');
+                                                this.display = raw ? new Intl.NumberFormat('id-ID').format(raw) : '';
+                                            },
+                                            formatVal(e) {
+                                                let raw = e.target.value.replace(/\D/g, '');
+                                                if (!raw) {
+                                                    this.display = '';
+                                                    $wire.set('variants.{{ $index }}.compare_at_price', null);
+                                                    return;
+                                                }
+                                                this.display = new Intl.NumberFormat('id-ID').format(raw);
+                                                $wire.set('variants.{{ $index }}.compare_at_price', parseInt(raw, 10));
+                                            }
+                                        }"
+                                        class="relative"
+                                    >
                                         <span class="absolute left-2.5 top-2 text-[11px] text-slate-500 font-mono font-bold">Rp</span>
                                         <input
-                                            type="number"
-                                            wire:model.live="variants.{{ $index }}.compare_at_price"
-                                            min="0"
-                                            placeholder="349000"
+                                            type="text"
+                                            x-model="display"
+                                            x-on:input="formatVal($event)"
+                                            placeholder="349.000"
                                             class="w-full h-8 font-mono bg-[#0B132B] border border-slate-700/80 rounded-lg pl-8 pr-2 text-xs text-slate-400 focus:outline-none focus:border-[#CBAC70]"
                                         >
                                     </div>

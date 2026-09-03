@@ -58,6 +58,14 @@ class UpdateProductAction
             }
 
             $productData = array_diff_key($data, array_flip(['collection_ids', 'variants']));
+            
+            if (array_key_exists('fabric_spec_id', $productData)) {
+                $fabricSpec = $productData['fabric_spec_id'] ? \App\Models\FabricSpecification::find($productData['fabric_spec_id']) : null;
+                if ($fabricSpec) {
+                    $productData['specifications'] = $fabricSpec->toProductSpecifications();
+                }
+            }
+
             $product->update($productData);
 
             if (isset($data['collection_ids'])) {
