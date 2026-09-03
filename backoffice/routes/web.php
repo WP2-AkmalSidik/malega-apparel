@@ -46,6 +46,13 @@ Route::middleware('auth')->group(function () {
     // Module 06: Customer Management
     Route::get('/customers', CustomerIndex::class)->name('customers.index');
 
+    // Module 07: Finance & Treasury Management
+    Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/payment-logs', \App\Livewire\Finance\PaymentLogsIndex::class)->name('payment-logs');
+        Route::get('/cash-flow', \App\Livewire\Finance\CashFlowIndex::class)->name('cash-flow');
+        Route::get('/reports', \App\Livewire\Finance\FinancialReportIndex::class)->name('reports');
+    });
+
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();
 

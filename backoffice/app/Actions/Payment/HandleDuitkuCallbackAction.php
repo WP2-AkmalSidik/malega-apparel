@@ -82,14 +82,21 @@ class HandleDuitkuCallbackAction
             $isSuccess = ($resultCode === '00');
             $isPending = ($resultCode === '01');
 
+            $grossAmount = (int) $order->grand_total;
+            $paymentMethodCode = $payload['paymentCode'] ?? $payload['paymentMethod'] ?? 'VC';
+            $adminFee = Payment::estimateGatewayFee($paymentMethodCode, $grossAmount);
+            $netAmount = max(0, $grossAmount - $adminFee);
+
             // Update Payment record
             Payment::updateOrCreate(
                 ['merchant_order_id' => $order->order_number],
                 [
                     'order_id' => $order->id,
                     'payment_gateway' => 'duitku',
-                    'amount' => (int) $order->grand_total,
-                    'payment_method' => $payload['paymentCode'] ?? $payload['paymentMethod'] ?? 'VC',
+                    'amount' => $grossAmount,
+                    'admin_fee' => $adminFee,
+                    'net_amount' => $netAmount,
+                    'payment_method' => $paymentMethodCode,
                     'reference' => $reference,
                     'status' => $isSuccess ? 'success' : ($isPending ? 'pending' : 'failed'),
                     'callback_payload' => $payload,

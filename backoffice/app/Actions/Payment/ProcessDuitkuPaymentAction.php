@@ -21,6 +21,10 @@ class ProcessDuitkuPaymentAction
     {
         $res = $this->duitkuService->createInvoice($order, $paymentMethod, $returnUrl);
 
+        $grossAmount = (int) $order->grand_total;
+        $adminFee = Payment::estimateGatewayFee($paymentMethod, $grossAmount);
+        $netAmount = max(0, $grossAmount - $adminFee);
+
         // Record or update Payment model
         Payment::updateOrCreate(
             [
@@ -32,7 +36,9 @@ class ProcessDuitkuPaymentAction
                 'reference' => $res['reference'],
                 'payment_method' => $paymentMethod,
                 'payment_method_name' => $this->resolvePaymentMethodName($paymentMethod),
-                'amount' => (int) $order->grand_total,
+                'amount' => $grossAmount,
+                'admin_fee' => $adminFee,
+                'net_amount' => $netAmount,
                 'status' => $res['success'] ? 'pending' : 'failed',
                 'payment_url' => $res['payment_url'],
                 'va_number' => $res['va_number'],
