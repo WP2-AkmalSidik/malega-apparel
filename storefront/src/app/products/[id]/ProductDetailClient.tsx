@@ -352,21 +352,13 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
 
             {/* Dynamic Price Box (Calculated Real-Time per Variant) */}
             <div className="p-3.5 sm:p-4 rounded-xl bg-[#0B132B] border border-[#CBAC70]/30 flex items-baseline justify-between shadow-inner">
-              <div>
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-2xl sm:text-3xl font-black text-[#CBAC70] gold-gradient-pure">
-                    {formatRupiah(currentPrice)}
-                  </span>
-                  {currentCompareAt && currentCompareAt > currentPrice && (
-                    <span className="text-xs text-[#94A3B8] line-through">
-                      {formatRupiah(currentCompareAt)}
-                    </span>
-                  )}
-                </div>
-
-                {isCustomPriced && (
-                  <span className="text-[10px] font-mono text-[#CBAC70] block mt-0.5">
-                    ★ Penyesuaian harga khusus varian ({selectedColor.name} / {selectedSize})
+              <div className="flex items-baseline gap-2.5">
+                <span className="text-2xl sm:text-3xl font-black text-[#CBAC70] gold-gradient-pure">
+                  {formatRupiah(currentPrice)}
+                </span>
+                {currentCompareAt && currentCompareAt > currentPrice && (
+                  <span className="text-xs text-[#94A3B8] line-through">
+                    {formatRupiah(currentCompareAt)}
                   </span>
                 )}
               </div>
@@ -376,7 +368,7 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
               </span>
             </div>
 
-            {/* 1. Colorway Selection Swatches with Price Differential Badges */}
+            {/* 1. Colorway Selection Swatches */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-bold text-[#FDFCFF]">Pilihan Warna:</span>
@@ -384,33 +376,25 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {product.colors.map((c, idx) => {
-                  const extra = c.priceExtra || 0;
-                  return (
-                    <button
-                      type="button"
-                      key={idx}
-                      onClick={() => handleColorChange(c)}
-                      className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                        selectedColor.name === c.name
-                          ? 'border-[#CBAC70] bg-[#14204A] text-[#FDFCFF] ring-2 ring-[#CBAC70] shadow-md scale-102 font-bold'
-                          : 'border-white/15 hover:border-white/40 text-[#94A3B8] bg-[#0B132B]'
-                      }`}
-                    >
-                      <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" style={{ backgroundColor: c.hex }} />
-                      <span>{c.name}</span>
-                      {extra > 0 && (
-                        <span className="text-[9px] font-mono font-bold text-[#CBAC70] bg-[#CBAC70]/10 px-1 rounded">
-                          +{formatRupiah(extra).replace(',00', '')}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                {product.colors.map((c, idx) => (
+                  <button
+                    type="button"
+                    key={idx}
+                    onClick={() => handleColorChange(c)}
+                    className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                      selectedColor.name === c.name
+                        ? 'border-[#CBAC70] bg-[#14204A] text-[#FDFCFF] ring-2 ring-[#CBAC70] shadow-md scale-102 font-bold'
+                        : 'border-white/15 hover:border-white/40 text-[#94A3B8] bg-[#0B132B]'
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" style={{ backgroundColor: c.hex }} />
+                    <span>{c.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* 2. Size Selection with Upsize Surcharge Indicators */}
+            {/* 2. Size Selection */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-bold text-[#FDFCFF]">Pilih Ukuran:</span>
@@ -424,34 +408,24 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map((s) => {
-                  const sizeExtra = product.sizePriceExtra?.[s] || 0;
-                  return (
-                    <button
-                      type="button"
-                      key={s}
-                      onClick={() => handleSizeChange(s)}
-                      className={`min-w-[48px] py-2 px-3.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        selectedSize === s
-                          ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B] shadow-md scale-102 font-black'
-                          : 'border-white/15 bg-[#0B132B] text-[#94A3B8] hover:text-white hover:border-[#CBAC70]/50'
-                      }`}
-                    >
-                      <span>{s}</span>
-                      {sizeExtra > 0 && (
-                        <span className={`text-[8.5px] font-mono font-bold px-1 rounded ${
-                          selectedSize === s ? 'bg-[#0B132B] text-[#CBAC70]' : 'bg-[#CBAC70]/20 text-[#CBAC70]'
-                        }`}>
-                          +{formatRupiah(sizeExtra).replace(',00', '')}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                {product.sizes.map((s) => (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => handleSizeChange(s)}
+                    className={`min-w-[48px] py-2 px-3.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                      selectedSize === s
+                        ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B] shadow-md scale-102 font-black'
+                        : 'border-white/15 bg-[#0B132B] text-[#94A3B8] hover:text-white hover:border-[#CBAC70]/50'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* 3. Quantity Stepper */}
+            {/* 3. Quantity Stepper & Subtotal */}
             <div className="space-y-2 pt-2 border-t border-white/10">
               <span className="font-bold text-xs text-[#FDFCFF] block">Jumlah Pesanan:</span>
               <div className="flex items-center gap-4">
@@ -478,7 +452,7 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
                 </div>
 
                 <span className="text-xs text-[#94A3B8]">
-                  Subtotal: <strong className="text-[#CBAC70] font-mono text-sm">{formatRupiah(currentPrice * quantity)}</strong>
+                  Subtotal: <strong className="text-[#CBAC70] font-mono text-sm font-black">{formatRupiah(currentPrice * quantity)}</strong>
                 </span>
               </div>
             </div>
@@ -504,7 +478,7 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
                 className="flex-1 py-3.5 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow cursor-pointer"
               >
                 <ShoppingBag className="w-4 h-4" />
-                <span>Add to Bag ({formatRupiah(currentPrice)})</span>
+                <span>Add to Bag</span>
               </button>
 
               <button
@@ -665,7 +639,7 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
           className="flex-1 py-3 bg-[#14204A] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase rounded-xl flex items-center justify-center gap-1.5 active:scale-95 shadow cursor-pointer"
         >
           <ShoppingBag className="w-3.5 h-3.5" />
-          <span>+ Bag ({formatRupiah(currentPrice)})</span>
+          <span>+ Bag</span>
         </button>
 
         <button
