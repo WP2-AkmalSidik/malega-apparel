@@ -515,7 +515,7 @@ function CustomerAccountContent() {
                 <p className="text-sm font-bold text-slate-300">Belum Ada Riwayat Pesanan</p>
                 <p className="text-xs text-slate-500">Mulai belanja artikel streetwear favorit Anda sekarang.</p>
                 <Link
-                  href="/products"
+                  href="/"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#CBAC70] text-[#0B132B] font-bold text-xs shadow hover:bg-[#E3CD99] transition"
                 >
                   <span>Mulai Belanja</span>

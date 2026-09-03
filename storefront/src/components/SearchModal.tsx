@@ -215,7 +215,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         <div className="p-3 bg-[#070D1F] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 font-mono">
           <span>Menampilkan {filteredProducts.length} hasil produk</span>
           <Link
-            href="/products"
+            href="/"
             onClick={onClose}
             className="text-[#CBAC70] hover:underline flex items-center gap-1 font-semibold"
           >

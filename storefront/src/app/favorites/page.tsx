@@ -45,11 +45,11 @@ export default function FavoritesPage() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/products"
+            href="/"
             className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#CBAC70] text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Katalog Lengkap</span>
+            <span>Katalog Utama</span>
           </Link>
 
           {wishlistProducts.length > 0 && (
@@ -166,7 +166,7 @@ export default function FavoritesPage() {
             </p>
           </div>
           <Link
-            href="/products"
+            href="/"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#A58645] text-[#0B132B] font-bold text-xs shadow-lg transition hover:from-[#E3CD99] hover:to-[#CBAC70]"
           >
             <span>Mulai Jelajahi Produk</span>

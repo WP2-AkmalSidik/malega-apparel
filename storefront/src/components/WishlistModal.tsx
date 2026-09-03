@@ -124,7 +124,7 @@ export default function WishlistModal() {
                   </p>
                 </div>
                 <Link
-                  href="/products"
+                  href="/"
                   onClick={() => setIsWishlistOpen(false)}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#CBAC70] text-[#0B132B] text-xs font-bold shadow transition hover:bg-[#E3CD99]"
                 >

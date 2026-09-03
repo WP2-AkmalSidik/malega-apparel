@@ -122,7 +122,7 @@ export default function CartDrawer() {
                 <p className="text-xs text-[#94A3B8]">Jelajahi koleksi boxy heavyweight & utility streetwear Malega.</p>
               </div>
               <Link
-                href="/products"
+                href="/"
                 onClick={handleClose}
                 className="px-6 py-2.5 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] rounded-xl text-xs font-black tracking-wider uppercase shadow hover:opacity-95"
               >

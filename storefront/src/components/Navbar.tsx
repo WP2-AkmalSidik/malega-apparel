@@ -108,7 +108,6 @@ export default function Navbar() {
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Lookbook Koleksi', href: '/katalog' },
-    { label: 'Semua Produk', href: '/products' },
     { label: 'Lacak Pesanan', href: '/track' },
   ];
 

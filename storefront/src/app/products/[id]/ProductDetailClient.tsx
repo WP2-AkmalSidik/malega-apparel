@@ -231,8 +231,6 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
       <nav className="flex items-center gap-2 text-xs font-mono text-[#94A3B8]">
         <Link href="/" className="hover:text-[#CBAC70] transition-colors">HOME</Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <Link href="/products" className="hover:text-[#CBAC70] transition-colors">SEMUA PRODUK</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-[#CBAC70] uppercase font-bold truncate max-w-xs">{product.title}</span>
       </nav>
 
@@ -603,8 +601,8 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
           <h3 className="font-bold text-base sm:text-lg text-[#FDFCFF] uppercase tracking-wide">
             Koleksi Terkait Lainnya
           </h3>
-          <Link href="/products" className="text-xs font-bold text-[#CBAC70] hover:underline">
-            Lihat Semua Produk →
+          <Link href="/" className="text-xs font-bold text-[#CBAC70] hover:underline">
+            Jelajahi Semua Koleksi →
           </Link>
         </div>
 
