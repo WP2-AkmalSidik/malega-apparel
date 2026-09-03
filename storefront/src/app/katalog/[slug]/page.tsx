@@ -1,6 +1,6 @@
 import React from 'react';
 import { katalogCollections } from '../../../data/katalog';
-import { fetchProductsFromApi } from '../../../lib/api';
+import { fetchCollectionDetailFromApi, fetchProductsFromApi } from '../../../lib/api';
 import KatalogDetailClient from './KatalogDetailClient';
 
 export const revalidate = 0;
@@ -18,7 +18,16 @@ export default async function KatalogDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  const products = await fetchProductsFromApi({ perPage: 100 });
+  const [collection, products] = await Promise.all([
+    fetchCollectionDetailFromApi(resolvedParams.slug),
+    fetchProductsFromApi({ perPage: 100 }),
+  ]);
 
-  return <KatalogDetailClient slug={resolvedParams.slug} initialProducts={products} />;
+  return (
+    <KatalogDetailClient
+      slug={resolvedParams.slug}
+      initialCollection={collection}
+      initialProducts={products}
+    />
+  );
 }

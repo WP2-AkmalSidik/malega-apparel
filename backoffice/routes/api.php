@@ -22,6 +22,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // 1. Catalog Endpoints
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
+    Route::get('/collections/{slug}', [CollectionController::class, 'show'])->name('collections.show');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
 

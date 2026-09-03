@@ -39,7 +39,9 @@ class CollectionResource extends JsonResource
             'cover_image' => $cover,
             'banner_image' => $banner,
             'banner_url' => $banner,
-            'products_count' => $this->products_count ?? $this->products()->count(),
+            'products_count' => $this->products_count ?? ($this->relationLoaded('products') ? $this->products->count() : $this->products()->count()),
+            'products' => ProductListResource::collection($this->whenLoaded('products')),
+            'product_ids' => $this->relationLoaded('products') ? $this->products->pluck('id')->map(fn ($id) => (string) $id)->toArray() : [],
         ];
     }
 }

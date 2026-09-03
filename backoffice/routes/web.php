@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     // Module 02: Catalog Management
     Route::prefix('catalog')->name('catalog.')->group(function () {
         Route::get('/categories', CategoryIndex::class)->name('categories');
+        Route::get('/collections', \App\Livewire\Catalog\CollectionIndex::class)->name('collections');
         Route::get('/products', ProductIndex::class)->name('products');
         Route::get('/fabric-specs', \App\Livewire\Catalog\FabricSpecIndex::class)->name('fabric-specs');
     });

@@ -132,21 +132,23 @@ export interface OrderReceipt {
 export interface CatalogCollection {
   id: string;
   slug: string;
+  name?: string;
   title: string;
   subtitle: string;
   season: string;
   releaseYear: string;
-  badge: string;
+  badge?: string;
   coverImage: string;
   bannerImage: string;
   totalArticles: number;
-  featuredMaterial: string;
+  featuredMaterial?: string;
   gsmWeight?: number;
   description: string;
   storytelling: string;
   palette: string[];
   tags: string[];
-  productIds: string[];
+  productIds?: string[];
+  products?: Product[];
 }
 
 export interface TrackingMilestone {
@@ -259,4 +261,6 @@ export interface CustomerPastOrder {
     status: string;
   } | null;
 }
+
+
 
