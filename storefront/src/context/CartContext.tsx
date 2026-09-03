@@ -96,9 +96,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         i => i.productId === newItem.productId && i.color === newItem.color && i.size === newItem.size
       );
       if (existingIdx > -1) {
-        const updated = [...prev];
-        updated[existingIdx].quantity += newItem.quantity;
-        return updated;
+        return prev.map((item, idx) =>
+          idx === existingIdx
+            ? { ...item, quantity: item.quantity + newItem.quantity }
+            : item
+        );
       }
       const uniqueId = `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
       return [...prev, { ...newItem, id: uniqueId, selected: true }];
