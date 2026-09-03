@@ -68,6 +68,17 @@ class OrderResource extends JsonResource
                 'shipped_at' => $this->shipment->shipped_at?->toIso8601String(),
                 'delivered_at' => $this->shipment->delivered_at?->toIso8601String(),
             ] : null,
+            'payment' => $this->payment ? [
+                'reference' => $this->payment->reference,
+                'payment_method' => $this->payment->payment_method,
+                'payment_method_name' => $this->payment->payment_method_name,
+                'payment_url' => $this->payment->payment_url,
+                'va_number' => $this->payment->va_number,
+                'qr_string' => $this->payment->qr_string,
+                'status' => $this->payment->status,
+                'paid_at' => $this->payment->paid_at?->toIso8601String(),
+                'expires_at' => $this->payment->expires_at?->toIso8601String(),
+            ] : null,
             'items' => $this->items->map(fn ($item) => [
                 'sku' => $item->sku,
                 'product_name' => $item->product_name,

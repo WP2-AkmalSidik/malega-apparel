@@ -29,6 +29,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
     Route::get('/orders/{order_number}', [OrderController::class, 'track'])->name('orders.track');
 
-    // 3. Logistics & Webhooks (Biteship)
+    // 3. Payment Gateway Endpoints (Duitku)
+    Route::get('/payments/methods', [\App\Http\Controllers\Api\V1\PaymentController::class, 'methods'])->name('payments.methods');
+    Route::post('/payments/invoice', [\App\Http\Controllers\Api\V1\PaymentController::class, 'createInvoice'])->name('payments.invoice');
+    Route::get('/payments/status/{order_number}', [\App\Http\Controllers\Api\V1\PaymentController::class, 'status'])->name('payments.status');
+
+    // 4. Logistics & Webhooks
     Route::post('/webhooks/biteship', [\App\Http\Controllers\Api\V1\BiteshipWebhookController::class, 'handle'])->name('webhooks.biteship');
+    Route::post('/webhooks/duitku', [\App\Http\Controllers\Api\V1\DuitkuWebhookController::class, 'handle'])->name('webhooks.duitku');
 });

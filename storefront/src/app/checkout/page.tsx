@@ -43,7 +43,8 @@ export default function CheckoutPage() {
     productDiscount,
     serviceFee,
     grandTotal,
-    createOrder
+    createOrder,
+    clearCart
   } = useCart();
 
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -79,17 +80,82 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleProceedPayment = () => {
+  const handleProceedPayment = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+      
+      const duitkuMethodMap: Record<string, string> = {
+        'qris': 'SP',
+        'bca-va': 'BC',
+        'mandiri-va': 'M2',
+        'credit-card': 'VC',
+        'cod': 'COD'
+      };
+
+      const paymentMethodCode = duitkuMethodMap[selectedPayment.id] || 'BC';
+
+      const payload = {
+        customer: {
+          name: selectedAddress.name || 'Pelanggan Malega',
+          email: 'pelanggan@malega.my.id',
+          phone: selectedAddress.phone || '081234567890'
+        },
+        shipping_address: {
+          recipient_name: selectedAddress.name || 'Pelanggan Malega',
+          phone: selectedAddress.phone || '081234567890',
+          address_line1: selectedAddress.street || 'Jl. Malega No. 1',
+          address_line2: selectedAddress.district || '',
+          city: selectedAddress.city || 'Jakarta Selatan',
+          province: selectedAddress.province || 'DKI Jakarta',
+          postal_code: selectedAddress.postalCode || '12730',
+          courier_name: selectedShipping.courier || 'JNE'
+        },
+        items: cart.map(item => ({
+          sku: item.slug || `MLG-${item.productId}`,
+          product_name: item.title,
+          variant_title: `${item.color} / ${item.size}`,
+          unit_price: item.price,
+          quantity: item.quantity
+        })),
+        payment_method: paymentMethodCode,
+        notes: buyerNote || 'Pesanan dari Storefront Malega'
+      };
+
+      const res = await fetch(`${apiUrl}/orders/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.payment?.payment_url) {
+        // Simpan pesanan di state
+        createOrder();
+        clearCart();
+        // Redirect langsung ke Gateway Pembayaran Resmi Duitku
+        window.location.href = data.payment.payment_url;
+        return;
+      }
+
+      // Fallback modal jika payment_url belum ada atau metode offline
       setIsProcessing(false);
       setShowPaymentModal(true);
-    }, 500);
+    } catch (err) {
+      console.error('Checkout API error:', err);
+      setIsProcessing(false);
+      setShowPaymentModal(true);
+    }
   };
 
   const handleConfirmOrderFinal = () => {
     setShowPaymentModal(false);
     createOrder();
+    clearCart();
     router.push('/order-confirmation');
   };
 

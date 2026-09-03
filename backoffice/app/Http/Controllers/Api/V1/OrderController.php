@@ -15,20 +15,35 @@ class OrderController extends Controller
     /**
      * Storefront Checkout endpoint (Server-Authoritative ADR-004 & ADR-006).
      */
-    public function checkout(StorefrontCheckoutRequest $request, CreateOrderAction $createOrder): JsonResponse
-    {
+    public function checkout(
+        StorefrontCheckoutRequest $request,
+        CreateOrderAction $createOrder,
+        \App\Actions\Payment\ProcessDuitkuPaymentAction $processPayment
+    ): JsonResponse {
         try {
             $data = $request->validated();
             $data['source'] = 'storefront';
             $data['address'] = $data['shipping_address'];
+            $paymentMethod = $request->input('payment_method', 'VC');
             unset($data['shipping_address']);
 
             $order = $createOrder->execute($data);
+
+            // Auto-generate Duitku invoice for instant payment redirection
+            $paymentResult = $processPayment->execute($order, $paymentMethod);
+            $order->refresh();
+            $order->load(['customer', 'items', 'address', 'payment', 'shipment']);
 
             return response()->json([
                 'success' => true,
                 'message' => "Pesanan #{$order->order_number} berhasil dibuat. Silakan lakukan pembayaran.",
                 'data' => new OrderResource($order),
+                'payment' => [
+                    'payment_url' => $paymentResult['payment_url'],
+                    'reference' => $paymentResult['reference'],
+                    'va_number' => $paymentResult['va_number'],
+                    'qr_string' => $paymentResult['qr_string'],
+                ],
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([

@@ -97,6 +97,22 @@ class Order extends Model
     }
 
     /**
+     * Latest payment record (Duitku transaction).
+     */
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    /**
+     * All payment transaction logs.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Status transition audit history.
      */
     public function statusHistories(): HasMany
