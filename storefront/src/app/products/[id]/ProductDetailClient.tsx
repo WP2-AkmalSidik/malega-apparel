@@ -44,7 +44,6 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
   const [quantity, setQuantity] = useState<number>(1);
   const [activeImage, setActiveImage] = useState<string>(product.colors[0]?.image || product.gallery[0]);
   const [showSizeChart, setShowSizeChart] = useState<boolean>(false);
-  const [addedToast, setAddedToast] = useState<boolean>(false);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'photo' | '5star'>('all');
 
   // Synchronize state when product changes
@@ -140,9 +139,6 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
       quantity,
       image: selectedColor.image
     });
-
-    setAddedToast(true);
-    setTimeout(() => setAddedToast(false), 3000);
   };
 
   const handleInstantBuy = (e?: React.MouseEvent) => {
@@ -239,28 +235,6 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-[#CBAC70] uppercase font-bold truncate max-w-xs">{product.title}</span>
       </nav>
-
-      {/* Floating Toast when Added to Bag */}
-      {addedToast && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-[#0E1736] border border-[#CBAC70] p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-            <Check className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-white">Berhasil Ditambahkan ke Bag!</p>
-            <p className="text-[11px] text-slate-400 font-mono">
-              {product.title} ({selectedColor.name}, {selectedSize}) • {formatRupiah(currentPrice)}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsCartOpen(true)}
-            className="ml-2 px-3 py-1.5 rounded-lg bg-[#CBAC70] text-[#0B132B] font-bold text-xs hover:bg-[#E3CD99] transition cursor-pointer"
-          >
-            Buka Bag
-          </button>
-        </div>
-      )}
 
       {/* Main Product Showcase Grid (Double-Framed Packaging) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
