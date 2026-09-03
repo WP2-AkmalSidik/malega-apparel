@@ -13,14 +13,19 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     /**
-     * Public active products catalog with search, filters & pagination.
+     * Public active products catalog with search, filters & high-performance zero-N+1 pagination.
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = max(1, min(50, (int) $request->input('per_page', 15)));
+        $isAll = $request->input('per_page') === 'all' || $request->has('all');
+        $perPage = max(1, min(100, (int) $request->input('per_page', 50)));
 
         $query = Product::active()
-            ->with(['category', 'variants.inventoryItem'])
+            ->with([
+                'category:id,name,slug',
+                'fabricSpecification:id,name,brand,gramasi,material,fit_cutting,collar_hood,care_instructions',
+                'variants.inventoryItem:id,variant_id,on_hand,reserved',
+            ])
             ->when($request->filled('category'), function ($q) use ($request) {
                 $cat = $request->input('category');
                 $q->whereHas('category', function ($sub) use ($cat) {
@@ -33,11 +38,15 @@ class ProductController extends Controller
                     is_numeric($col) ? $sub->where('collections.id', $col) : $sub->where('collections.slug', $col);
                 });
             })
+            ->when($request->filled('fabric_spec_id'), function ($q) use ($request) {
+                $q->where('fabric_spec_id', $request->input('fabric_spec_id'));
+            })
             ->when($request->filled('search'), function ($q) use ($request) {
                 $term = '%'.$request->input('search').'%';
                 $q->where(function ($sub) use ($term) {
                     $sub->where('name', 'like', $term)
-                        ->orWhere('description', 'like', $term);
+                        ->orWhere('description', 'like', $term)
+                        ->orWhere('material', 'like', $term);
                 });
             });
 
@@ -55,8 +64,25 @@ class ProductController extends Controller
                     ->orderBy('price', 'desc')
                     ->limit(1)
             ),
+            'sold', 'popular' => $query->orderByDesc('sold_count')->latest('id'),
+            'rating' => $query->orderByDesc('rating')->latest('id'),
             default => $query->latest('id'),
         };
+
+        if ($isAll) {
+            $products = $query->get();
+            return response()->json([
+                'success' => true,
+                'message' => 'Katalog produk berhasil dimuat.',
+                'data' => ProductListResource::collection($products),
+                'meta' => [
+                    'current_page' => 1,
+                    'per_page' => $products->count(),
+                    'total' => $products->count(),
+                    'last_page' => 1,
+                ],
+            ]);
+        }
 
         $products = $query->paginate($perPage);
 

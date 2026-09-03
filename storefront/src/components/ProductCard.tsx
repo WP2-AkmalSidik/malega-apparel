@@ -16,8 +16,16 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { triggerFly } = useFlyToCart();
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
 
+  const fallbackImg = product.gallery?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80';
+  
+  const safeColors = (product.colors && product.colors.length > 0)
+    ? product.colors
+    : [{ name: 'Signature', hex: '#0B132B', image: fallbackImg }];
+
+  const [selectedColor, setSelectedColor] = useState(safeColors[0]);
+
+  const activeImage = selectedColor?.image || fallbackImg;
   const isFavorited = isInWishlist(product.id) || isInWishlist(product.slug);
 
   const formatRupiah = (val: number) => {
@@ -37,18 +45,18 @@ export default function ProductCard({ product }: ProductCardProps) {
       startY = rect.top + rect.height / 2;
     }
 
-    triggerFly(selectedColor.image, startX, startY);
+    triggerFly(activeImage, startX, startY);
 
     addToCart({
       productId: product.id,
       slug: product.slug,
       title: product.title,
-      color: selectedColor.name,
-      size: product.sizes[0] || 'L',
+      color: selectedColor?.name || 'Signature',
+      size: (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'All Size',
       price: product.price,
       originalPrice: product.originalPrice,
       quantity: 1,
-      image: selectedColor.image
+      image: activeImage
     });
   };
 
@@ -71,7 +79,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="relative aspect-[4/5] bg-[#050914] overflow-hidden block group-hover:opacity-95 transition-opacity"
         >
           <img
-            src={selectedColor.image}
+            src={activeImage}
             alt={product.title}
             className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-500 ease-out"
           />
@@ -126,7 +134,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* GSM & Fit Pill Bottom Left */}
           <div className="absolute bottom-2 left-2 z-10">
             <span className="text-[9px] sm:text-[10px] font-bold text-[#FDFCFF] bg-[#0B132B]/90 border border-[#CBAC70]/30 backdrop-blur-md px-2 py-0.5 rounded-md">
-              {product.gsm ? `${product.gsm}GSM` : product.material.split(' ')[0]}
+              {product.gsm ? `${product.gsm}GSM` : (product.material ? product.material.split(' ')[0] : 'Premium')}
             </span>
           </div>
         </Link>
@@ -137,7 +145,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="space-y-1.5">
             {/* Colorway Swatches on Mobile & Desktop */}
             <div className="flex items-center gap-1.5">
-              {product.colors.map((c, idx) => (
+              {safeColors.map((c, idx) => (
                 <button
                   type="button"
                   key={idx}
@@ -147,7 +155,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     setSelectedColor(c);
                   }}
                   className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer ${
-                    selectedColor.name === c.name
+                    selectedColor?.name === c.name
                       ? 'border-[#CBAC70] ring-1.5 ring-[#CBAC70] scale-110'
                       : 'border-white/30 hover:border-white/80'
                   }`}
@@ -156,7 +164,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 />
               ))}
               <span className="text-[9px] sm:text-[10px] text-[#94A3B8] ml-auto font-medium">
-                {product.colors.length} warna
+                {safeColors.length} warna
               </span>
             </div>
 

@@ -12,23 +12,29 @@ import {
   ShoppingBag,
   CheckCircle2
 } from 'lucide-react';
+import { Product } from '../../../types';
 import { katalogCollections } from '../../../data/katalog';
 import { productsCatalog } from '../../../data/products';
 import ProductCard from '../../../components/ProductCard';
 
 interface KatalogDetailClientProps {
   slug: string;
+  initialProducts?: Product[];
 }
 
-export default function KatalogDetailClient({ slug }: KatalogDetailClientProps) {
+export default function KatalogDetailClient({ slug, initialProducts }: KatalogDetailClientProps) {
   const katalog = katalogCollections.find(c => c.slug === slug || c.id === slug) || katalogCollections[0];
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('featured');
 
+  const pool = useMemo(() => {
+    return (initialProducts && initialProducts.length > 0) ? initialProducts : productsCatalog;
+  }, [initialProducts]);
+
   // Filter products that belong to this catalog
   const catalogProducts = useMemo(() => {
-    return productsCatalog.filter(p => {
+    return pool.filter(p => {
       const isInIdList = (katalog.productIds || []).includes(p.id);
       const isMatchingCategory = (katalog.slug.includes('tee') && p.category === 'T-Shirts') ||
         (katalog.slug.includes('outerwear') && p.category === 'Outerwear') ||

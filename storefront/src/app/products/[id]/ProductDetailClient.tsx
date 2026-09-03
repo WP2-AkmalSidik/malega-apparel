@@ -29,32 +29,46 @@ import ProductCard from '../../../components/ProductCard';
 
 interface ProductDetailClientProps {
   productId: string;
+  initialProduct?: Product | null;
+  allProducts?: Product[];
 }
 
-export default function ProductDetailClient({ productId }: ProductDetailClientProps) {
+export default function ProductDetailClient({ productId, initialProduct, allProducts }: ProductDetailClientProps) {
   const router = useRouter();
   const { addToCart, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { triggerFly } = useFlyToCart();
 
-  const product = productsCatalog.find(p => p.id === productId || p.slug === productId) || productsCatalog[0];
+  const product = useMemo(() => {
+    if (initialProduct) return initialProduct;
+    const fromAll = (allProducts || []).find(p => p.id === productId || p.slug === productId);
+    if (fromAll) return fromAll;
+    return productsCatalog.find(p => p.id === productId || p.slug === productId) || productsCatalog[0];
+  }, [initialProduct, allProducts, productId]);
 
-  const [selectedColor, setSelectedColor] = useState<ColorOption>(product.colors[0]);
-  const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0] || 'L');
+  const defaultColor: ColorOption = (product.colors && product.colors.length > 0) 
+    ? product.colors[0] 
+    : { name: 'Signature', hex: '#0B132B', image: product.gallery?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80' };
+
+  const [selectedColor, setSelectedColor] = useState<ColorOption>(defaultColor);
+  const [selectedSize, setSelectedSize] = useState<string>(product.sizes?.[0] || 'All Size');
   const [quantity, setQuantity] = useState<number>(1);
-  const [activeImage, setActiveImage] = useState<string>(product.colors[0]?.image || product.gallery[0]);
+  const [activeImage, setActiveImage] = useState<string>(product.colors?.[0]?.image || product.gallery?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80');
   const [showSizeChart, setShowSizeChart] = useState<boolean>(false);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'photo' | '5star'>('all');
 
   // Synchronize state when product changes
   useEffect(() => {
-    if (product && product.colors && product.colors.length > 0) {
-      setSelectedColor(product.colors[0]);
-      setSelectedSize(product.sizes[0] || 'L');
-      setActiveImage(product.colors[0]?.image || product.gallery[0]);
+    if (product) {
+      const col = (product.colors && product.colors.length > 0) 
+        ? product.colors[0] 
+        : { name: 'Signature', hex: '#0B132B', image: product.gallery?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80' };
+      setSelectedColor(col);
+      setSelectedSize(product.sizes?.[0] || 'All Size');
+      setActiveImage(col.image || product.gallery?.[0] || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80');
       setQuantity(1);
     }
-  }, [productId]);
+  }, [product]);
 
   // Compute Active Variant and its exact price and stock
   const activeVariant = useMemo(() => {
@@ -221,7 +235,10 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
     return true;
   });
 
-  const relatedProducts = productsCatalog.filter(p => p.id !== product.id).slice(0, 4);
+  const relatedProducts = useMemo(() => {
+    const pool = (allProducts && allProducts.length > 0) ? allProducts : productsCatalog;
+    return pool.filter(p => p.id !== product.id && p.slug !== product.slug).slice(0, 4);
+  }, [allProducts, product]);
   const isCurrentProductFavorited = isInWishlist(product.id) || isInWishlist(product.slug);
 
   const isNumericSizeProduct = useMemo(() => {

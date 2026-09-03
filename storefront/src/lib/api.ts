@@ -16,7 +16,7 @@ export async function fetchProductsFromApi(params?: {
     if (params?.collection) searchParams.set('collection', params.collection);
     if (params?.search) searchParams.set('search', params.search);
     if (params?.sort) searchParams.set('sort', params.sort);
-    if (params?.perPage) searchParams.set('per_page', String(params.perPage));
+    searchParams.set('per_page', String(params?.perPage || 100));
 
     const res = await fetch(`${API_BASE}/products?${searchParams.toString()}`, {
       next: { revalidate: 0 },
@@ -29,32 +29,45 @@ export async function fetchProductsFromApi(params?: {
 
     const json = await res.json();
     if (json.success && Array.isArray(json.data)) {
-      return json.data.map((item: any) => ({
-        id: String(item.id),
-        slug: item.slug,
-        title: item.name,
-        subtitle: item.subtitle || '',
-        badge: item.badge,
-        rating: item.rating,
-        reviewCount: item.review_count,
-        soldCount: item.sold_count,
-        originalPrice: item.price?.compare_at || item.price?.max || item.price?.min,
-        price: item.price?.min || 0,
-        priceMin: item.price?.min,
-        priceMax: item.price?.max,
-        discountPercentage: item.price?.discount_percentage || 0,
-        category: item.category?.name || 'Streetwear',
-        material: item.material || item.specifications?.Material || '',
-        gsm: item.gsm || (item.specifications?.Gramasi ? parseInt(item.specifications.Gramasi) : 300),
-        fit: item.fit || item.specifications?.Cutting || item.specifications?.['Fit / Cutting'] || '',
-        origin: 'Bandung, Indonesia',
-        stockTotal: item.variants_count * 10,
-        colors: item.colors || [],
-        sizes: item.sizes || [],
-        gallery: [item.featured_image_url],
-        features: [],
-        specifications: item.specifications || {},
-      }));
+      return json.data.map((item: any) => {
+        const defaultImg = item.featured_image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80';
+        const colors = (Array.isArray(item.colors) && item.colors.length > 0)
+          ? item.colors
+          : [{ name: 'Signature', hex: '#0B132B', image: defaultImg }];
+        const sizes = (Array.isArray(item.sizes) && item.sizes.length > 0)
+          ? item.sizes
+          : ['All Size'];
+
+        return {
+          id: String(item.id),
+          slug: item.slug,
+          title: item.name,
+          subtitle: item.subtitle || '',
+          badge: item.badge,
+          isNewDrop: item.badge?.includes('NEW') || item.badge?.includes('DROP') || Number(item.id) >= 10,
+          isBestSeller: item.badge?.includes('BEST') || item.badge?.includes('TOP') || (item.sold_count && item.sold_count > 1000),
+          rating: item.rating,
+          reviewCount: item.review_count,
+          soldCount: item.sold_count,
+          originalPrice: item.price?.compare_at || item.price?.max || item.price?.min,
+          price: item.price?.min || 0,
+          priceMin: item.price?.min,
+          priceMax: item.price?.max,
+          discountPercentage: item.price?.discount_percentage || 0,
+          category: item.category?.name || 'Streetwear',
+          material: item.material || item.specifications?.Material || '',
+          gsm: item.gsm || (item.specifications?.Gramasi ? parseInt(item.specifications.Gramasi) : 300),
+          fit: item.fit || item.specifications?.Cutting || item.specifications?.['Fit / Cutting'] || '',
+          origin: 'Bandung, Indonesia',
+          stockTotal: item.variants_count * 10,
+          colors,
+          sizes,
+          gallery: [defaultImg],
+          features: [],
+          specifications: item.specifications || {},
+          variants: item.variants || [],
+        };
+      });
     }
   } catch (err) {
     console.warn('Backend API unreachable, falling back to local rich catalog:', err);
