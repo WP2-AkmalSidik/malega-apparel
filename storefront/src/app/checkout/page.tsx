@@ -183,7 +183,9 @@ export default function CheckoutPage() {
 
     setIsValidatingPromo(true);
     try {
-      const res = await applyVoucherCodeAsync(voucherInput.trim(), selectedAddress.name);
+      const guestEmail = 'pelanggan@malega.my.id';
+      const guestPhone = selectedAddress.phone || '081234567890';
+      const res = await applyVoucherCodeAsync(voucherInput.trim(), guestEmail, guestPhone);
       if (res.success) {
         setVoucherSuccess(res.message);
         setVoucherInput('');
@@ -203,7 +205,9 @@ export default function CheckoutPage() {
     setVoucherSuccess('');
     setIsValidatingPromo(true);
     try {
-      const res = await applyVoucherCodeAsync(code, selectedAddress.name);
+      const guestEmail = 'pelanggan@malega.my.id';
+      const guestPhone = selectedAddress.phone || '081234567890';
+      const res = await applyVoucherCodeAsync(code, guestEmail, guestPhone);
       if (res.success) {
         setVoucherSuccess(res.message);
       } else {

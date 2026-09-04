@@ -19,14 +19,24 @@ class VoucherController extends Controller
             'code' => ['required', 'string', 'max:50'],
             'subtotal' => ['required', 'integer', 'min:0'],
             'shipping_cost' => ['nullable', 'integer', 'min:0'],
-            'email' => ['nullable', 'email', 'max:150'],
+            'email' => ['nullable', 'string', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:50'],
         ]);
 
         $subtotal = (int) $validated['subtotal'];
         $shippingCost = (int) ($validated['shipping_cost'] ?? 0);
         $email = $validated['email'] ?? null;
+        $phone = $validated['phone'] ?? null;
+        $customerId = $request->user('customer')?->id ?? $request->user()?->id ?? null;
 
-        $result = $validateVoucher->execute($validated['code'], $subtotal, $shippingCost, $email);
+        $result = $validateVoucher->execute(
+            $validated['code'],
+            $subtotal,
+            $shippingCost,
+            $email,
+            $phone,
+            $customerId
+        );
 
         return response()->json([
             'success' => $result['valid'],
@@ -62,6 +72,8 @@ class VoucherController extends Controller
             'min_spend' => $v->min_order_amount,
             'minSpend' => $v->min_order_amount,
             'max_discount' => $v->max_discount_amount,
+            'usage_limit_per_user' => $v->usage_limit_per_user,
+            'allow_guest' => $v->allow_guest,
             'valid_until' => $v->valid_until?->toIso8601String(),
         ]);
 

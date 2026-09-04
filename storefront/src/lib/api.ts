@@ -480,6 +480,7 @@ export async function validateVoucherApi(params: {
   subtotal: number;
   shipping_cost?: number;
   email?: string;
+  phone?: string;
 }): Promise<{
   success: boolean;
   message: string;

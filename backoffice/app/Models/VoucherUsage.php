@@ -15,6 +15,7 @@ class VoucherUsage extends Model
         'order_id',
         'customer_id',
         'customer_email',
+        'customer_phone',
         'discount_amount',
     ];
 

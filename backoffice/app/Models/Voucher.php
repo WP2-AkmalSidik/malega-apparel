@@ -28,6 +28,7 @@ class Voucher extends Model
         'valid_until',
         'is_active',
         'is_public',
+        'allow_guest',
     ];
 
     protected $casts = [
@@ -42,6 +43,7 @@ class Voucher extends Model
         'valid_until' => 'datetime',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
+        'allow_guest' => 'boolean',
     ];
 
     public function usages(): HasMany

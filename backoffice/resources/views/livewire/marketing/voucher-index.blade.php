@@ -40,19 +40,6 @@ x-on:close-delete-modal.window="showDeleteModal = false">
         </div>
     </div>
 
-    <!-- Alert Message -->
-    @if(session()->has('message'))
-        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center justify-between shadow-lg">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>{{ session('message') }}</span>
-            </div>
-            <button @click="$el.parentElement.remove()" class="text-emerald-400/60 hover:text-emerald-400">✕</button>
-        </div>
-    @endif
-
     <!-- Top KPI Metrics -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="rounded-2xl border border-slate-800/80 bg-gradient-to-b from-[#0B132B] to-[#070C1A] p-4 shadow-lg space-y-1">
@@ -138,6 +125,15 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider {{ $voucher->type->badgeColor() }}">
                                     {{ $voucher->type->label() }}
                                 </span>
+                                @if($voucher->allow_guest)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30" title="Bisa digunakan pembeli tamu tanpa harus login">
+                                        Tamu & Member
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30" title="Wajib login untuk menggunakan voucher ini">
+                                        Member Only
+                                    </span>
+                                @endif
                                 @if($voucher->is_public)
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30">
                                         Publik
@@ -165,7 +161,7 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                     @endif
 
                     <!-- Details Matrix -->
-                    <div class="grid grid-cols-2 gap-2 pt-3 text-xs">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3 text-xs">
                         <div class="p-2.5 rounded-xl bg-[#0B132B]/80 border border-white/5 space-y-0.5">
                             <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Nilai Diskon</span>
                             <span class="text-gold font-bold font-mono">{{ $voucher->formattedDiscount() }}</span>
@@ -177,16 +173,23 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                         </div>
 
                         <div class="p-2.5 rounded-xl bg-[#0B132B]/80 border border-white/5 space-y-0.5">
-                            <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Kuota Pemakaian</span>
+                            <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Batas per User</span>
+                            <span class="text-slate-200 font-bold font-mono">
+                                {{ $voucher->usage_limit_per_user === 1 ? '1x (Sekali Pakai)' : $voucher->usage_limit_per_user . 'x per Akun' }}
+                            </span>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl bg-[#0B132B]/80 border border-white/5 space-y-0.5">
+                            <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Kuota Global</span>
                             <span class="text-slate-200 font-bold font-mono">
                                 {{ $voucher->used_count }} / {{ $voucher->usage_limit_total ? number_format($voucher->usage_limit_total) : '∞ Tak Terbatas' }}
                             </span>
                         </div>
 
-                        <div class="p-2.5 rounded-xl bg-[#0B132B]/80 border border-white/5 space-y-0.5">
+                        <div class="p-2.5 rounded-xl bg-[#0B132B]/80 border border-white/5 space-y-0.5 col-span-2 sm:col-span-2">
                             <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Masa Berlaku</span>
                             <span class="text-slate-300 font-mono text-[11px]">
-                                {{ $voucher->valid_until ? $voucher->valid_until->format('d M Y') : 'Selamanya' }}
+                                {{ $voucher->valid_from ? $voucher->valid_from->format('d M Y') : 'Sekarang' }} s.d. {{ $voucher->valid_until ? $voucher->valid_until->format('d M Y') : 'Selamanya' }}
                             </span>
                         </div>
                     </div>
@@ -390,17 +393,18 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                 <!-- Batasan Kuota Total & Kuota per User -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Total Kuota Penggunaan</label>
+                        <label class="font-semibold text-slate-300">Batas Kuota Penggunaan Global</label>
                         <input
                             type="number"
                             wire:model="usage_limit_total"
-                            placeholder="1000 (Kosongkan jika tak terbatas)"
+                            placeholder="500 (Kosongkan jika tak terbatas)"
                             class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
                         />
+                        <span class="text-[9px] text-slate-500 block">Maksimal pemakaian total (misal 500 pemakai pertama)</span>
                     </div>
 
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Batas Pakai per Email <span class="text-rose-400">*</span></label>
+                        <label class="font-semibold text-slate-300">Batas Pemakaian per User <span class="text-rose-400">*</span></label>
                         <input
                             type="number"
                             wire:model="usage_limit_per_user"
@@ -409,6 +413,7 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                             class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
                             required
                         />
+                        <span class="text-[9px] text-emerald-400 font-semibold block">Set 1 untuk voucher sekali pakai per akun/email/no. HP</span>
                     </div>
                 </div>
 
@@ -435,24 +440,42 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                     </div>
                 </div>
 
-                <!-- Status & Public Toggles -->
-                <div class="flex items-center gap-6 pt-2">
-                    <label class="flex items-center gap-2 cursor-pointer">
+                <!-- Status, Guest, & Public Toggles -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070C1A] border border-slate-800 cursor-pointer hover:border-gold/30">
                         <input
                             type="checkbox"
-                            wire:model="is_active"
-                            class="w-4 h-4 rounded bg-[#070C1A] border-slate-700 text-gold focus:ring-0 cursor-pointer"
+                            wire:model="allow_guest"
+                            class="w-4 h-4 rounded bg-[#0B132B] border-slate-700 text-gold focus:ring-0 cursor-pointer"
                         />
-                        <span class="font-semibold text-slate-300 text-xs">Voucher Aktif</span>
+                        <div>
+                            <span class="font-semibold text-slate-200 text-xs block">Guest / Tamu</span>
+                            <span class="text-[9px] text-slate-400 block">Bisa tanpa login</span>
+                        </div>
                     </label>
 
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070C1A] border border-slate-800 cursor-pointer hover:border-gold/30">
                         <input
                             type="checkbox"
                             wire:model="is_public"
-                            class="w-4 h-4 rounded bg-[#070C1A] border-slate-700 text-gold focus:ring-0 cursor-pointer"
+                            class="w-4 h-4 rounded bg-[#0B132B] border-slate-700 text-gold focus:ring-0 cursor-pointer"
                         />
-                        <span class="font-semibold text-slate-300 text-xs">Tampilkan Publik di Storefront</span>
+                        <div>
+                            <span class="font-semibold text-slate-200 text-xs block">Kupon Publik</span>
+                            <span class="text-[9px] text-slate-400 block">Tampil di storefront</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070C1A] border border-slate-800 cursor-pointer hover:border-gold/30">
+                        <input
+                            type="checkbox"
+                            wire:model="is_active"
+                            class="w-4 h-4 rounded bg-[#0B132B] border-slate-700 text-gold focus:ring-0 cursor-pointer"
+                        />
+                        <div>
+                            <span class="font-semibold text-slate-200 text-xs block">Status Aktif</span>
+                            <span class="text-[9px] text-slate-400 block">Siap digunakan</span>
+                        </div>
                     </label>
                 </div>
 

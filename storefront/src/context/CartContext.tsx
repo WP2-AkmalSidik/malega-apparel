@@ -47,7 +47,7 @@ interface CartContextType {
   appliedVouchers: Voucher[];
   toggleVoucher: (code: string) => void;
   applyVoucherCode: (code: string) => boolean;
-  applyVoucherCodeAsync: (code: string, email?: string) => Promise<{ success: boolean; message: string; discount?: number }>;
+  applyVoucherCodeAsync: (code: string, email?: string, phone?: string) => Promise<{ success: boolean; message: string; discount?: number }>;
   buyerNote: string;
   setBuyerNote: (note: string) => void;
 
@@ -293,7 +293,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const applyVoucherCodeAsync = async (
     code: string,
-    email?: string
+    email?: string,
+    phone?: string
   ): Promise<{ success: boolean; message: string; discount?: number }> => {
     const cleanCode = code.trim().toUpperCase();
     if (!cleanCode) {
@@ -308,6 +309,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       subtotal: currentSubtotal,
       shipping_cost: currentShipCost,
       email: email || undefined,
+      phone: phone || undefined,
     });
 
     if (result.success && result.voucher) {

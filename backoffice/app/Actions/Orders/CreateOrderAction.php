@@ -143,7 +143,9 @@ class CreateOrderAction
                     (string) $vCode,
                     $subtotal,
                     $shippingTotal,
-                    $customer->email
+                    $customer->email,
+                    $customer->phone,
+                    $customer->id
                 );
 
                 if ($vRes['valid'] && $vRes['voucher']) {
@@ -187,6 +189,7 @@ class CreateOrderAction
                     'order_id' => $order->id,
                     'customer_id' => $customer->id,
                     'customer_email' => $customer->email,
+                    'customer_phone' => $customer->phone,
                     'discount_amount' => $vUsage['discount'],
                 ]);
                 $vUsage['voucher']->increment('used_count');

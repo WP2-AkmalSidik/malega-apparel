@@ -54,6 +54,8 @@ class VoucherIndex extends Component
 
     public bool $is_public = true;
 
+    public bool $allow_guest = true;
+
     // View Usages Modal State
     public ?int $viewingVoucherId = null;
 
@@ -115,6 +117,7 @@ class VoucherIndex extends Component
         $this->valid_until = now()->addMonths(6)->format('Y-m-d\TH:i');
         $this->is_active = true;
         $this->is_public = true;
+        $this->allow_guest = true;
 
         $this->generateRandomCode();
         $this->dispatch('open-voucher-modal');
@@ -140,6 +143,7 @@ class VoucherIndex extends Component
         $this->valid_until = $voucher->valid_until ? $voucher->valid_until->format('Y-m-d\TH:i') : '';
         $this->is_active = $voucher->is_active;
         $this->is_public = $voucher->is_public;
+        $this->allow_guest = (bool) ($voucher->allow_guest ?? true);
 
         $this->dispatch('open-voucher-modal');
     }
@@ -160,6 +164,7 @@ class VoucherIndex extends Component
             'valid_until' => ['nullable', 'date', 'after_or_equal:valid_from'],
             'is_active' => ['boolean'],
             'is_public' => ['boolean'],
+            'allow_guest' => ['boolean'],
         ];
 
         if ($this->type === 'percentage') {
@@ -172,10 +177,20 @@ class VoucherIndex extends Component
         if ($this->isEditing && $this->editingVoucherId) {
             $voucher = Voucher::findOrFail($this->editingVoucherId);
             $voucher->update($validated);
-            session()->flash('message', "Voucher #{$voucher->code} berhasil diperbarui.");
+
+            $this->dispatch('toast', [
+                'type' => 'success',
+                'title' => 'Voucher Diperbarui',
+                'message' => "Master voucher #{$voucher->code} berhasil disimpan.",
+            ]);
         } else {
             $voucher = Voucher::create($validated);
-            session()->flash('message', "Voucher #{$voucher->code} berhasil dibuat.");
+
+            $this->dispatch('toast', [
+                'type' => 'success',
+                'title' => 'Voucher Dibuat',
+                'message' => "Voucher promosi #{$voucher->code} berhasil dibuat.",
+            ]);
         }
 
         $this->dispatch('close-voucher-modal');
@@ -187,7 +202,12 @@ class VoucherIndex extends Component
         $voucher->is_active = ! $voucher->is_active;
         $voucher->save();
 
-        session()->flash('message', "Status voucher #{$voucher->code} berhasil diubah.");
+        $statusText = $voucher->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        $this->dispatch('toast', [
+            'type' => $voucher->is_active ? 'success' : 'info',
+            'title' => 'Status Voucher Berubah',
+            'message' => "Status voucher #{$voucher->code} berhasil {$statusText}.",
+        ]);
     }
 
     public function openUsagesModal(int $id): void
@@ -212,7 +232,12 @@ class VoucherIndex extends Component
             $code = $voucher->code;
             $voucher->delete();
 
-            session()->flash('message', "Voucher #{$code} berhasil dihapus.");
+            $this->dispatch('toast', [
+                'type' => 'success',
+                'title' => 'Voucher Dihapus',
+                'message' => "Voucher #{$code} berhasil dihapus dari sistem.",
+            ]);
+
             $this->deletingVoucherId = null;
             $this->deletingVoucherCode = '';
             $this->dispatch('close-delete-modal');

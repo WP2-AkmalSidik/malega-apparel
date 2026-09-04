@@ -17,8 +17,14 @@ class ValidateVoucherAction
      *     voucher: ?array
      * }
      */
-    public function execute(string $code, int $subtotal, int $shippingCost = 0, ?string $customerEmail = null): array
-    {
+    public function execute(
+        string $code,
+        int $subtotal,
+        int $shippingCost = 0,
+        ?string $customerEmail = null,
+        ?string $customerPhone = null,
+        ?int $customerId = null
+    ): array {
         $codeClean = strtoupper(trim($code));
 
         if (empty($codeClean)) {
@@ -45,6 +51,16 @@ class ValidateVoucherAction
             return [
                 'valid' => false,
                 'message' => "Voucher \"{$voucher->name}\" saat ini sedang dinonaktifkan.",
+                'discount_amount' => 0,
+                'voucher' => null,
+            ];
+        }
+
+        // Guest restriction check
+        if (! $voucher->allow_guest && ! $customerId) {
+            return [
+                'valid' => false,
+                'message' => "Voucher \"{$voucher->code}\" khusus untuk member Malega yang telah login ke akun.",
                 'discount_amount' => 0,
                 'voucher' => null,
             ];
@@ -89,19 +105,47 @@ class ValidateVoucherAction
             ];
         }
 
-        if (! empty($customerEmail) && $voucher->usage_limit_per_user > 0) {
-            $emailClean = strtolower(trim($customerEmail));
-            $userUsageCount = VoucherUsage::where('voucher_id', $voucher->id)
-                ->where('customer_email', $emailClean)
-                ->count();
+        // Multi-Factor Per-User Usage Limit (Customer ID / Email / Phone Number)
+        if ($voucher->usage_limit_per_user > 0) {
+            $emailClean = ! empty($customerEmail) ? strtolower(trim($customerEmail)) : null;
+            $phoneClean = ! empty($customerPhone) ? preg_replace('/[^0-9]/', '', $customerPhone) : null;
 
-            if ($userUsageCount >= $voucher->usage_limit_per_user) {
-                return [
-                    'valid' => false,
-                    'message' => "Anda telah mencapai batas maksimal pemakaian ({$voucher->usage_limit_per_user}x) untuk voucher ini.",
-                    'discount_amount' => 0,
-                    'voucher' => null,
-                ];
+            if ($customerId || $emailClean || $phoneClean) {
+                $usageCountQuery = VoucherUsage::where('voucher_id', $voucher->id);
+
+                $usageCountQuery->where(function ($q) use ($customerId, $emailClean, $phoneClean) {
+                    $hasCondition = false;
+                    if ($customerId) {
+                        $q->orWhere('customer_id', $customerId);
+                        $hasCondition = true;
+                    }
+                    if ($emailClean) {
+                        $q->orWhere('customer_email', $emailClean);
+                        $hasCondition = true;
+                    }
+                    if ($phoneClean) {
+                        $q->orWhere('customer_phone', $phoneClean);
+                        $hasCondition = true;
+                    }
+                    if (! $hasCondition) {
+                        $q->whereRaw('1 = 0');
+                    }
+                });
+
+                $userUsageCount = $usageCountQuery->count();
+
+                if ($userUsageCount >= $voucher->usage_limit_per_user) {
+                    $limitText = $voucher->usage_limit_per_user === 1
+                        ? "Anda telah menggunakan voucher ini (Maksimal 1x pemakaian per pelanggan)."
+                        : "Anda telah mencapai batas maksimal pemakaian ({$voucher->usage_limit_per_user}x) untuk voucher ini.";
+
+                    return [
+                        'valid' => false,
+                        'message' => $limitText,
+                        'discount_amount' => 0,
+                        'voucher' => null,
+                    ];
+                }
             }
         }
 
