@@ -335,11 +335,73 @@
                         </div>
                         <div class="flex items-center justify-between gap-4 text-slate-400">
                             <span>Ongkos Kirim (IDR)</span>
-                            <input type="number" wire:model.live="shippingTotal" min="0" class="w-28 bg-[#070C1A] border border-slate-700 rounded-lg p-1 text-right font-mono text-slate-200 text-xs">
+                            <div
+                                x-data="{
+                                    display: '',
+                                    init() {
+                                        this.updateDisplay($wire.get('shippingTotal'));
+                                        this.$watch('$wire.shippingTotal', val => this.updateDisplay(val));
+                                    },
+                                    updateDisplay(val) {
+                                        if (val === null || val === undefined || val === '') {
+                                            this.display = '0';
+                                            return;
+                                        }
+                                        let raw = String(val).replace(/\D/g, '');
+                                        this.display = raw ? new Intl.NumberFormat('id-ID').format(raw) : '0';
+                                    },
+                                    formatVal(e) {
+                                        let raw = e.target.value.replace(/\D/g, '');
+                                        let num = raw ? parseInt(raw, 10) : 0;
+                                        this.display = new Intl.NumberFormat('id-ID').format(num);
+                                        $wire.set('shippingTotal', num);
+                                    }
+                                }"
+                                class="relative w-36"
+                            >
+                                <span class="absolute left-2 top-1 text-[10px] text-slate-400 font-mono font-bold select-none">Rp</span>
+                                <input
+                                    type="text"
+                                    x-model="display"
+                                    x-on:input="formatVal($event)"
+                                    class="w-full bg-[#070C1A] border border-slate-700 rounded-lg py-1 pl-6 pr-2 text-right font-mono text-slate-200 text-xs focus:outline-none focus:border-[#CBAC70]"
+                                >
+                            </div>
                         </div>
                         <div class="flex items-center justify-between gap-4 text-slate-400">
                             <span>Diskon Potongan (IDR)</span>
-                            <input type="number" wire:model.live="discountTotal" min="0" class="w-28 bg-[#070C1A] border border-slate-700 rounded-lg p-1 text-right font-mono text-slate-200 text-xs">
+                            <div
+                                x-data="{
+                                    display: '',
+                                    init() {
+                                        this.updateDisplay($wire.get('discountTotal'));
+                                        this.$watch('$wire.discountTotal', val => this.updateDisplay(val));
+                                    },
+                                    updateDisplay(val) {
+                                        if (val === null || val === undefined || val === '') {
+                                            this.display = '0';
+                                            return;
+                                        }
+                                        let raw = String(val).replace(/\D/g, '');
+                                        this.display = raw ? new Intl.NumberFormat('id-ID').format(raw) : '0';
+                                    },
+                                    formatVal(e) {
+                                        let raw = e.target.value.replace(/\D/g, '');
+                                        let num = raw ? parseInt(raw, 10) : 0;
+                                        this.display = new Intl.NumberFormat('id-ID').format(num);
+                                        $wire.set('discountTotal', num);
+                                    }
+                                }"
+                                class="relative w-36"
+                            >
+                                <span class="absolute left-2 top-1 text-[10px] text-slate-400 font-mono font-bold select-none">Rp</span>
+                                <input
+                                    type="text"
+                                    x-model="display"
+                                    x-on:input="formatVal($event)"
+                                    class="w-full bg-[#070C1A] border border-slate-700 rounded-lg py-1 pl-6 pr-2 text-right font-mono text-slate-200 text-xs focus:outline-none focus:border-[#CBAC70]"
+                                >
+                            </div>
                         </div>
                         <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
                             <span class="font-bold text-slate-100 uppercase tracking-wider text-xs">Grand Total</span>

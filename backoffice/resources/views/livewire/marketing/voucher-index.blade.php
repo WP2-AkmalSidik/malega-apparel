@@ -355,66 +355,70 @@
                     </div>
 
                     <!-- Nilai / Nominal Diskon -->
-                    <div class="space-y-1">
-                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
-                            {{ $type === 'percentage' ? 'Persentase (%)' : ($type === 'free_shipping' ? 'Maks Ongkir (Rp)' : 'Potongan (Rp)') }} <span class="text-rose-400">*</span>
-                        </label>
-                        <input
-                            type="number"
+                    @if($type === 'percentage')
+                        <div class="space-y-1">
+                            <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                                Persentase Diskon (%) <span class="text-rose-400">*</span>
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    wire:model="amount"
+                                    min="1"
+                                    max="100"
+                                    placeholder="15"
+                                    class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 pr-8 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
+                                    required
+                                />
+                                <span class="absolute right-2.5 top-2.5 text-[11px] text-[#CBAC70] font-mono font-bold select-none">%</span>
+                            </div>
+                            @error('amount') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
+                        </div>
+                    @elseif($type === 'free_shipping')
+                        <x-currency-input
                             wire:model="amount"
-                            min="1"
-                            placeholder="{{ $type === 'percentage' ? '15' : '50000' }}"
-                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
-                            required
+                            label="Maks. Subsidi Ongkir"
+                            placeholder="15.000"
+                            required="true"
+                            :allowNull="false"
                         />
-                        @error('amount') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
-                    </div>
+                    @else
+                        <x-currency-input
+                            wire:model="amount"
+                            label="Nominal Potongan"
+                            placeholder="50.000"
+                            required="true"
+                            :allowNull="false"
+                        />
+                    @endif
 
                     <!-- Maksimal Potongan Diskon -->
-                    <div class="space-y-1">
-                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
-                            Maks. Diskon (Rp)
-                        </label>
-                        <input
-                            type="number"
-                            wire:model="max_discount_amount"
-                            placeholder="Contoh: 50000"
-                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
-                        />
-                        <span class="text-[9px] text-slate-500 block">Batas cap diskon %</span>
-                    </div>
+                    <x-currency-input
+                        wire:model="max_discount_amount"
+                        label="Maks. Diskon (Cap)"
+                        placeholder="50.000"
+                        hint="Khusus untuk diskon %"
+                    />
 
                     <!-- Min. Belanja -->
-                    <div class="space-y-1">
-                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
-                            Min. Belanja (Rp) <span class="text-rose-400">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            wire:model="min_order_amount"
-                            min="0"
-                            placeholder="Contoh: 200000"
-                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
-                            required
-                        />
-                        @error('min_order_amount') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
-                    </div>
+                    <x-currency-input
+                        wire:model="min_order_amount"
+                        label="Min. Subtotal Belanja"
+                        placeholder="200.000"
+                        required="true"
+                        :allowNull="false"
+                    />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <!-- Kuota Total -->
-                    <div class="space-y-1">
-                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
-                            Batas Kuota Penggunaan Global
-                        </label>
-                        <input
-                            type="number"
-                            wire:model="usage_limit_total"
-                            placeholder="Kosongkan jika tak terbatas"
-                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
-                        />
-                        <span class="text-[10px] text-slate-500 block">Total klaim global (misal 500 pemakai pertama)</span>
-                    </div>
+                    <x-currency-input
+                        wire:model="usage_limit_total"
+                        label="Batas Kuota Penggunaan Global"
+                        placeholder="500 (Kosongkan jika tak terbatas)"
+                        prefix=""
+                        hint="Total klaim kupon (misal 500 pemakai pertama)"
+                    />
 
                     <!-- Kuota per User -->
                     <div class="space-y-1">
