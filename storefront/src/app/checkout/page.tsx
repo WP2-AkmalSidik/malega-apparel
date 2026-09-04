@@ -25,6 +25,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const {
     cart,
+    selectedItems,
+    selectedCount,
     selectedAddress,
     setSelectedAddress,
     selectedShipping,
@@ -111,7 +113,7 @@ export default function CheckoutPage() {
           postal_code: selectedAddress.postalCode || '12730',
           courier_name: selectedShipping.courier || 'JNE'
         },
-        items: cart.map(item => ({
+        items: selectedItems.map(item => ({
           sku: item.slug || `MLG-${item.productId}`,
           product_name: item.title,
           variant_title: `${item.color} / ${item.size}`,
@@ -134,9 +136,8 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (data.success && data.payment?.payment_url) {
-        // Simpan pesanan di state
+        // Simpan pesanan di state & bersihkan item terpilih
         createOrder();
-        clearCart();
         // Redirect langsung ke Gateway Pembayaran Resmi Duitku
         window.location.href = data.payment.payment_url;
         return;
@@ -155,24 +156,31 @@ export default function CheckoutPage() {
   const handleConfirmOrderFinal = () => {
     setShowPaymentModal(false);
     createOrder();
-    clearCart();
     router.push('/order-confirmation');
   };
 
-  if (cart.length === 0) {
+  if (selectedItems.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4">
         <div className="w-16 h-16 rounded-2xl bg-[#14204A] border border-[#CBAC70]/30 text-[#CBAC70] flex items-center justify-center mx-auto">
           <ShoppingBag className="w-8 h-8" />
         </div>
-        <h2 className="text-lg font-bold text-[#FDFCFF]">Shopping Bag Kosong</h2>
-        <p className="text-xs text-[#94A3B8]">Silakan pilih artikel apparel favorit Anda terlebih dahulu.</p>
-        <Link
-          href="/"
-          className="inline-block px-6 py-3 bg-[#CBAC70] text-[#0B132B] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#E3CD99] shadow"
-        >
-          Lihat Katalog
-        </Link>
+        <h2 className="text-lg font-bold text-[#FDFCFF]">
+          {cart.length > 0 ? 'Tidak Ada Produk yang Dipilih' : 'Shopping Bag Kosong'}
+        </h2>
+        <p className="text-xs text-[#94A3B8]">
+          {cart.length > 0
+            ? 'Semua produk di keranjang Anda dalam status tidak dipilih. Silakan kembali ke keranjang untuk memilih produk yang ingin Anda beli.'
+            : 'Silakan pilih artikel apparel favorit Anda terlebih dahulu.'}
+        </p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link
+            href="/"
+            className="inline-block px-6 py-3 bg-[#CBAC70] text-[#0B132B] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#E3CD99] shadow cursor-pointer"
+          >
+            Lihat Katalog
+          </Link>
+        </div>
       </div>
     );
   }
@@ -394,11 +402,11 @@ export default function CheckoutPage() {
               
               <h3 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70] border-b border-white/10 pb-2.5 flex items-center justify-between">
                 <span>Rincian Pesanan</span>
-                <span>{cart.length} Item</span>
+                <span>{selectedItems.length} Produk ({selectedCount} pcs)</span>
               </h3>
 
               <div className="divide-y divide-white/5 max-h-56 overflow-y-auto space-y-2 pr-1">
-                {cart.map((item) => (
+                {selectedItems.map((item) => (
                   <div key={item.id} className="pt-2 flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <img src={item.image} alt={item.title} className="w-11 h-13 rounded-lg object-cover border border-white/10 shrink-0" />

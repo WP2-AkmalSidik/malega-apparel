@@ -35,7 +35,7 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({ productId, initialProduct, allProducts }: ProductDetailClientProps) {
   const router = useRouter();
-  const { addToCart, setIsCartOpen } = useCart();
+  const { addToCart, instantBuy, setIsCartOpen } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { triggerFly } = useFlyToCart();
 
@@ -157,7 +157,7 @@ export default function ProductDetailClient({ productId, initialProduct, allProd
 
   const handleInstantBuy = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    addToCart({
+    instantBuy({
       productId: product.id,
       variantId: activeVariant.id,
       sku: activeVariant.sku,

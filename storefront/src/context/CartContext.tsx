@@ -7,15 +7,24 @@ import { productsCatalog, availableVouchers, defaultAddress, shippingCouriers, p
 interface CartContextType {
   cart: CartItem[];
   cartCount: number;
+  selectedItems: CartItem[];
+  selectedCount: number;
+  allSelected: boolean;
+  isIndeterminate: boolean;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   
   // Cart Actions
   addToCart: (item: Omit<CartItem, 'id' | 'selected'>, openDrawer?: boolean) => void;
+  instantBuy: (item: Omit<CartItem, 'id' | 'selected'>) => void;
   removeFromCart: (id: string) => void;
+  toggleSelectItem: (id: string) => void;
+  selectAllItems: (select: boolean) => void;
+  removeSelectedItems: () => void;
   updateQuantity: (id: string, qty: number) => void;
   updateCartItemVariant: (id: string, color: string, size: string, price: number, originalPrice: number, image: string) => void;
   clearCart: () => void;
+  clearPurchasedItems: () => void;
   
   // Checkout Details
   selectedAddress: Address;
@@ -64,7 +73,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          setCart(parsed);
+          // Ensure all restored items have valid 'selected' boolean defaulting to true if undefined
+          const sanitized = parsed.map((item: any) => ({
+            ...item,
+            selected: item.selected !== false
+          }));
+          setCart(sanitized);
         }
       }
     } catch (err) {
@@ -89,6 +103,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart, isLoaded]);
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const selectedItems = cart.filter(item => item.selected);
+  const selectedCount = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
+  const allSelected = cart.length > 0 && cart.every(item => item.selected);
+  const isIndeterminate = cart.some(item => item.selected) && !allSelected;
 
   const addToCart = (newItem: Omit<CartItem, 'id' | 'selected'>, openDrawer: boolean = false) => {
     setCart(prev => {
@@ -98,7 +116,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (existingIdx > -1) {
         return prev.map((item, idx) =>
           idx === existingIdx
-            ? { ...item, quantity: item.quantity + newItem.quantity }
+            ? { ...item, quantity: item.quantity + newItem.quantity, selected: true }
             : item
         );
       }
@@ -108,6 +126,43 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (openDrawer) {
       setIsCartOpen(true);
     }
+  };
+
+  const instantBuy = (newItem: Omit<CartItem, 'id' | 'selected'>) => {
+    setCart(prev => {
+      // Unselect all other existing items in bag
+      const unselectedPrev = prev.map(i => ({ ...i, selected: false }));
+      const existingIdx = unselectedPrev.findIndex(
+        i => i.productId === newItem.productId && i.color === newItem.color && i.size === newItem.size
+      );
+      if (existingIdx > -1) {
+        return unselectedPrev.map((item, idx) =>
+          idx === existingIdx
+            ? { ...item, quantity: newItem.quantity, price: newItem.price, originalPrice: newItem.originalPrice, selected: true }
+            : item
+        );
+      }
+      const uniqueId = `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      return [...unselectedPrev, { ...newItem, id: uniqueId, selected: true }];
+    });
+  };
+
+  const toggleSelectItem = (id: string) => {
+    setCart(prev => prev.map(i => (i.id === id ? { ...i, selected: !i.selected } : i)));
+  };
+
+  const selectAllItems = (select: boolean) => {
+    setCart(prev => prev.map(i => ({ ...i, selected: select })));
+  };
+
+  const removeSelectedItems = () => {
+    setCart(prev => {
+      const remaining = prev.filter(i => !i.selected);
+      if (remaining.length === 0 && typeof window !== 'undefined') {
+        localStorage.removeItem('malega_cart');
+      }
+      return remaining;
+    });
   };
 
   const removeFromCart = (id: string) => {
@@ -127,7 +182,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const updateCartItemVariant = (id: string, color: string, size: string, price: number, originalPrice: number, image: string) => {
     setCart(prev => {
-      // Check if another item already has this exact variant
       const targetItem = prev.find(i => i.id === id);
       if (!targetItem) return prev;
 
@@ -136,13 +190,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (existingDuplicate) {
-        // Merge into existing: add qty, remove old
         return prev
-          .map(i => i.id === existingDuplicate.id ? { ...i, quantity: i.quantity + targetItem.quantity } : i)
+          .map(i => i.id === existingDuplicate.id ? { ...i, quantity: i.quantity + targetItem.quantity, selected: true } : i)
           .filter(i => i.id !== id);
       }
 
-      // Update variant in place
       return prev.map(i => i.id === id ? { ...i, color, size, price, originalPrice, image } : i);
     });
   };
@@ -152,6 +204,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('malega_cart');
     }
+  };
+
+  const clearPurchasedItems = () => {
+    setCart(prev => {
+      const remaining = prev.filter(i => !i.selected);
+      if (remaining.length === 0 && typeof window !== 'undefined') {
+        localStorage.removeItem('malega_cart');
+      }
+      return remaining;
+    });
   };
 
   const toggleVoucher = (code: string) => {
@@ -174,17 +236,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const appliedVouchers = vouchers.filter(v => v.applied);
 
-  // Financials
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shippingCost = selectedShipping.cost;
+  // Financials strictly based on selectedItems
+  const subtotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const shippingCost = selectedItems.length > 0 ? selectedShipping.cost : 0;
 
-  const shippingDiscount = appliedVouchers
-    .filter(v => v.type === 'shipping')
-    .reduce((acc, v) => acc + Math.min(shippingCost, v.discount), 0);
+  const shippingDiscount = selectedItems.length > 0
+    ? appliedVouchers
+        .filter(v => v.type === 'shipping')
+        .reduce((acc, v) => acc + Math.min(shippingCost, v.discount), 0)
+    : 0;
 
-  const productDiscount = appliedVouchers
-    .filter(v => v.type === 'percentage' || v.type === 'fixed')
-    .reduce((acc, v) => acc + v.discount, 0);
+  const productDiscount = selectedItems.length > 0
+    ? appliedVouchers
+        .filter(v => v.type === 'percentage' || v.type === 'fixed')
+        .reduce((acc, v) => acc + v.discount, 0)
+    : 0;
 
   const serviceFee = subtotal > 0 ? 1000 : 0;
   const grandTotal = Math.max(0, subtotal + shippingCost - shippingDiscount - productDiscount + serviceFee);
@@ -195,11 +261,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const invoiceCode = `MLG-INV-${year}-${randDigits}`;
     const trackingCode = `SPXID0${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 
+    const orderItems = [...selectedItems];
+
     const order: OrderReceipt = {
       orderId: `ORD-${year}-${randDigits}`,
       invoiceNumber: invoiceCode,
       trackingNumber: trackingCode,
-      items: [...cart],
+      items: orderItems,
       address: selectedAddress,
       shipping: selectedShipping,
       payment: selectedPayment,
@@ -221,7 +289,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     setLastOrder(order);
-    clearCart();
+    clearPurchasedItems();
     return order;
   };
 
@@ -230,13 +298,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       value={{
         cart,
         cartCount,
+        selectedItems,
+        selectedCount,
+        allSelected,
+        isIndeterminate,
         isCartOpen,
         setIsCartOpen,
         addToCart,
+        instantBuy,
         removeFromCart,
+        toggleSelectItem,
+        selectAllItems,
+        removeSelectedItems,
         updateQuantity,
         updateCartItemVariant,
         clearCart,
+        clearPurchasedItems,
         selectedAddress,
         setSelectedAddress,
         selectedShipping,
