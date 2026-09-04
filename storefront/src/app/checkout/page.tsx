@@ -27,6 +27,7 @@ import { useCart } from '../../context/CartContext';
 import { shippingCouriers, paymentGateways } from '../../data/products';
 import { fetchShippingRatesFromApi, fetchPaymentMethodsFromApi } from '../../lib/api';
 import { ShippingOption, PaymentMethod } from '../../types';
+import PaymentLogo from '../../components/PaymentLogo';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -106,10 +107,15 @@ export default function CheckoutPage() {
           setCouriersList(rates);
           setShippingSource('biteship');
 
-          // If current selected courier is not in rates, default to first available
-          const exists = rates.find(r => r.id === selectedShipping.id || r.courier === selectedShipping.courier);
-          if (exists) {
-            setSelectedShipping(exists);
+          // Filter only enabled and available couriers
+          const availableRates = rates.filter(r => !r.disabled && r.available !== false);
+
+          // If current selected courier is available and not disabled, keep it
+          const currentValid = availableRates.find(r => r.id === selectedShipping.id || r.courier === selectedShipping.courier);
+          if (currentValid) {
+            setSelectedShipping(currentValid);
+          } else if (availableRates.length > 0) {
+            setSelectedShipping(availableRates[0]);
           } else {
             setSelectedShipping(rates[0]);
           }
@@ -447,31 +453,55 @@ export default function CheckoutPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                {couriersList.map((courier) => (
-                  <div
-                    key={courier.id}
-                    onClick={() => setSelectedShipping(courier)}
-                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                      selectedShipping.id === courier.id || selectedShipping.name === courier.name
-                        ? 'bg-[#14204A] border-[#CBAC70] ring-1 ring-[#CBAC70] shadow-md'
-                        : 'bg-[#0B132B] border-white/10 hover:border-white/30 text-[#94A3B8]'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="min-w-0 pr-2">
-                        <span className="font-bold text-[#FDFCFF] block truncate">{courier.name}</span>
-                        <span className="text-[10px] text-[#CBAC70] font-mono">{courier.courier}</span>
+                {couriersList.map((courier) => {
+                  const isSelected = selectedShipping.id === courier.id || selectedShipping.name === courier.name;
+                  const isDisabled = courier.disabled === true || courier.available === false;
+
+                  return (
+                    <div
+                      key={courier.id}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          setSelectedShipping(courier);
+                        }
+                      }}
+                      className={`p-3 rounded-xl border transition-all relative ${
+                        isDisabled
+                          ? 'opacity-45 bg-[#070D1F]/50 border-red-500/20 cursor-not-allowed select-none'
+                          : isSelected
+                            ? 'bg-[#14204A] border-[#CBAC70] ring-1 ring-[#CBAC70] shadow-md cursor-pointer'
+                            : 'bg-[#0B132B] border-white/10 hover:border-white/30 text-[#94A3B8] cursor-pointer'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 pr-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`font-bold block truncate ${isDisabled ? 'text-[#94A3B8] line-through decoration-red-400/50' : 'text-[#FDFCFF]'}`}>
+                              {courier.name}
+                            </span>
+                            {isDisabled && (
+                              <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase tracking-tight">
+                                🚫 Di Luar Jangkauan
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[#CBAC70] font-mono block mt-0.5">{courier.courier}</span>
+                        </div>
+                        <span className={`font-black shrink-0 ${isDisabled ? 'text-[#64748B]' : 'text-[#CBAC70]'}`}>
+                          {isDisabled ? '—' : formatRupiah(courier.cost)}
+                        </span>
                       </div>
-                      <span className="font-black text-[#CBAC70] shrink-0">{formatRupiah(courier.cost)}</span>
+                      <p className={`text-[10px] mt-1 ${isDisabled ? 'text-red-400/90 font-medium' : 'text-[#94A3B8]'}`}>
+                        {isDisabled ? (courier.disabledReason || 'Alamat di luar area jangkauan instan (Khusus Jabodetabek)') : courier.etd}
+                      </p>
                     </div>
-                    <p className="text-[10px] text-[#94A3B8] mt-1">{courier.etd}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Step 3: Payment Gateway with Live Duitku Channels */}
+          {/* Step 3: Payment Gateway with Live Duitku Channels & Official Brand Logos */}
           <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2 sm:p-2.5 border border-[#CBAC70]/30 shadow-xl">
             <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-5 space-y-3">
               <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
@@ -484,38 +514,51 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-2 text-xs">
-                {paymentsList.map((pay) => (
-                  <div
-                    key={pay.id}
-                    onClick={() => setSelectedPayment(pay)}
-                    className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
-                      selectedPayment.id === pay.id || selectedPayment.duitkuCode === pay.duitkuCode
-                        ? 'bg-[#14204A] border-[#CBAC70] ring-1 ring-[#CBAC70] shadow-md'
-                        : 'bg-[#0B132B] border-white/10 hover:border-white/30 text-[#94A3B8]'
-                    }`}
-                  >
-                    <div className="space-y-0.5 min-w-0 pr-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#FDFCFF]">{pay.name}</span>
-                        {pay.duitkuCode && (
-                          <span className="text-[9px] font-mono text-[#CBAC70] bg-[#070D1F] px-1.5 py-0.2 rounded border border-white/10">
-                            {pay.duitkuCode}
-                          </span>
+                {paymentsList.map((pay) => {
+                  const isSelected = selectedPayment.id === pay.id || selectedPayment.duitkuCode === pay.duitkuCode;
+
+                  return (
+                    <div
+                      key={pay.id}
+                      onClick={() => setSelectedPayment(pay)}
+                      className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
+                        isSelected
+                          ? 'bg-[#14204A] border-[#CBAC70] ring-1 ring-[#CBAC70] shadow-md'
+                          : 'bg-[#0B132B] border-white/10 hover:border-white/30 text-[#94A3B8]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                        <PaymentLogo
+                          code={pay.duitkuCode}
+                          category={pay.category}
+                          imageUrl={pay.image}
+                          name={pay.name}
+                        />
+                        <div className="space-y-0.5 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-[#FDFCFF]">{pay.name}</span>
+                            {pay.duitkuCode && (
+                              <span className="text-[9px] font-mono text-[#CBAC70] bg-[#070D1F] px-1.5 py-0.2 rounded border border-white/10">
+                                {pay.duitkuCode}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-[#94A3B8] line-clamp-1">{pay.description}</p>
+                        </div>
+                      </div>
+
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        isSelected
+                          ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B]'
+                          : 'border-white/30'
+                      }`}>
+                        {isSelected && (
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
                         )}
                       </div>
-                      <p className="text-[10px] text-[#94A3B8] line-clamp-1">{pay.description}</p>
                     </div>
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                      selectedPayment.id === pay.id || selectedPayment.duitkuCode === pay.duitkuCode
-                        ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B]'
-                        : 'border-white/30'
-                    }`}>
-                      {(selectedPayment.id === pay.id || selectedPayment.duitkuCode === pay.duitkuCode) && (
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -98,6 +98,13 @@ class ShippingController extends Controller
                         default => 'standard'
                     };
 
+                    $isInstantEligible = $this->isInstantDeliveryEligible($destPostalCode, $validated['destination_city'] ?? null);
+
+                    $isInstantOption = ($tier === 'instant');
+                    $available = $isInstantOption ? $isInstantEligible : true;
+                    $disabled = ! $available;
+                    $disabledReason = $disabled ? 'Di luar area jangkauan (Khusus Jabodetabek / Max 30km)' : null;
+
                     $formattedRates[] = [
                         'id' => "biteship-{$courierCode}-{$serviceCode}",
                         'courier' => $courierName,
@@ -107,9 +114,12 @@ class ShippingController extends Controller
                         'name' => "{$courierName} ({$serviceName})",
                         'cost' => $price,
                         'formatted_cost' => 'Rp ' . number_format($price, 0, ',', '.'),
-                        'etd' => "Estimasi tiba: {$etd}",
+                        'etd' => $disabled ? 'Tidak Tersedia di Lokasi Ini' : "Estimasi tiba: {$etd}",
                         'type' => $rate['type'] ?? 'drop_off',
                         'tier' => $tier,
+                        'available' => $available,
+                        'disabled' => $disabled,
+                        'disabled_reason' => $disabledReason,
                     ];
                 }
 
@@ -119,6 +129,7 @@ class ShippingController extends Controller
                     return response()->json([
                         'success' => true,
                         'source' => 'biteship_live',
+                        'destination_eligible_for_instant' => $this->isInstantDeliveryEligible($destPostalCode, $validated['destination_city'] ?? null),
                         'data' => $formattedRates,
                     ]);
                 }
@@ -127,7 +138,9 @@ class ShippingController extends Controller
             Log::warning('Biteship rates API failed or returned empty: ' . $e->getMessage());
         }
 
-        // Curated fallback rates
+        $isInstantEligible = $this->isInstantDeliveryEligible($destPostalCode, $validated['destination_city'] ?? null);
+
+        // Curated fallback rates with distance validation
         $fallbackRates = [
             [
                 'id' => 'spx-standard',
@@ -140,6 +153,9 @@ class ShippingController extends Controller
                 'formatted_cost' => 'Rp 15.000',
                 'etd' => 'Estimasi tiba: 1-2 Hari Kerja',
                 'tier' => 'standard',
+                'available' => true,
+                'disabled' => false,
+                'disabled_reason' => null,
             ],
             [
                 'id' => 'jnt-priority',
@@ -152,6 +168,9 @@ class ShippingController extends Controller
                 'formatted_cost' => 'Rp 18.000',
                 'etd' => 'Estimasi tiba: Besok Tiba (24 Jam)',
                 'tier' => 'priority',
+                'available' => true,
+                'disabled' => false,
+                'disabled_reason' => null,
             ],
             [
                 'id' => 'sicepat-best',
@@ -164,6 +183,9 @@ class ShippingController extends Controller
                 'formatted_cost' => 'Rp 16.000',
                 'etd' => 'Estimasi tiba: 1-2 Hari',
                 'tier' => 'priority',
+                'available' => true,
+                'disabled' => false,
+                'disabled_reason' => null,
             ],
             [
                 'id' => 'instant-sameday',
@@ -174,15 +196,46 @@ class ShippingController extends Controller
                 'name' => 'Instant Sameday (Grab / Gojek)',
                 'cost' => 32000,
                 'formatted_cost' => 'Rp 32.000',
-                'etd' => 'Estimasi tiba: Hari Ini (3 Jam Tiba)',
+                'etd' => $isInstantEligible ? 'Estimasi tiba: Hari Ini (3 Jam Tiba)' : 'Di Luar Area Jangkauan (Max 30km)',
                 'tier' => 'instant',
+                'available' => $isInstantEligible,
+                'disabled' => ! $isInstantEligible,
+                'disabled_reason' => ! $isInstantEligible ? 'Alamat di luar area jangkauan pengiriman instan (Khusus Jabodetabek / Max 30km)' : null,
             ],
         ];
 
         return response()->json([
             'success' => true,
             'source' => 'fallback',
+            'destination_eligible_for_instant' => $isInstantEligible,
             'data' => $fallbackRates,
         ]);
+    }
+
+    /**
+     * Check if destination postal code / city is eligible for Instant Sameday delivery (Max ~30-40km / Jabodetabek).
+     */
+    protected function isInstantDeliveryEligible(int $postalCode, ?string $city = null): bool
+    {
+        $codeStr = (string) $postalCode;
+        $twoDigits = substr($codeStr, 0, 2);
+
+        // Jabodetabek Postal Code Prefixes: 10, 11, 12, 13, 14, 15, 16, 17
+        $jabodetabekPrefixes = ['10', '11', '12', '13', '14', '15', '16', '17'];
+        if (in_array($twoDigits, $jabodetabekPrefixes, true)) {
+            return true;
+        }
+
+        if (! empty($city)) {
+            $cityLower = strtolower(trim($city));
+            $allowedKeywords = ['jakarta', 'depok', 'tangerang', 'bekasi', 'bogor', 'tangsel'];
+            foreach ($allowedKeywords as $kw) {
+                if (str_contains($cityLower, $kw)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

@@ -91,6 +91,9 @@ export interface ShippingOption {
   formatted_cost?: string;
   etd: string;
   tier?: 'standard' | 'priority' | 'instant';
+  available?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export interface PaymentMethod {

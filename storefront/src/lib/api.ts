@@ -287,6 +287,9 @@ export async function fetchShippingRatesFromApi(payload: {
         formatted_cost: item.formatted_cost,
         etd: item.etd || '1-2 Hari Kerja',
         tier: item.tier || 'standard',
+        available: item.available !== false,
+        disabled: item.disabled === true,
+        disabledReason: item.disabled_reason || undefined,
       }));
     }
   } catch (err) {
