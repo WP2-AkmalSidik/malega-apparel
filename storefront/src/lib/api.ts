@@ -1,5 +1,5 @@
-import { Product, ProductVariant, CatalogCollection, ShippingOption, PaymentMethod } from '../types';
-import { productsCatalog, shippingCouriers, paymentGateways } from '../data/products';
+import { Product, ProductVariant, CatalogCollection, ShippingOption, PaymentMethod, Voucher } from '../types';
+import { productsCatalog, shippingCouriers, paymentGateways, availableVouchers } from '../data/products';
 import { katalogCollections } from '../data/katalog';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
@@ -435,5 +435,81 @@ export async function fetchPaymentMethodsFromApi(amount: number = 100000): Promi
   }
 
   return paymentGateways;
+}
+
+export async function fetchPublicVouchersFromApi(): Promise<Voucher[]> {
+  try {
+    const res = await fetch(`${API_BASE}/vouchers/public`, {
+      next: { revalidate: 60 },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch vouchers: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data)) {
+      return json.data.map((item: any) => ({
+        id: item.id,
+        code: item.code,
+        title: item.title || item.name,
+        name: item.name,
+        description: item.description || '',
+        minSpend: Number(item.min_spend || item.minSpend || 0),
+        min_spend: Number(item.min_spend || item.minSpend || 0),
+        discount: Number(item.discount || item.amount || 0),
+        amount: Number(item.amount || 0),
+        maxDiscount: item.max_discount ? Number(item.max_discount) : undefined,
+        max_discount: item.max_discount ? Number(item.max_discount) : undefined,
+        formatted_discount: item.formatted_discount,
+        type: (item.type === 'free_shipping' ? 'shipping' : item.type === 'fixed_amount' ? 'fixed' : item.type) as 'fixed' | 'percentage' | 'shipping',
+        applied: false,
+        validUntil: item.valid_until,
+      }));
+    }
+  } catch (err) {
+    console.warn('Backend API vouchers unreachable, fallback to local data:', err);
+  }
+
+  return availableVouchers;
+}
+
+export async function validateVoucherApi(params: {
+  code: string;
+  subtotal: number;
+  shipping_cost?: number;
+  email?: string;
+}): Promise<{
+  success: boolean;
+  message: string;
+  discount_amount: number;
+  voucher?: any;
+}> {
+  try {
+    const res = await fetch(`${API_BASE}/vouchers/validate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+
+    const json = await res.json();
+
+    return {
+      success: Boolean(json.success || res.ok),
+      message: json.message || (res.ok ? 'Voucher berhasil diterapkan' : 'Voucher tidak valid atau tidak memenuhi syarat.'),
+      discount_amount: Number(json.data?.discount_amount || 0),
+      voucher: json.data?.voucher,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || 'Gagal menghubungi server validasi promo.',
+      discount_amount: 0,
+    };
+  }
 }
 

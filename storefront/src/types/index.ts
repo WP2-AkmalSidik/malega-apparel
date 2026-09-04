@@ -72,12 +72,22 @@ export interface CartItem {
 }
 
 export interface Voucher {
+  id?: number | string;
   code: string;
   title: string;
+  name?: string;
+  description?: string;
   minSpend: number;
+  min_spend?: number;
   discount: number;
-  type: 'fixed' | 'percentage' | 'shipping';
+  amount?: number;
+  maxDiscount?: number;
+  max_discount?: number;
+  formatted_discount?: string;
+  type: 'fixed' | 'percentage' | 'shipping' | 'fixed_amount' | 'free_shipping';
   applied: boolean;
+  validUntil?: string;
+  valid_until?: string;
 }
 
 export interface ShippingOption {

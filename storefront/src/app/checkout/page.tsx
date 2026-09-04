@@ -47,6 +47,7 @@ export default function CheckoutPage() {
     appliedVouchers,
     toggleVoucher,
     applyVoucherCode,
+    applyVoucherCodeAsync,
     buyerNote,
     setBuyerNote,
     subtotal,
@@ -64,6 +65,8 @@ export default function CheckoutPage() {
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherError, setVoucherError] = useState('');
   const [voucherSuccess, setVoucherSuccess] = useState('');
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -172,18 +175,44 @@ export default function CheckoutPage() {
     setIsEditingAddress(false);
   };
 
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     setVoucherError('');
     setVoucherSuccess('');
     if (!voucherInput.trim()) return;
 
-    const success = applyVoucherCode(voucherInput);
-    if (success) {
-      setVoucherSuccess(`Voucher ${voucherInput.toUpperCase()} berhasil diterapkan!`);
-      setVoucherInput('');
-    } else {
-      setVoucherError('Kode voucher tidak valid atau telah kedaluwarsa.');
+    setIsValidatingPromo(true);
+    try {
+      const res = await applyVoucherCodeAsync(voucherInput.trim(), selectedAddress.name);
+      if (res.success) {
+        setVoucherSuccess(res.message);
+        setVoucherInput('');
+      } else {
+        setVoucherError(res.message || 'Kode voucher tidak valid atau tidak memenuhi syarat.');
+      }
+    } catch (err: any) {
+      setVoucherError('Gagal memvalidasi voucher ke server.');
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const handleSelectVoucherFromModal = async (code: string) => {
+    setShowVoucherModal(false);
+    setVoucherError('');
+    setVoucherSuccess('');
+    setIsValidatingPromo(true);
+    try {
+      const res = await applyVoucherCodeAsync(code, selectedAddress.name);
+      if (res.success) {
+        setVoucherSuccess(res.message);
+      } else {
+        setVoucherError(res.message);
+      }
+    } catch (err: any) {
+      setVoucherError('Gagal memvalidasi voucher ke server.');
+    } finally {
+      setIsValidatingPromo(false);
     }
   };
 
@@ -195,6 +224,8 @@ export default function CheckoutPage() {
       // Resolve Duitku payment method code
       const paymentMethodCode = selectedPayment.duitkuCode 
         || (selectedPayment.category === 'qris' ? 'SP' : selectedPayment.category === 'card' ? 'VC' : 'BC');
+
+      const appliedVoucherCode = appliedVouchers.length > 0 ? appliedVouchers[0].code : null;
 
       const payload = {
         customer: {
@@ -221,6 +252,7 @@ export default function CheckoutPage() {
           quantity: item.quantity
         })),
         payment_method: paymentMethodCode,
+        voucher_code: appliedVoucherCode,
         shipping_total: shippingCost,
         discount_total: productDiscount + shippingDiscount,
         notes: buyerNote || 'Pesanan dari Storefront Malega'
@@ -614,7 +646,17 @@ export default function CheckoutPage() {
 
               {/* Voucher Promo Input */}
               <div className="pt-2.5 border-t border-white/10 space-y-1.5">
-                <span className="font-bold text-[#FDFCFF] block">Kode Promo / VIP Voucher:</span>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#FDFCFF] block">Kode Promo / VIP Voucher:</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowVoucherModal(true)}
+                    className="text-[10px] text-[#CBAC70] hover:text-[#E3CD99] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Ticket className="w-3 h-3" />
+                    <span>Pilih Voucher ({vouchers.length})</span>
+                  </button>
+                </div>
                 <form onSubmit={handleApplyPromo} className="flex gap-1.5">
                   <input
                     type="text"
@@ -625,9 +667,10 @@ export default function CheckoutPage() {
                   />
                   <button
                     type="submit"
-                    className="px-3 py-1.5 bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] font-bold text-xs rounded-xl border border-[#CBAC70]/40 transition-colors cursor-pointer"
+                    disabled={isValidatingPromo}
+                    className="px-3 py-1.5 bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] font-bold text-xs rounded-xl border border-[#CBAC70]/40 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    Terapkan
+                    {isValidatingPromo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Terapkan'}
                   </button>
                 </form>
 
@@ -708,6 +751,103 @@ export default function CheckoutPage() {
         </div>
 
       </div>
+
+      {/* Voucher Selection Modal */}
+      {showVoucherModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#111D42] border border-[#CBAC70]/40 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 text-[#FDFCFF] max-h-[85vh] flex flex-col">
+            
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-[#CBAC70]" />
+                <div>
+                  <h3 className="font-bold text-sm text-[#FDFCFF]">Voucher & Diskon Spesial</h3>
+                  <p className="text-[10px] text-[#94A3B8]">Pilih voucher eksklusif untuk pesanan Anda</p>
+                </div>
+              </div>
+              <button onClick={() => setShowVoucherModal(false)} className="text-[#94A3B8] hover:text-white cursor-pointer text-lg font-bold">✕</button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              {vouchers.length === 0 ? (
+                <div className="text-center py-8 text-xs text-[#94A3B8]">
+                  Belum ada voucher aktif yang tersedia saat ini.
+                </div>
+              ) : (
+                vouchers.map((v) => {
+                  const isApplied = appliedVouchers.some(av => av.code.toUpperCase() === v.code.toUpperCase());
+                  const isMinSpendMet = subtotal >= (v.minSpend || v.min_spend || 0);
+
+                  return (
+                    <div
+                      key={v.code}
+                      className={`p-4 rounded-2xl border transition-all relative ${
+                        isApplied
+                          ? 'bg-[#14204A] border-[#CBAC70] ring-1 ring-[#CBAC70]'
+                          : isMinSpendMet
+                          ? 'bg-[#0B132B] border-white/10 hover:border-[#CBAC70]/50'
+                          : 'bg-[#070D1F]/60 border-white/5 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-xs font-black text-[#CBAC70] bg-[#070D1F] px-2 py-0.5 rounded border border-[#CBAC70]/30 tracking-wider">
+                              {v.code}
+                            </span>
+                            <span className="text-xs font-bold text-[#FDFCFF] truncate">{v.title || v.name}</span>
+                          </div>
+                          {v.description && (
+                            <p className="text-[11px] text-[#94A3B8] leading-relaxed">{v.description}</p>
+                          )}
+                          <div className="flex items-center gap-3 text-[10px] text-[#94A3B8] pt-1">
+                            <span>Min. Belanja: <strong className="text-[#FDFCFF]">{formatRupiah(v.minSpend || v.min_spend || 0)}</strong></span>
+                            {v.formatted_discount && (
+                              <span className="text-[#CBAC70] font-semibold">• {v.formatted_discount}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isApplied) {
+                              toggleVoucher(v.code);
+                            } else {
+                              handleSelectVoucherFromModal(v.code);
+                            }
+                          }}
+                          disabled={!isMinSpendMet && !isApplied}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                            isApplied
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30'
+                              : isMinSpendMet
+                              ? 'bg-[#CBAC70] text-[#0B132B] hover:bg-[#E3CD99] shadow'
+                              : 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed'
+                          }`}
+                        >
+                          {isApplied ? 'Batalkan' : isMinSpendMet ? 'Gunakan' : 'S&K Belum Pas'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowVoucherModal(false)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/15 text-xs font-bold text-[#FDFCFF] rounded-xl cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Simulated / Fallback Payment Modal with Live Data */}
       {showPaymentModal && (

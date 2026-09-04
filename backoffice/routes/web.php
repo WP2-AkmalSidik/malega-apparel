@@ -55,6 +55,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports', \App\Livewire\Finance\FinancialReportIndex::class)->name('reports');
     });
 
+    // Module 08: Marketing & Voucher Engine
+    Route::prefix('marketing')->name('marketing.')->group(function () {
+        Route::get('/vouchers', \App\Livewire\Marketing\VoucherIndex::class)->name('vouchers');
+    });
+
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();
 

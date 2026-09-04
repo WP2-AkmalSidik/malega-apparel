@@ -47,4 +47,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('/shipping/rates', [\App\Http\Controllers\Api\V1\ShippingController::class, 'rates'])->name('shipping.rates');
     Route::post('/webhooks/biteship', [\App\Http\Controllers\Api\V1\BiteshipWebhookController::class, 'handle'])->name('webhooks.biteship');
     Route::post('/webhooks/duitku', [\App\Http\Controllers\Api\V1\DuitkuWebhookController::class, 'handle'])->name('webhooks.duitku');
+
+    // 6. Marketing & Promotion Endpoints (Vouchers)
+    Route::post('/vouchers/validate', [\App\Http\Controllers\Api\V1\VoucherController::class, 'validateCode'])->name('vouchers.validate');
+    Route::get('/vouchers/public', [\App\Http\Controllers\Api\V1\VoucherController::class, 'publicList'])->name('vouchers.public');
 });

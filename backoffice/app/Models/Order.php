@@ -65,6 +65,14 @@ class Order extends Model
     }
 
     /**
+     * Voucher usages applied on this order.
+     */
+    public function voucherUsages(): HasMany
+    {
+        return $this->hasMany(VoucherUsage::class);
+    }
+
+    /**
      * Line items snapshotted in this order.
      */
     public function items(): HasMany

@@ -12,12 +12,14 @@ use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
+use App\Actions\Marketing\ValidateVoucherAction;
 use Illuminate\Validation\ValidationException;
 
 class CreateOrderAction
 {
     public function __construct(
-        protected ReserveStockAction $reserveStock
+        protected ReserveStockAction $reserveStock,
+        protected ValidateVoucherAction $validateVoucher
     ) {}
 
     /**
@@ -121,9 +123,45 @@ class CreateOrderAction
                 ];
             }
 
-            $discountTotal = max(0, (int) ($data['discount_total'] ?? 0));
             $shippingTotal = max(0, (int) ($data['shipping_total'] ?? 0));
             $taxTotal = max(0, (int) ($data['tax_total'] ?? 0));
+
+            // Server-Authoritative Voucher Validation & Calculation
+            $appliedVoucherModels = [];
+            $computedDiscount = 0;
+
+            $voucherCodes = [];
+            if (! empty($data['voucher_code'])) {
+                $voucherCodes[] = $data['voucher_code'];
+            }
+            if (! empty($data['voucher_codes']) && is_array($data['voucher_codes'])) {
+                $voucherCodes = array_merge($voucherCodes, $data['voucher_codes']);
+            }
+
+            foreach (array_unique($voucherCodes) as $vCode) {
+                $vRes = $this->validateVoucher->execute(
+                    (string) $vCode,
+                    $subtotal,
+                    $shippingTotal,
+                    $customer->email
+                );
+
+                if ($vRes['valid'] && $vRes['voucher']) {
+                    $voucherModel = \App\Models\Voucher::find($vRes['voucher']['id']);
+                    if ($voucherModel) {
+                        $appliedVoucherModels[] = [
+                            'voucher' => $voucherModel,
+                            'discount' => $vRes['discount_amount'],
+                        ];
+                        $computedDiscount += $vRes['discount_amount'];
+                    }
+                }
+            }
+
+            $discountTotal = ($computedDiscount > 0)
+                ? $computedDiscount
+                : max(0, (int) ($data['discount_total'] ?? 0));
+
             $grandTotal = max(0, ($subtotal - $discountTotal) + $shippingTotal + $taxTotal);
 
             // 4. Create Order Record
@@ -141,6 +179,18 @@ class CreateOrderAction
                 'grand_total' => $grandTotal,
                 'notes' => $data['notes'] ?? null,
             ]);
+
+            // Record Voucher Usages
+            foreach ($appliedVoucherModels as $vUsage) {
+                \App\Models\VoucherUsage::create([
+                    'voucher_id' => $vUsage['voucher']->id,
+                    'order_id' => $order->id,
+                    'customer_id' => $customer->id,
+                    'customer_email' => $customer->email,
+                    'discount_amount' => $vUsage['discount'],
+                ]);
+                $vUsage['voucher']->increment('used_count');
+            }
 
             // 5. Create Snapshot Line Items (ADR-006) & Reserve Inventory Stock (ADR-001)
             foreach ($itemsToCreate as $item) {
@@ -173,15 +223,16 @@ class CreateOrderAction
             }
 
             // 6. Create Shipping Address
+            $addr = $data['address'] ?? $data['shipping_address'] ?? [];
             $order->address()->create([
-                'recipient_name' => $data['address']['recipient_name'],
-                'phone' => $data['address']['phone'],
-                'address_line1' => $data['address']['address_line1'],
-                'address_line2' => $data['address']['address_line2'] ?? null,
-                'city' => $data['address']['city'],
-                'province' => $data['address']['province'],
-                'postal_code' => $data['address']['postal_code'],
-                'courier_name' => $data['address']['courier_name'] ?? null,
+                'recipient_name' => $addr['recipient_name'] ?? $customer->name,
+                'phone' => $addr['phone'] ?? $customer->phone,
+                'address_line1' => $addr['address_line1'] ?? '-',
+                'address_line2' => $addr['address_line2'] ?? null,
+                'city' => $addr['city'] ?? '-',
+                'province' => $addr['province'] ?? '-',
+                'postal_code' => $addr['postal_code'] ?? '-',
+                'courier_name' => $addr['courier_name'] ?? null,
                 'tracking_number' => null,
             ]);
 

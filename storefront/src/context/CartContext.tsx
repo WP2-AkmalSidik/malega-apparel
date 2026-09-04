@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Voucher, Address, ShippingOption, PaymentMethod, OrderReceipt, Product } from '../types';
 import { productsCatalog, availableVouchers, defaultAddress, shippingCouriers, paymentGateways } from '../data/products';
+import { fetchPublicVouchersFromApi, validateVoucherApi } from '../lib/api';
 
 interface CartContextType {
   cart: CartItem[];
@@ -46,6 +47,7 @@ interface CartContextType {
   appliedVouchers: Voucher[];
   toggleVoucher: (code: string) => void;
   applyVoucherCode: (code: string) => boolean;
+  applyVoucherCodeAsync: (code: string, email?: string) => Promise<{ success: boolean; message: string; discount?: number }>;
   buyerNote: string;
   setBuyerNote: (note: string) => void;
 
@@ -107,7 +109,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // 2. Persist or clear cart cache in localStorage on change
+  // 2. Fetch live public vouchers on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPublicVouchers() {
+      try {
+        const list = await fetchPublicVouchersFromApi();
+        if (isMounted && list && list.length > 0) {
+          setVouchers(prev => {
+            // Merge while preserving applied status if any
+            const appliedCodes = new Set(prev.filter(v => v.applied).map(v => v.code.toUpperCase()));
+            return list.map(v => ({
+              ...v,
+              applied: appliedCodes.has(v.code.toUpperCase())
+            }));
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to load public vouchers from API:', err);
+      }
+    }
+    loadPublicVouchers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 3. Persist or clear cart cache in localStorage on change
   useEffect(() => {
     if (!isLoaded) return;
     try {
@@ -247,7 +275,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const toggleVoucher = (code: string) => {
     setVouchers(prev =>
-      prev.map(v => (v.code === code ? { ...v, applied: !v.applied } : v))
+      prev.map(v => (v.code.toUpperCase() === code.toUpperCase() ? { ...v, applied: !v.applied } : v))
     );
   };
 
@@ -263,6 +291,56 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
+  const applyVoucherCodeAsync = async (
+    code: string,
+    email?: string
+  ): Promise<{ success: boolean; message: string; discount?: number }> => {
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode) {
+      return { success: false, message: 'Kode voucher tidak boleh kosong.' };
+    }
+
+    const currentSubtotal = checkoutItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const currentShipCost = checkoutItems.length > 0 ? selectedShipping.cost : 0;
+
+    const result = await validateVoucherApi({
+      code: cleanCode,
+      subtotal: currentSubtotal,
+      shipping_cost: currentShipCost,
+      email: email || undefined,
+    });
+
+    if (result.success && result.voucher) {
+      const vData = result.voucher;
+      const newVoucher: Voucher = {
+        id: vData.id,
+        code: vData.code,
+        title: vData.title || vData.name,
+        name: vData.name,
+        description: vData.description || '',
+        minSpend: Number(vData.min_spend || 0),
+        discount: Number(vData.amount || result.discount_amount),
+        amount: Number(vData.amount || 0),
+        maxDiscount: vData.max_discount ? Number(vData.max_discount) : undefined,
+        formatted_discount: vData.formatted_discount,
+        type: (vData.type === 'free_shipping' ? 'shipping' : vData.type === 'fixed_amount' ? 'fixed' : vData.type) as 'fixed' | 'percentage' | 'shipping',
+        applied: true,
+      };
+
+      setVouchers(prev => {
+        const idx = prev.findIndex(v => v.code.toUpperCase() === cleanCode);
+        if (idx > -1) {
+          return prev.map((v, i) => (i === idx ? { ...v, ...newVoucher, applied: true } : v));
+        }
+        return [...prev, newVoucher];
+      });
+
+      return { success: true, message: result.message, discount: result.discount_amount };
+    }
+
+    return { success: false, message: result.message };
+  };
+
   const appliedVouchers = vouchers.filter(v => v.applied);
 
   // Financials for Cart Drawer
@@ -274,14 +352,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const shippingDiscount = checkoutItems.length > 0
     ? appliedVouchers
-        .filter(v => v.type === 'shipping')
-        .reduce((acc, v) => acc + Math.min(shippingCost, v.discount), 0)
+        .filter(v => v.type === 'shipping' || (v.type as string) === 'free_shipping')
+        .reduce((acc, v) => {
+          const disc = v.amount || v.discount || 15000;
+          return acc + Math.min(shippingCost, disc);
+        }, 0)
     : 0;
 
   const productDiscount = checkoutItems.length > 0
     ? appliedVouchers
-        .filter(v => v.type === 'percentage' || v.type === 'fixed')
-        .reduce((acc, v) => acc + v.discount, 0)
+        .filter(v => v.type === 'percentage' || v.type === 'fixed' || (v.type as string) === 'fixed_amount')
+        .reduce((acc, v) => {
+          if (v.type === 'percentage') {
+            const percent = v.amount || v.discount || 0;
+            const rawDiscount = Math.round((subtotal * percent) / 100);
+            const capped = (v.maxDiscount && v.maxDiscount > 0) ? Math.min(rawDiscount, v.maxDiscount) : rawDiscount;
+            return acc + capped;
+          } else {
+            const fixedAmt = v.amount || v.discount || 0;
+            return acc + Math.min(subtotal, fixedAmt);
+          }
+        }, 0)
     : 0;
 
   const serviceFee = subtotal > 0 ? 1000 : 0;
@@ -367,6 +458,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         appliedVouchers,
         toggleVoucher,
         applyVoucherCode,
+        applyVoucherCodeAsync,
         buyerNote,
         setBuyerNote,
         cartSubtotal,
