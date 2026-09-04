@@ -43,7 +43,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('/customers/wishlist', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'syncWishlist'])->name('customers.wishlist');
     Route::get('/customers/orders', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'orders'])->name('customers.orders');
 
-    // 5. Logistics & Webhooks
+    // 5. Logistics & Shipping Endpoints (Biteship)
+    Route::post('/shipping/rates', [\App\Http\Controllers\Api\V1\ShippingController::class, 'rates'])->name('shipping.rates');
     Route::post('/webhooks/biteship', [\App\Http\Controllers\Api\V1\BiteshipWebhookController::class, 'handle'])->name('webhooks.biteship');
     Route::post('/webhooks/duitku', [\App\Http\Controllers\Api\V1\DuitkuWebhookController::class, 'handle'])->name('webhooks.duitku');
 });

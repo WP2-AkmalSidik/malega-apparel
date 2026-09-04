@@ -85,8 +85,12 @@ export interface ShippingOption {
   name: string;
   service: string;
   courier: string;
+  courier_code?: string;
+  service_code?: string;
   cost: number;
+  formatted_cost?: string;
   etd: string;
+  tier?: 'standard' | 'priority' | 'instant';
 }
 
 export interface PaymentMethod {
@@ -94,6 +98,9 @@ export interface PaymentMethod {
   name: string;
   description: string;
   category: 'qris' | 'va' | 'card' | 'paylater' | 'cod';
+  duitkuCode?: string;
+  fee?: number;
+  image?: string;
   accountNumber?: string;
   bankName?: string;
 }

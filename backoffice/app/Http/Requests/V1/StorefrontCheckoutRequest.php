@@ -28,8 +28,15 @@ class StorefrontCheckoutRequest extends FormRequest
             'customer.phone' => ['required', 'string', 'max:30'],
 
             'items' => ['required', 'array', 'min:1'],
-            'items.*.variant_id' => ['required', 'integer', 'exists:product_variants,id'],
+            'items.*.variant_id' => ['nullable'],
+            'items.*.sku' => ['nullable', 'string', 'max:100'],
+            'items.*.product_name' => ['nullable', 'string', 'max:255'],
+            'items.*.variant_title' => ['nullable', 'string', 'max:255'],
+            'items.*.unit_price' => ['nullable', 'integer', 'min:0'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+
+            'payment_method' => ['nullable', 'string', 'max:50'],
+            'payment_method_name' => ['nullable', 'string', 'max:100'],
 
             'shipping_address.recipient_name' => ['required', 'string', 'max:255'],
             'shipping_address.phone' => ['required', 'string', 'max:30'],
@@ -38,7 +45,7 @@ class StorefrontCheckoutRequest extends FormRequest
             'shipping_address.city' => ['required', 'string', 'max:100'],
             'shipping_address.province' => ['required', 'string', 'max:100'],
             'shipping_address.postal_code' => ['required', 'string', 'max:20'],
-            'shipping_address.courier_name' => ['nullable', 'string', 'max:50'],
+            'shipping_address.courier_name' => ['nullable', 'string', 'max:100'],
 
             'shipping_total' => ['nullable', 'integer', 'min:0'],
             'discount_total' => ['nullable', 'integer', 'min:0'],

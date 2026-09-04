@@ -1,5 +1,5 @@
-import { Product, ProductVariant, CatalogCollection } from '../types';
-import { productsCatalog } from '../data/products';
+import { Product, ProductVariant, CatalogCollection, ShippingOption, PaymentMethod } from '../types';
+import { productsCatalog, shippingCouriers, paymentGateways } from '../data/products';
 import { katalogCollections } from '../data/katalog';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
@@ -253,3 +253,184 @@ export async function fetchProductDetailFromApi(identifier: string): Promise<Pro
 
   return productsCatalog.find(p => p.id === identifier || p.slug === identifier) || null;
 }
+
+export async function fetchShippingRatesFromApi(payload: {
+  destination_postal_code?: string;
+  destination_city?: string;
+  items?: any[];
+}): Promise<ShippingOption[]> {
+  try {
+    const res = await fetch(`${API_BASE}/shipping/rates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch shipping rates: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      return json.data.map((item: any) => ({
+        id: item.id || `biteship-${item.courier_code}-${item.service_code}`,
+        name: item.name || `${item.courier} (${item.service})`,
+        service: item.service || item.service_name || 'Standard',
+        courier: item.courier || item.courier_name || 'Kurir',
+        courier_code: item.courier_code,
+        service_code: item.service_code,
+        cost: Number(item.cost) || 15000,
+        formatted_cost: item.formatted_cost,
+        etd: item.etd || '1-2 Hari Kerja',
+        tier: item.tier || 'standard',
+      }));
+    }
+  } catch (err) {
+    console.warn('Biteship rates API failed or unreachable, using local fallback:', err);
+  }
+
+  return shippingCouriers;
+}
+
+export async function fetchPaymentMethodsFromApi(amount: number = 100000): Promise<PaymentMethod[]> {
+  try {
+    const res = await fetch(`${API_BASE}/payments/methods?amount=${amount}`, {
+      next: { revalidate: 60 },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch payment methods: ${res.statusText}`);
+    }
+
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      // Curated channels to display prominently
+      const priorityOrder = ['SP', 'BC', 'M2', 'I1', 'BR', 'BT', 'B1', 'VC', 'DA', 'OV', 'COD'];
+
+      const mapped = json.data.map((item: any) => {
+        const code = (item.code || '').toUpperCase();
+        let category: 'qris' | 'va' | 'card' | 'paylater' | 'cod' = 'va';
+        let name = item.name || code;
+        let desc = 'Verifikasi pembayaran otomatis 24 jam via Duitku';
+        let bankName = item.name || 'Bank';
+
+        switch (code) {
+          case 'SP':
+          case 'QR':
+          case 'NQ':
+          case 'LQ':
+          case 'GQ':
+            category = 'qris';
+            name = 'QRIS Instant Pay (Semua Bank & E-Wallet)';
+            desc = 'Scan otomatis via BCA, Mandiri, Gopay, OVO, Dana, ShopeePay (Bebas Biaya Admin)';
+            break;
+          case 'BC':
+            category = 'va';
+            name = 'BCA Virtual Account';
+            desc = 'Verifikasi instan otomatis 24 jam via BCA Mobile / myBCA / KlikBCA / ATM';
+            bankName = 'BCA';
+            break;
+          case 'M2':
+            category = 'va';
+            name = 'Mandiri Virtual Account';
+            desc = 'Bayar instan via aplikasi Livin by Mandiri atau ATM Mandiri';
+            bankName = 'Mandiri';
+            break;
+          case 'I1':
+            category = 'va';
+            name = 'BNI Virtual Account';
+            desc = 'Bayar instan via BNI Mobile Banking / ATM BNI';
+            bankName = 'BNI';
+            break;
+          case 'BR':
+            category = 'va';
+            name = 'BRI Virtual Account (BRIVA)';
+            desc = 'Bayar instan via aplikasi BRImo / ATM BRI seluruh Indonesia';
+            bankName = 'BRI';
+            break;
+          case 'BT':
+            category = 'va';
+            name = 'Permata Virtual Account';
+            desc = 'Bayar via PermataMobile X / ATM Permata';
+            bankName = 'Permata';
+            break;
+          case 'B1':
+            category = 'va';
+            name = 'CIMB Niaga Virtual Account';
+            desc = 'Bayar via OCTO Mobile / OCTO Clicks / ATM CIMB';
+            bankName = 'CIMB Niaga';
+            break;
+          case 'VC':
+            category = 'card';
+            name = 'Kartu Kredit / Debit (Visa & Mastercard)';
+            desc = 'Proteksi enkripsi 256-bit SSL & 3D Secure OTP';
+            break;
+          case 'DA':
+            category = 'qris';
+            name = 'DANA E-Wallet';
+            desc = 'Pembayaran instan via aplikasi DANA';
+            break;
+          case 'OV':
+            category = 'qris';
+            name = 'OVO Instant Pay';
+            desc = 'Pembayaran instan via aplikasi OVO';
+            break;
+          case 'COD':
+            category = 'cod';
+            name = 'COD (Bayar Tunai di Tempat)';
+            desc = 'Bayar tunai ke kurir saat paket sampai di alamat Anda';
+            break;
+          default:
+            category = 'va';
+            desc = `Verifikasi instan otomatis 24 jam via ${item.name}`;
+            break;
+        }
+
+        return {
+          id: `duitku-${code.toLowerCase()}`,
+          name,
+          duitkuCode: code,
+          category,
+          description: desc,
+          fee: item.fee || 0,
+          image: item.image,
+          bankName,
+          accountNumber: category === 'va' ? '8271081234567890' : undefined
+        };
+      });
+
+      // Ensure COD is present
+      if (!mapped.some((m: PaymentMethod) => m.duitkuCode === 'COD')) {
+        mapped.push({
+          id: 'cod',
+          duitkuCode: 'COD',
+          name: 'COD (Bayar Tunai di Tempat)',
+          description: 'Bayar tunai ke kurir saat paket sampai di alamat Anda',
+          category: 'cod'
+        });
+      }
+
+      // Filter and sort by priority order
+      const prioritySet = new Set(priorityOrder);
+      const filtered = mapped.filter((m: PaymentMethod) => prioritySet.has(m.duitkuCode || ''));
+
+      filtered.sort((a: PaymentMethod, b: PaymentMethod) => {
+        const idxA = priorityOrder.indexOf(a.duitkuCode || '');
+        const idxB = priorityOrder.indexOf(b.duitkuCode || '');
+        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+      });
+
+      return filtered.length > 0 ? filtered : mapped;
+    }
+  } catch (err) {
+    console.warn('Duitku payment methods API unreachable, using local fallback:', err);
+  }
+
+  return paymentGateways;
+}
+

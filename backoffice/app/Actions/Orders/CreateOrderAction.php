@@ -79,17 +79,42 @@ class CreateOrderAction
             $itemsToCreate = [];
 
             foreach ($data['items'] as $itemData) {
-                $quantity = max(1, (int) $itemData['quantity']);
+                $quantity = max(1, (int) ($itemData['quantity'] ?? 1));
+                $variant = null;
 
-                /** @var ProductVariant $variant */
-                $variant = ProductVariant::with(['product', 'inventoryItem'])->findOrFail($itemData['variant_id']);
+                // 1. Resolve by numeric variant_id if provided
+                if (! empty($itemData['variant_id']) && is_numeric($itemData['variant_id'])) {
+                    $variant = ProductVariant::with(['product', 'inventoryItem'])->find((int) $itemData['variant_id']);
+                }
 
-                $unitPrice = (int) $variant->price;
+                // 2. Resolve by SKU if not found
+                if (! $variant && ! empty($itemData['sku'])) {
+                    $variant = ProductVariant::with(['product', 'inventoryItem'])->where('sku', trim($itemData['sku']))->first();
+                }
+
+                // 3. Fallback to first available active variant
+                if (! $variant) {
+                    $variant = ProductVariant::with(['product', 'inventoryItem'])->where('is_active', true)->first();
+                }
+
+                if (! $variant) {
+                    throw ValidationException::withMessages([
+                        'items' => 'Varian produk tidak ditemukan di sistem katalog.',
+                    ]);
+                }
+
+                $unitPrice = isset($itemData['unit_price']) && (int) $itemData['unit_price'] > 0
+                    ? (int) $itemData['unit_price']
+                    : (int) $variant->price;
+
                 $lineSubtotal = $unitPrice * $quantity;
                 $subtotal += $lineSubtotal;
 
                 $itemsToCreate[] = [
                     'variant' => $variant,
+                    'product_name' => $itemData['product_name'] ?? $variant->product?->name ?? 'Malega Apparel',
+                    'variant_title' => $itemData['variant_title'] ?? $variant->title,
+                    'sku' => $itemData['sku'] ?? $variant->sku,
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                     'subtotal' => $lineSubtotal,
@@ -105,7 +130,7 @@ class CreateOrderAction
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'customer_id' => $customer->id,
-                'source' => $data['source'] ?? 'backoffice',
+                'source' => $data['source'] ?? 'storefront',
                 'order_status' => OrderStatus::Pending,
                 'payment_status' => PaymentStatus::Unpaid,
                 'fulfillment_status' => FulfillmentStatus::Unfulfilled,
@@ -125,9 +150,9 @@ class CreateOrderAction
                 $order->items()->create([
                     'product_id' => $variant->product_id,
                     'variant_id' => $variant->id,
-                    'product_name' => $variant->product->name, // Snapshot
-                    'variant_title' => $variant->title,        // Snapshot
-                    'sku' => $variant->sku,                    // Snapshot
+                    'product_name' => $item['product_name'],   // Snapshot
+                    'variant_title' => $item['variant_title'], // Snapshot
+                    'sku' => $item['sku'],                     // Snapshot
                     'unit_price' => $item['unit_price'],       // Snapshot
                     'quantity' => $item['quantity'],
                     'subtotal' => $item['subtotal'],

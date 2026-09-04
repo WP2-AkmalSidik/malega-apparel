@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
   CheckCircle2, 
   Package, 
@@ -12,13 +13,18 @@ import {
   ArrowRight, 
   Clock, 
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import BrandLogo from '../../components/BrandLogo';
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
+  const searchParams = useSearchParams();
+  const orderNumberParam = searchParams.get('order_number') || searchParams.get('merchantOrderId') || searchParams.get('orderId');
   const { lastOrder } = useCart();
+
+  const [liveOrder, setLiveOrder] = useState<any>(null);
+  const [isLoadingOrder, setIsLoadingOrder] = useState<boolean>(false);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
@@ -26,11 +32,80 @@ export default function OrderConfirmationPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert(`Nomor resi ${text} berhasil disalin!`);
+    alert(`Nomor resi / invoice ${text} berhasil disalin!`);
   };
 
-  // Default fallback data if user navigates directly
-  const order = lastOrder || {
+  useEffect(() => {
+    const currentOrderParam = orderNumberParam;
+    if (!currentOrderParam) return;
+
+    let isMounted = true;
+    async function fetchLiveOrder() {
+      setIsLoadingOrder(true);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+        const orderCode = String(currentOrderParam);
+        const res = await fetch(`${apiUrl}/orders/${encodeURIComponent(orderCode)}`);
+        const json = await res.json();
+        if (isMounted && json.success && json.data) {
+          const data = json.data;
+          setLiveOrder({
+            orderId: data.id || data.order_number,
+            invoiceNumber: data.order_number,
+            trackingNumber: data.shipment?.waybill_id || data.shipping_address?.tracking_number || `SPXID${String(data.id).padStart(8, '0')}`,
+            items: (data.items || []).map((item: any) => ({
+              id: item.id,
+              title: item.product_name,
+              color: item.variant_title?.split('/')[0]?.trim() || 'Signature',
+              size: item.variant_title?.split('/')[1]?.trim() || 'All Size',
+              price: item.unit_price,
+              quantity: item.quantity,
+              image: item.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
+            })),
+            address: {
+              name: data.customer?.name || data.shipping_address?.recipient_name || 'Pelanggan Malega',
+              phone: data.customer?.phone || data.shipping_address?.phone || '081234567890',
+              street: data.shipping_address?.address_line1 || 'Jl. Kemang Raya',
+              city: data.shipping_address?.city || 'Jakarta Selatan',
+              postalCode: data.shipping_address?.postal_code || '12730',
+            },
+            shipping: {
+              name: data.shipping_address?.courier_name || data.shipment?.courier_name || 'Biteship Logistics Live',
+              courier: data.shipment?.courier_company || 'Biteship Express',
+              cost: data.shipping_total || 15000,
+              etd: '1 - 2 Hari Kerja'
+            },
+            payment: {
+              name: data.payment?.payment_method_name || 'Duitku Payment Gateway',
+              category: 'duitku',
+              status: data.payment_status?.label || 'Lunas',
+            },
+            subtotal: data.subtotal || 0,
+            shippingCost: data.shipping_total || 0,
+            shippingDiscount: 15000,
+            productDiscount: data.discount_total || 0,
+            serviceFee: 1000,
+            total: data.grand_total || 0,
+            createdAt: data.created_at ? new Date(data.created_at).toLocaleString('id-ID') : new Date().toLocaleString('id-ID'),
+            status: data.order_status?.label || 'Sedang Diproses',
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to fetch live order tracking confirmation:', err);
+      } finally {
+        if (isMounted) setIsLoadingOrder(false);
+      }
+    }
+
+    fetchLiveOrder();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orderNumberParam]);
+
+  // Order display hierarchy: Live API Order -> Cart Last Order -> Mock Demo Order
+  const order = liveOrder || lastOrder || {
     orderId: 'ORD-2026-918234',
     invoiceNumber: 'MLG-INV-2026-918234',
     trackingNumber: 'SPXID09821849102',
@@ -69,7 +144,7 @@ export default function OrderConfirmationPage() {
     },
     payment: {
       id: 'qris',
-      name: 'QRIS Instant Pay',
+      name: 'QRIS Instant Pay (Duitku)',
       description: 'Lunas',
       category: 'qris'
     },
@@ -132,7 +207,7 @@ export default function OrderConfirmationPage() {
               <span className="font-mono font-black text-[#CBAC70] text-sm">{order.trackingNumber}</span>
               <button 
                 onClick={() => copyToClipboard(order.trackingNumber)}
-                className="text-[#94A3B8] hover:text-[#CBAC70] p-1"
+                className="text-[#94A3B8] hover:text-[#CBAC70] p-1 cursor-pointer"
                 title="Salin Resi"
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -188,7 +263,7 @@ export default function OrderConfirmationPage() {
           </h3>
 
           <div className="divide-y divide-white/5 space-y-2">
-            {order.items.map((item, idx) => (
+            {order.items.map((item: any, idx: number) => (
               <div key={idx} className="pt-2.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <img src={item.image} alt={item.title} className="w-12 h-14 rounded-xl object-cover border border-white/10 shrink-0" />
@@ -285,5 +360,18 @@ export default function OrderConfirmationPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function OrderConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-[#CBAC70] mx-auto" />
+        <p className="text-xs text-[#94A3B8]">Memuat konfirmasi pesanan...</p>
+      </div>
+    }>
+      <OrderConfirmationContent />
+    </Suspense>
   );
 }

@@ -599,12 +599,14 @@ export const shippingCouriers: ShippingOption[] = [
 export const paymentGateways: PaymentMethod[] = [
   {
     id: 'qris',
+    duitkuCode: 'SP',
     name: 'QRIS Instant Pay',
     description: 'Scan otomatis via BCA, Mandiri, Gopay, OVO, Dana, ShopeePay (Bebas Biaya Admin)',
     category: 'qris'
   },
   {
     id: 'bca-va',
+    duitkuCode: 'BC',
     name: 'BCA Virtual Account',
     description: 'Verifikasi instan otomatis 24 jam via BCA Mobile / myBCA / ATM',
     category: 'va',
@@ -613,6 +615,7 @@ export const paymentGateways: PaymentMethod[] = [
   },
   {
     id: 'mandiri-va',
+    duitkuCode: 'M2',
     name: 'Mandiri Virtual Account',
     description: 'Bayar via Livin by Mandiri atau ATM Mandiri',
     category: 'va',
@@ -620,13 +623,33 @@ export const paymentGateways: PaymentMethod[] = [
     accountNumber: '8902208123456789'
   },
   {
+    id: 'bni-va',
+    duitkuCode: 'I1',
+    name: 'BNI Virtual Account',
+    description: 'Bayar via BNI Mobile Banking / ATM BNI',
+    category: 'va',
+    bankName: 'BNI',
+    accountNumber: '9881081234567890'
+  },
+  {
+    id: 'bri-va',
+    duitkuCode: 'BR',
+    name: 'BRI Virtual Account (BRIVA)',
+    description: 'Bayar via BRImo / ATM BRI seluruh Indonesia',
+    category: 'va',
+    bankName: 'BRI',
+    accountNumber: '1280081234567890'
+  },
+  {
     id: 'credit-card',
+    duitkuCode: 'VC',
     name: 'Kartu Kredit / Debit (Visa & Mastercard)',
     description: 'Proteksi enkripsi 256-bit SSL & 3D Secure OTP',
     category: 'card'
   },
   {
     id: 'cod',
+    duitkuCode: 'COD',
     name: 'COD (Bayar Tunai di Tempat)',
     description: 'Bayar tunai ke kurir saat paket sampai di alamat Anda',
     category: 'cod'
