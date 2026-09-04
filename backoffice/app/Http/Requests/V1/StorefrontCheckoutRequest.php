@@ -48,7 +48,11 @@ class StorefrontCheckoutRequest extends FormRequest
             'shipping_address.courier_name' => ['nullable', 'string', 'max:100'],
 
             'shipping_total' => ['nullable', 'integer', 'min:0'],
+            'service_fee' => ['nullable', 'integer', 'min:0'],
             'discount_total' => ['nullable', 'integer', 'min:0'],
+            'voucher_code' => ['nullable', 'string', 'max:50'],
+            'voucher_codes' => ['nullable', 'array'],
+            'voucher_codes.*' => ['string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }

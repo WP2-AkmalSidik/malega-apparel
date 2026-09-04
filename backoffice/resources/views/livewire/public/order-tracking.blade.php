@@ -522,6 +522,12 @@
                             <span>Ongkos Kirim ({{ $order->shipment?->courier_company ?? 'Kurir' }})</span>
                             <span class="font-mono text-slate-200">Rp {{ number_format($order->shipping_total, 0, ',', '.') }}</span>
                         </div>
+                        @if(($order->service_fee ?? 0) > 0)
+                            <div class="flex justify-between text-slate-400">
+                                <span>Biaya Layanan & Pemrosesan</span>
+                                <span class="font-mono text-slate-200">Rp {{ number_format($order->service_fee, 0, ',', '.') }}</span>
+                            </div>
+                        @endif
                         @if($order->discount_total > 0)
                             <div class="flex justify-between text-rose-400">
                                 <span>Potongan Diskon Promo</span>

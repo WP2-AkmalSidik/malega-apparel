@@ -37,6 +37,7 @@ class OrderResource extends JsonResource
                 'subtotal' => (int) $this->subtotal,
                 'discount_total' => (int) $this->discount_total,
                 'shipping_total' => (int) $this->shipping_total,
+                'service_fee' => (int) ($this->service_fee ?? 0),
                 'tax_total' => (int) $this->tax_total,
                 'grand_total' => (int) $this->grand_total,
                 'formatted_grand_total' => $this->formatted_grand_total,

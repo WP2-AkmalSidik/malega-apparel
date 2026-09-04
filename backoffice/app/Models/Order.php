@@ -32,6 +32,7 @@ class Order extends Model
         'subtotal',
         'discount_total',
         'shipping_total',
+        'service_fee',
         'tax_total',
         'grand_total',
         'notes',
@@ -51,6 +52,7 @@ class Order extends Model
             'subtotal' => 'integer',
             'discount_total' => 'integer',
             'shipping_total' => 'integer',
+            'service_fee' => 'integer',
             'tax_total' => 'integer',
             'grand_total' => 'integer',
         ];
@@ -145,6 +147,16 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn () => 'Rp '.number_format($this->subtotal, 0, ',', '.')
+        );
+    }
+
+    /**
+     * Formatted service fee accessor.
+     */
+    protected function formattedServiceFee(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => 'Rp '.number_format($this->service_fee, 0, ',', '.')
         );
     }
 

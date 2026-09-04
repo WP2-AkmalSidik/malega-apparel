@@ -257,7 +257,9 @@ export default function CheckoutPage() {
         })),
         payment_method: paymentMethodCode,
         voucher_code: appliedVoucherCode,
+        voucher_codes: appliedVouchers.map(v => v.code),
         shipping_total: shippingCost,
+        service_fee: serviceFee,
         discount_total: productDiscount + shippingDiscount,
         notes: buyerNote || 'Pesanan dari Storefront Malega'
       };

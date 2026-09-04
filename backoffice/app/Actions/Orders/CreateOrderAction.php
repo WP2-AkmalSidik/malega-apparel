@@ -124,6 +124,7 @@ class CreateOrderAction
             }
 
             $shippingTotal = max(0, (int) ($data['shipping_total'] ?? 0));
+            $serviceFee = max(0, (int) ($data['service_fee'] ?? 0));
             $taxTotal = max(0, (int) ($data['tax_total'] ?? 0));
 
             // Server-Authoritative Voucher Validation & Calculation
@@ -164,7 +165,7 @@ class CreateOrderAction
                 ? $computedDiscount
                 : max(0, (int) ($data['discount_total'] ?? 0));
 
-            $grandTotal = max(0, ($subtotal - $discountTotal) + $shippingTotal + $taxTotal);
+            $grandTotal = max(0, ($subtotal - $discountTotal) + $shippingTotal + $serviceFee + $taxTotal);
 
             // 4. Create Order Record
             $order = Order::create([
@@ -177,6 +178,7 @@ class CreateOrderAction
                 'subtotal' => $subtotal,
                 'discount_total' => $discountTotal,
                 'shipping_total' => $shippingTotal,
+                'service_fee' => $serviceFee,
                 'tax_total' => $taxTotal,
                 'grand_total' => $grandTotal,
                 'notes' => $data['notes'] ?? null,

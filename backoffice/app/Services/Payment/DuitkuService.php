@@ -103,6 +103,14 @@ class DuitkuService
             ];
         }
 
+        if ($order->service_fee > 0) {
+            $itemDetails[] = [
+                'name' => 'Biaya Layanan & Pemrosesan',
+                'price' => (int) $order->service_fee,
+                'quantity' => 1,
+            ];
+        }
+
         $payload = [
             'merchantCode' => $this->merchantCode,
             'paymentAmount' => $paymentAmount,

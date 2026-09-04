@@ -27,7 +27,17 @@ class VoucherController extends Controller
         $shippingCost = (int) ($validated['shipping_cost'] ?? 0);
         $email = $validated['email'] ?? null;
         $phone = $validated['phone'] ?? null;
-        $customerId = $request->user('customer')?->id ?? $request->user()?->id ?? null;
+        $customerId = null;
+        $authHeader = $request->header('Authorization');
+        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+            $token = substr($authHeader, 7);
+            if (! empty($token)) {
+                $customerId = \App\Models\Customer::where('remember_token', $token)->value('id');
+            }
+        }
+        if (! $customerId && $email) {
+            $customerId = \App\Models\Customer::where('email', $email)->value('id');
+        }
 
         $result = $validateVoucher->execute(
             $validated['code'],

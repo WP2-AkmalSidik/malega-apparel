@@ -524,6 +524,12 @@
                             <span>Ongkos Kirim</span>
                             <span class="font-mono text-slate-200">Rp {{ number_format($activeOrder->shipping_total, 0, ',', '.') }}</span>
                         </div>
+                        @if(($activeOrder->service_fee ?? 0) > 0)
+                            <div class="flex justify-between text-slate-400">
+                                <span>Biaya Layanan</span>
+                                <span class="font-mono text-slate-200">Rp {{ number_format($activeOrder->service_fee, 0, ',', '.') }}</span>
+                            </div>
+                        @endif
                         <div class="flex justify-between text-slate-400">
                             <span>Potongan Diskon</span>
                             <span class="font-mono text-rose-400">-Rp {{ number_format($activeOrder->discount_total, 0, ',', '.') }}</span>
