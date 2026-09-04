@@ -25,8 +25,10 @@ export default function CheckoutPage() {
   const router = useRouter();
   const {
     cart,
-    selectedItems,
-    selectedCount,
+    checkoutItems,
+    checkoutCount,
+    isInstantBuyActive,
+    clearInstantBuy,
     selectedAddress,
     setSelectedAddress,
     selectedShipping,
@@ -113,7 +115,7 @@ export default function CheckoutPage() {
           postal_code: selectedAddress.postalCode || '12730',
           courier_name: selectedShipping.courier || 'JNE'
         },
-        items: selectedItems.map(item => ({
+        items: checkoutItems.map(item => ({
           sku: item.slug || `MLG-${item.productId}`,
           product_name: item.title,
           variant_title: `${item.color} / ${item.size}`,
@@ -136,7 +138,7 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (data.success && data.payment?.payment_url) {
-        // Simpan pesanan di state & bersihkan item terpilih
+        // Simpan pesanan di state & bersihkan sesi checkout
         createOrder();
         // Redirect langsung ke Gateway Pembayaran Resmi Duitku
         window.location.href = data.payment.payment_url;
@@ -159,7 +161,7 @@ export default function CheckoutPage() {
     router.push('/order-confirmation');
   };
 
-  if (selectedItems.length === 0) {
+  if (checkoutItems.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4">
         <div className="w-16 h-16 rounded-2xl bg-[#14204A] border border-[#CBAC70]/30 text-[#CBAC70] flex items-center justify-center mx-auto">
@@ -401,12 +403,19 @@ export default function CheckoutPage() {
             <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-5 space-y-3.5 text-xs">
               
               <h3 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70] border-b border-white/10 pb-2.5 flex items-center justify-between">
-                <span>Rincian Pesanan</span>
-                <span>{selectedItems.length} Produk ({selectedCount} pcs)</span>
+                <span className="flex items-center gap-1.5">
+                  <span>Rincian Pesanan</span>
+                  {isInstantBuyActive && (
+                    <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                      ⚡ Instant Buy
+                    </span>
+                  )}
+                </span>
+                <span>{checkoutItems.length} Produk ({checkoutCount} pcs)</span>
               </h3>
 
               <div className="divide-y divide-white/5 max-h-56 overflow-y-auto space-y-2 pr-1">
-                {selectedItems.map((item) => (
+                {checkoutItems.map((item) => (
                   <div key={item.id} className="pt-2 flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <img src={item.image} alt={item.title} className="w-11 h-13 rounded-lg object-cover border border-white/10 shrink-0" />

@@ -24,7 +24,8 @@ export default function CartDrawer() {
     removeSelectedItems,
     updateQuantity,
     updateCartItemVariant,
-    subtotal,
+    cartSubtotal,
+    clearInstantBuy,
   } = useCart();
 
   const [isClosing, setIsClosing] = useState(false);
@@ -53,6 +54,7 @@ export default function CartDrawer() {
 
   const handleCheckout = () => {
     if (selectedItems.length === 0) return;
+    clearInstantBuy();
     handleClose();
     setTimeout(() => router.push('/checkout'), 310);
   };
@@ -367,7 +369,7 @@ export default function CartDrawer() {
             <div className="space-y-1.5 text-xs text-[#94A3B8]">
               <div className="flex justify-between items-center">
                 <span>Subtotal ({selectedCount} item terpilih):</span>
-                <span className="text-sm font-black text-[#CBAC70]">{formatRupiah(subtotal)}</span>
+                <span className="text-sm font-black text-[#CBAC70]">{formatRupiah(cartSubtotal)}</span>
               </div>
               <div className="flex justify-between items-center text-[11px] text-[#CBAC70]">
                 <span>Pajak & Pengiriman:</span>

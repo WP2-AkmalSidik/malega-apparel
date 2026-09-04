@@ -14,9 +14,18 @@ interface CartContextType {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   
+  // Instant Buy / Direct Checkout (Isolated from cart)
+  instantBuyItem: CartItem | null;
+  isInstantBuyActive: boolean;
+  instantBuy: (item: Omit<CartItem, 'id' | 'selected'>) => void;
+  clearInstantBuy: () => void;
+
+  // Checkout Items (Dynamic: instantBuyItem if active, otherwise selectedItems from cart)
+  checkoutItems: CartItem[];
+  checkoutCount: number;
+
   // Cart Actions
   addToCart: (item: Omit<CartItem, 'id' | 'selected'>, openDrawer?: boolean) => void;
-  instantBuy: (item: Omit<CartItem, 'id' | 'selected'>) => void;
   removeFromCart: (id: string) => void;
   toggleSelectItem: (id: string) => void;
   selectAllItems: (select: boolean) => void;
@@ -41,6 +50,7 @@ interface CartContextType {
   setBuyerNote: (note: string) => void;
 
   // Financial Calculations
+  cartSubtotal: number;
   subtotal: number;
   shippingCost: number;
   shippingDiscount: number;
@@ -57,6 +67,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [instantBuyItem, setInstantBuyItem] = useState<CartItem | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address>(defaultAddress);
@@ -66,7 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [buyerNote, setBuyerNote] = useState('');
   const [lastOrder, setLastOrder] = useState<OrderReceipt | null>(null);
 
-  // 1. Load cart from localStorage cache on initial mount
+  // 1. Load cart from localStorage & instant buy from sessionStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('malega_cart');
@@ -81,8 +92,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           setCart(sanitized);
         }
       }
+
+      const savedInstant = sessionStorage.getItem('malega_instant_buy');
+      if (savedInstant) {
+        const parsedInstant = JSON.parse(savedInstant);
+        if (parsedInstant && parsedInstant.productId) {
+          setInstantBuyItem(parsedInstant);
+        }
+      }
     } catch (err) {
-      console.error('Failed to restore cart from cache:', err);
+      console.error('Failed to restore cart / instant buy session:', err);
     } finally {
       setIsLoaded(true);
     }
@@ -108,6 +127,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const allSelected = cart.length > 0 && cart.every(item => item.selected);
   const isIndeterminate = cart.some(item => item.selected) && !allSelected;
 
+  // Checkout Items: Isolated instantBuyItem if active, otherwise selectedItems from cart
+  const isInstantBuyActive = Boolean(instantBuyItem);
+  const checkoutItems = instantBuyItem ? [instantBuyItem] : selectedItems;
+  const checkoutCount = checkoutItems.reduce((acc, item) => acc + item.quantity, 0);
+
   const addToCart = (newItem: Omit<CartItem, 'id' | 'selected'>, openDrawer: boolean = false) => {
     setCart(prev => {
       const existingIdx = prev.findIndex(
@@ -128,23 +152,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Instant Buy: Completely isolated direct checkout session, NEVER pollutes or touches the cart array!
   const instantBuy = (newItem: Omit<CartItem, 'id' | 'selected'>) => {
-    setCart(prev => {
-      // Unselect all other existing items in bag
-      const unselectedPrev = prev.map(i => ({ ...i, selected: false }));
-      const existingIdx = unselectedPrev.findIndex(
-        i => i.productId === newItem.productId && i.color === newItem.color && i.size === newItem.size
-      );
-      if (existingIdx > -1) {
-        return unselectedPrev.map((item, idx) =>
-          idx === existingIdx
-            ? { ...item, quantity: newItem.quantity, price: newItem.price, originalPrice: newItem.originalPrice, selected: true }
-            : item
-        );
-      }
-      const uniqueId = `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-      return [...unselectedPrev, { ...newItem, id: uniqueId, selected: true }];
-    });
+    const directItem: CartItem = {
+      ...newItem,
+      id: `instant-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      selected: true
+    };
+    setInstantBuyItem(directItem);
+    try {
+      sessionStorage.setItem('malega_instant_buy', JSON.stringify(directItem));
+    } catch (err) {
+      console.error('Failed to save instant buy session:', err);
+    }
+  };
+
+  const clearInstantBuy = () => {
+    setInstantBuyItem(null);
+    try {
+      sessionStorage.removeItem('malega_instant_buy');
+    } catch (err) {
+      console.error('Failed to clear instant buy session:', err);
+    }
   };
 
   const toggleSelectItem = (id: string) => {
@@ -236,17 +265,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const appliedVouchers = vouchers.filter(v => v.applied);
 
-  // Financials strictly based on selectedItems
-  const subtotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shippingCost = selectedItems.length > 0 ? selectedShipping.cost : 0;
+  // Financials for Cart Drawer
+  const cartSubtotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  const shippingDiscount = selectedItems.length > 0
+  // Financials for Checkout (based on checkoutItems)
+  const subtotal = checkoutItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const shippingCost = checkoutItems.length > 0 ? selectedShipping.cost : 0;
+
+  const shippingDiscount = checkoutItems.length > 0
     ? appliedVouchers
         .filter(v => v.type === 'shipping')
         .reduce((acc, v) => acc + Math.min(shippingCost, v.discount), 0)
     : 0;
 
-  const productDiscount = selectedItems.length > 0
+  const productDiscount = checkoutItems.length > 0
     ? appliedVouchers
         .filter(v => v.type === 'percentage' || v.type === 'fixed')
         .reduce((acc, v) => acc + v.discount, 0)
@@ -261,7 +293,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const invoiceCode = `MLG-INV-${year}-${randDigits}`;
     const trackingCode = `SPXID0${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 
-    const orderItems = [...selectedItems];
+    const orderItems = [...checkoutItems];
 
     const order: OrderReceipt = {
       orderId: `ORD-${year}-${randDigits}`,
@@ -289,7 +321,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     setLastOrder(order);
-    clearPurchasedItems();
+
+    if (instantBuyItem) {
+      clearInstantBuy();
+    } else {
+      clearPurchasedItems();
+    }
+
     return order;
   };
 
@@ -304,8 +342,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isIndeterminate,
         isCartOpen,
         setIsCartOpen,
-        addToCart,
+        instantBuyItem,
+        isInstantBuyActive,
         instantBuy,
+        clearInstantBuy,
+        checkoutItems,
+        checkoutCount,
+        addToCart,
         removeFromCart,
         toggleSelectItem,
         selectAllItems,
@@ -326,6 +369,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         applyVoucherCode,
         buyerNote,
         setBuyerNote,
+        cartSubtotal,
         subtotal,
         shippingCost,
         shippingDiscount,
