@@ -1,14 +1,4 @@
-<div class="space-y-6" x-data="{
-    showVoucherModal: false,
-    showUsagesModal: false,
-    showDeleteModal: false
-}"
-x-on:open-voucher-modal.window="showVoucherModal = true"
-x-on:close-voucher-modal.window="showVoucherModal = false"
-x-on:open-usages-modal.window="showUsagesModal = true"
-x-on:close-usages-modal.window="showUsagesModal = false"
-x-on:open-delete-modal.window="showDeleteModal = true"
-x-on:close-delete-modal.window="showDeleteModal = false">
+<div class="space-y-6">
 
     <!-- Top Header Banner -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-[#0B132B] via-[#0E1A3D] to-[#0B132B] p-6 rounded-2xl border border-gold/20 shadow-xl">
@@ -269,78 +259,94 @@ x-on:close-delete-modal.window="showDeleteModal = false">
         {{ $vouchers->links() }}
     </div>
 
-    <!-- Modal Form Create / Edit Voucher -->
-    <div
-        x-show="showVoucherModal"
-        x-cloak
-        class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        style="display: none;"
+    <!-- Reusable Create / Edit Voucher Modal -->
+    <x-modal
+        id="voucher-modal"
+        name="voucher-modal"
+        :title="$isEditing ? 'Edit Informasi Master Voucher' : 'Buat Master Voucher Promosi Baru'"
+        :subtitle="$isEditing ? 'Perbarui detail diskon, kuota pemakaian, dan masa aktif voucher promosi' : 'Buat master voucher dan kupon diskon baru untuk kampanye promosi di Storefront'"
+        maxWidth="3xl"
     >
-        <div
-            @click.outside="showVoucherModal = false"
-            class="bg-[#0B132B] border border-gold/30 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl text-slate-200 animate-in zoom-in-95"
-        >
-            <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 class="text-sm font-bold text-ivory font-display tracking-wide">
-                    {{ $isEditing ? 'Edit Master Voucher' : 'Buat Master Voucher Promosi' }}
-                </h3>
-                <button @click="showVoucherModal = false" class="text-slate-400 hover:text-white cursor-pointer">✕</button>
+        <form wire:submit.prevent="saveVoucher" class="space-y-5">
+            <!-- SECTION 1: Identitas & Kode Promo -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+                    <span class="w-4 h-4 rounded-full bg-[#CBAC70]/20 text-[#CBAC70] font-bold text-[10px] flex items-center justify-center">1</span>
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Identitas & Kode Promo</h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <!-- Kode Voucher & Generator -->
+                    <div class="sm:col-span-6 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                                Kode Kupon / Voucher <span class="text-rose-400">*</span>
+                            </label>
+                            <button
+                                type="button"
+                                wire:click="generateRandomCode"
+                                class="text-[10px] text-[#CBAC70] font-bold hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                                ⚡ Generate Acak
+                            </button>
+                        </div>
+                        <input
+                            type="text"
+                            wire:model="code"
+                            placeholder="Contoh: MALEGAVIP15"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 font-mono uppercase text-[#CBAC70] font-bold tracking-wider text-xs focus:outline-none focus:border-[#CBAC70] transition-colors"
+                            required
+                        />
+                        @error('code') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Nama Promo -->
+                    <div class="sm:col-span-6 space-y-1">
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Nama / Judul Promo <span class="text-rose-400">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            wire:model="name"
+                            placeholder="Contoh: VIP Gold Member 15% OFF"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors"
+                            required
+                        />
+                        @error('name') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Deskripsi Syarat & Ketentuan -->
+                    <div class="sm:col-span-12 space-y-1">
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Deskripsi / Syarat & Ketentuan Promo (Opsional)
+                        </label>
+                        <textarea
+                            wire:model="description"
+                            rows="2"
+                            placeholder="Berikan catatan singkat syarat promo atau pesan untuk pembeli..."
+                            class="w-full bg-[#070C1A] border border-slate-700/80 rounded-xl p-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-[#CBAC70] transition-colors resize-none"
+                        ></textarea>
+                        @error('description') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
+                    </div>
+                </div>
             </div>
 
-            <form wire:submit.prevent="saveVoucher" class="space-y-3.5 text-xs">
-                <!-- Kode Promo & Generator -->
-                <div class="space-y-1">
-                    <div class="flex items-center justify-between">
-                        <label class="font-semibold text-slate-300">Kode Kupon / Voucher <span class="text-rose-400">*</span></label>
-                        <button
-                            type="button"
-                            wire:click="generateRandomCode"
-                            class="text-[10px] text-gold font-bold hover:underline cursor-pointer flex items-center gap-1"
-                        >
-                            ⚡ Generate Acak
-                        </button>
-                    </div>
-                    <input
-                        type="text"
-                        wire:model="code"
-                        placeholder="Contoh: MALEGAVIP15"
-                        class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 font-mono uppercase text-gold font-bold tracking-wider focus:outline-none focus:border-gold"
-                        required
-                    />
-                    @error('code') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
+            <!-- SECTION 2: Skema Diskon & Ketentuan Belanja -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+                    <span class="w-4 h-4 rounded-full bg-[#CBAC70]/20 text-[#CBAC70] font-bold text-[10px] flex items-center justify-center">2</span>
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Skema Diskon & Ketentuan Belanja</h3>
                 </div>
 
-                <!-- Nama Promo -->
-                <div class="space-y-1">
-                    <label class="font-semibold text-slate-300">Nama / Judul Promo <span class="text-rose-400">*</span></label>
-                    <input
-                        type="text"
-                        wire:model="name"
-                        placeholder="Contoh: VIP Gold Member 15% OFF"
-                        class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-gold"
-                        required
-                    />
-                    @error('name') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
-                </div>
-
-                <!-- Deskripsi Syarat & Ketentuan -->
-                <div class="space-y-1">
-                    <label class="font-semibold text-slate-300">Deskripsi / Syarat Ketentuan</label>
-                    <textarea
-                        wire:model="description"
-                        rows="2"
-                        placeholder="Berikan catatan singkat syarat promo untuk pembeli..."
-                        class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-gold resize-none"
-                    ></textarea>
-                </div>
-
-                <!-- Tipe Diskon & Nilai -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Tipe Diskon -->
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Tipe Diskon <span class="text-rose-400">*</span></label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Tipe Diskon <span class="text-rose-400">*</span>
+                        </label>
                         <select
                             wire:model.live="type"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-gold cursor-pointer"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors cursor-pointer"
                         >
                             <option value="percentage">Diskon Persentase (%)</option>
                             <option value="fixed_amount">Potongan Nominal (Rp)</option>
@@ -348,187 +354,212 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                         </select>
                     </div>
 
+                    <!-- Nilai / Nominal Diskon -->
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">
-                            {{ $type === 'percentage' ? 'Persentase Diskon (%)' : 'Nominal Potongan (Rp)' }} <span class="text-rose-400">*</span>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            {{ $type === 'percentage' ? 'Persentase (%)' : ($type === 'free_shipping' ? 'Maks Ongkir (Rp)' : 'Potongan (Rp)') }} <span class="text-rose-400">*</span>
                         </label>
                         <input
                             type="number"
                             wire:model="amount"
                             min="1"
                             placeholder="{{ $type === 'percentage' ? '15' : '50000' }}"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
                             required
                         />
                         @error('amount') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
                     </div>
-                </div>
 
-                <!-- Batas Maksimal Diskon & Minimal Belanja -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Maksimal Potongan Diskon -->
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Maks. Potongan Diskon (Rp)</label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Maks. Diskon (Rp)
+                        </label>
                         <input
                             type="number"
                             wire:model="max_discount_amount"
-                            placeholder="50000 (Kosongkan jika tanpa batas)"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
+                            placeholder="Contoh: 50000"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
                         />
-                        <span class="text-[9px] text-slate-500 block">Khusus untuk diskon persentase</span>
+                        <span class="text-[9px] text-slate-500 block">Batas cap diskon %</span>
                     </div>
 
+                    <!-- Min. Belanja -->
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Min. Subtotal Belanja (Rp) <span class="text-rose-400">*</span></label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Min. Belanja (Rp) <span class="text-rose-400">*</span>
+                        </label>
                         <input
                             type="number"
                             wire:model="min_order_amount"
                             min="0"
-                            placeholder="200000"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
+                            placeholder="Contoh: 200000"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
                             required
                         />
+                        @error('min_order_amount') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
-                <!-- Batasan Kuota Total & Kuota per User -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <!-- Kuota Total -->
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Batas Kuota Penggunaan Global</label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Batas Kuota Penggunaan Global
+                        </label>
                         <input
                             type="number"
                             wire:model="usage_limit_total"
-                            placeholder="500 (Kosongkan jika tak terbatas)"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
+                            placeholder="Kosongkan jika tak terbatas"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
                         />
-                        <span class="text-[9px] text-slate-500 block">Maksimal pemakaian total (misal 500 pemakai pertama)</span>
+                        <span class="text-[10px] text-slate-500 block">Total klaim global (misal 500 pemakai pertama)</span>
                     </div>
 
+                    <!-- Kuota per User -->
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Batas Pemakaian per User <span class="text-rose-400">*</span></label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Batas Pemakaian per Pelanggan <span class="text-rose-400">*</span>
+                        </label>
                         <input
                             type="number"
                             wire:model="usage_limit_per_user"
                             min="1"
                             placeholder="1"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2.5 text-slate-200 font-mono focus:outline-none focus:border-gold"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-[#CBAC70] transition-colors"
                             required
                         />
-                        <span class="text-[9px] text-emerald-400 font-semibold block">Set 1 untuk voucher sekali pakai per akun/email/no. HP</span>
+                        <span class="text-[10px] text-emerald-400 font-semibold block">Set 1 untuk voucher sekali pakai per akun/email/no. HP</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Periode Tanggal Berlaku -->
+            <!-- SECTION 3: Masa Berlaku & Hak Akses -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 pb-1 border-b border-white/5">
+                    <span class="w-4 h-4 rounded-full bg-[#CBAC70]/20 text-[#CBAC70] font-bold text-[10px] flex items-center justify-center">3</span>
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Masa Berlaku & Akses Pengguna</h3>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Tanggal Mulai Berlaku <span class="text-rose-400">*</span></label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Tanggal Mulai Berlaku <span class="text-rose-400">*</span>
+                        </label>
                         <input
                             type="datetime-local"
                             wire:model="valid_from"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-gold"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors"
                             required
                         />
+                        @error('valid_from') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="space-y-1">
-                        <label class="font-semibold text-slate-300">Tanggal Berakhir Promo</label>
+                        <label class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">
+                            Tanggal Berakhir Promo (Opsional)
+                        </label>
                         <input
                             type="datetime-local"
                             wire:model="valid_until"
-                            class="w-full bg-[#070C1A] border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-gold"
+                            class="w-full h-9 bg-[#070C1A] border border-slate-700/80 rounded-lg px-2.5 text-xs text-slate-200 focus:outline-none focus:border-[#CBAC70] transition-colors"
                         />
-                        <span class="text-[9px] text-slate-500 block">Kosongkan jika promo permanen</span>
+                        <span class="text-[10px] text-slate-500 block">Kosongkan jika promo permanen</span>
+                        @error('valid_until') <p class="text-[10px] text-rose-400">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
-                <!-- Status, Guest, & Public Toggles -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070C1A] border border-slate-800 cursor-pointer hover:border-gold/30">
+                <!-- 3 Toggle Access Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <label class="flex items-start gap-3 p-3 rounded-xl bg-[#070C1A] border border-slate-800 hover:border-[#CBAC70]/40 transition-colors cursor-pointer select-none">
                         <input
                             type="checkbox"
                             wire:model="allow_guest"
-                            class="w-4 h-4 rounded bg-[#0B132B] border-slate-700 text-gold focus:ring-0 cursor-pointer"
+                            class="w-4 h-4 mt-0.5 rounded bg-[#0B132B] border-slate-700 text-[#CBAC70] focus:ring-[#CBAC70] focus:ring-offset-0 transition-colors"
                         />
                         <div>
-                            <span class="font-semibold text-slate-200 text-xs block">Guest / Tamu</span>
-                            <span class="text-[9px] text-slate-400 block">Bisa tanpa login</span>
+                            <span class="text-xs font-semibold text-slate-200 block">Guest / Tamu</span>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">Dapat digunakan tanpa login</span>
                         </div>
                     </label>
 
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070C1A] border border-slate-800 cursor-pointer hover:border-gold/30">
+                    <label class="flex items-start gap-3 p-3 rounded-xl bg-[#070C1A] border border-slate-800 hover:border-[#CBAC70]/40 transition-colors cursor-pointer select-none">
                         <input
                             type="checkbox"
                             wire:model="is_public"
-                            class="w-4 h-4 rounded bg-[#0B132B] border-slate-700 text-gold focus:ring-0 cursor-pointer"
+                            class="w-4 h-4 mt-0.5 rounded bg-[#0B132B] border-slate-700 text-[#CBAC70] focus:ring-[#CBAC70] focus:ring-offset-0 transition-colors"
                         />
                         <div>
-                            <span class="font-semibold text-slate-200 text-xs block">Kupon Publik</span>
-                            <span class="text-[9px] text-slate-400 block">Tampil di storefront</span>
+                            <span class="text-xs font-semibold text-slate-200 block">Kupon Publik</span>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">Tampil di popup Storefront</span>
                         </div>
                     </label>
 
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070C1A] border border-slate-800 cursor-pointer hover:border-gold/30">
+                    <label class="flex items-start gap-3 p-3 rounded-xl bg-[#070C1A] border border-slate-800 hover:border-[#CBAC70]/40 transition-colors cursor-pointer select-none">
                         <input
                             type="checkbox"
                             wire:model="is_active"
-                            class="w-4 h-4 rounded bg-[#0B132B] border-slate-700 text-gold focus:ring-0 cursor-pointer"
+                            class="w-4 h-4 mt-0.5 rounded bg-[#0B132B] border-slate-700 text-[#CBAC70] focus:ring-[#CBAC70] focus:ring-offset-0 transition-colors"
                         />
                         <div>
-                            <span class="font-semibold text-slate-200 text-xs block">Status Aktif</span>
-                            <span class="text-[9px] text-slate-400 block">Siap digunakan</span>
+                            <span class="text-xs font-semibold text-slate-200 block">Status Aktif</span>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">Siap divalidasi pembeli</span>
                         </div>
                     </label>
                 </div>
-
-                <!-- Buttons -->
-                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
-                    <button
-                        type="button"
-                        @click="showVoucherModal = false"
-                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold cursor-pointer"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="submit"
-                        class="px-5 py-2 rounded-xl bg-gold hover:bg-gold-dark text-navy font-bold shadow-lg shadow-gold/20 transition-all cursor-pointer"
-                    >
-                        {{ $isEditing ? 'Simpan Perubahan' : 'Terbitkan Voucher' }}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Riwayat Penggunaan Voucher -->
-    <div
-        x-show="showUsagesModal"
-        x-cloak
-        class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        style="display: none;"
-    >
-        <div
-            @click.outside="showUsagesModal = false"
-            class="bg-[#0B132B] border border-gold/30 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl text-slate-200 animate-in zoom-in-95"
-        >
-            <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                <div>
-                    <span class="text-[10px] font-mono text-gold uppercase tracking-wider block font-bold">LOG RIWAYAT PENGGUNAAN</span>
-                    <h3 class="text-sm font-bold text-ivory">
-                        Voucher #{{ $viewingVoucher?->code }} — {{ $viewingVoucher?->name }}
-                    </h3>
-                </div>
-                <button @click="showUsagesModal = false" class="text-slate-400 hover:text-white cursor-pointer">✕</button>
             </div>
 
-            <div class="max-h-80 overflow-y-auto divide-y divide-white/5 space-y-2 text-xs">
+            <!-- Modal Action Buttons Footer -->
+            <div class="pt-4 border-t border-slate-800/80 flex items-center justify-end gap-2.5">
+                <button
+                    type="button"
+                    x-on:click="$dispatch('close-modal-voucher-modal')"
+                    class="px-4 py-2 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                >
+                    Batal
+                </button>
+
+                <button
+                    type="submit"
+                    wire:loading.attr="disabled"
+                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#BD9B58] hover:from-[#DFB67A] hover:to-[#CBAC70] text-[#0B132B] font-bold text-xs shadow-md shadow-[#CBAC70]/10 transition-all cursor-pointer disabled:opacity-50"
+                >
+                    <span wire:loading.remove wire:target="saveVoucher">
+                        {{ $isEditing ? 'Simpan Perubahan' : 'Terbitkan Voucher' }}
+                    </span>
+                    <span wire:loading.inline-flex wire:target="saveVoucher" class="items-center gap-1.5">
+                        <svg class="animate-spin h-3.5 w-3.5 text-[#0B132B]" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Menyimpan...</span>
+                    </span>
+                </button>
+            </div>
+        </form>
+    </x-modal>
+
+    <!-- Reusable Log Usages Modal -->
+    <x-modal
+        id="usages-modal"
+        name="usages-modal"
+        :title="'Log Riwayat Penggunaan: #' . ($viewingVoucher?->code ?? '')"
+        :subtitle="'Daftar transaksi pesanan yang telah menukarkan voucher ' . ($viewingVoucher?->name ?? '')"
+        maxWidth="2xl"
+    >
+        <div class="space-y-4">
+            <div class="max-h-80 overflow-y-auto divide-y divide-slate-800/60 pr-1">
                 @if($viewingVoucher && $viewingVoucher->usages->isNotEmpty())
                     @foreach($viewingVoucher->usages as $usage)
-                        <div class="pt-2 flex items-center justify-between gap-3">
-                            <div class="space-y-0.5">
+                        <div class="py-3 flex items-center justify-between gap-3">
+                            <div class="space-y-1">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-ivory">{{ $usage->customer_email }}</span>
+                                    <span class="text-xs font-bold text-slate-200">{{ $usage->customer_email ?? ($usage->customer?->email ?? 'Pelanggan') }}</span>
+                                    @if($usage->customer_phone)
+                                        <span class="text-[10px] font-mono text-slate-400">({{ $usage->customer_phone }})</span>
+                                    @endif
                                     @if($usage->order)
-                                        <span class="font-mono text-[10px] text-gold bg-[#070C1A] px-1.5 py-0.5 rounded border border-white/10">
+                                        <span class="font-mono text-[10px] text-[#CBAC70] bg-[#070C1A] px-2 py-0.5 rounded border border-[#CBAC70]/20 font-bold">
                                             #{{ $usage->order->order_number }}
                                         </span>
                                     @endif
@@ -537,71 +568,57 @@ x-on:close-delete-modal.window="showDeleteModal = false">
                                     {{ $usage->created_at->format('d M Y, H:i') }} WIB
                                 </span>
                             </div>
-                            <span class="font-mono font-bold text-emerald-400">
-                                -Rp {{ number_format($usage->discount_amount, 0, ',', '.') }}
-                            </span>
+                            <div class="text-right">
+                                <span class="font-mono font-bold text-emerald-400 text-xs block">
+                                    -Rp {{ number_format($usage->discount_amount, 0, ',', '.') }}
+                                </span>
+                                <span class="text-[9px] text-slate-500 block uppercase font-mono">Diskon Dipakai</span>
+                            </div>
                         </div>
                     @endforeach
                 @else
-                    <div class="py-8 text-center text-slate-500">
-                        Belum ada pelanggan yang menggunakan voucher ini.
+                    <div class="py-12 text-center rounded-xl bg-[#070C1A] border border-slate-800/80 space-y-2">
+                        <svg class="w-8 h-8 mx-auto text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-xs font-semibold text-slate-400">Belum ada riwayat penggunaan</p>
+                        <p class="text-[10px] text-slate-500">Kupon ini belum pernah ditukarkan pada transaksi pesanan apapun.</p>
                     </div>
                 @endif
             </div>
 
-            <div class="flex justify-end pt-3 border-t border-white/10">
+            <!-- Footer -->
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end">
                 <button
                     type="button"
-                    @click="showUsagesModal = false"
-                    class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold cursor-pointer"
+                    x-on:click="$dispatch('close-modal-usages-modal')"
+                    class="px-4 py-2 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
                 >
                     Tutup
                 </button>
             </div>
         </div>
-    </div>
+    </x-modal>
 
-    <!-- Modal Konfirmasi Hapus -->
-    <div
-        x-show="showDeleteModal"
-        x-cloak
-        class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        style="display: none;"
+    <!-- Reusable Delete Confirmation Modal -->
+    <x-confirmation-modal
+        id="delete-voucher-modal"
+        title="Konfirmasi Hapus Voucher"
+        message="Apakah Anda yakin ingin menghapus voucher ini? Kupon yang dihapus tidak dapat digunakan lagi di Storefront."
+        confirmText="Hapus Voucher"
+        cancelText="Batal"
+        type="danger"
     >
-        <div
-            @click.outside="showDeleteModal = false"
-            class="bg-[#0B132B] border border-rose-500/40 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-slate-200 animate-in zoom-in-95 text-center"
-        >
-            <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-            </div>
-
-            <div class="space-y-1">
-                <h3 class="text-sm font-bold text-ivory">Hapus Master Voucher?</h3>
-                <p class="text-xs text-slate-400">
-                    Voucher <strong class="text-rose-400 font-mono">#{{ $deletingVoucherCode }}</strong> akan dihapus dan tidak dapat digunakan lagi oleh pembeli di Storefront.
-                </p>
-            </div>
-
-            <div class="flex items-center justify-center gap-2.5 pt-2">
-                <button
-                    type="button"
-                    @click="showDeleteModal = false"
-                    class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
-                >
-                    Batal
-                </button>
-                <button
-                    type="button"
-                    wire:click="deleteVoucher"
-                    class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg transition-colors cursor-pointer"
-                >
-                    Ya, Hapus Voucher
-                </button>
-            </div>
-        </div>
-    </div>
+        <x-slot:action>
+            <button
+                type="button"
+                wire:click="deleteVoucher"
+                class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer bg-rose-600 hover:bg-rose-500 text-white"
+                x-on:click="$dispatch('close-confirmation-delete-voucher-modal')"
+            >
+                Hapus Voucher
+            </button>
+        </x-slot:action>
+    </x-confirmation-modal>
 
 </div>

@@ -120,7 +120,7 @@ class VoucherIndex extends Component
         $this->allow_guest = true;
 
         $this->generateRandomCode();
-        $this->dispatch('open-voucher-modal');
+        $this->dispatch('open-modal-voucher-modal');
     }
 
     public function openEditModal(int $id): void
@@ -145,7 +145,7 @@ class VoucherIndex extends Component
         $this->is_public = $voucher->is_public;
         $this->allow_guest = (bool) ($voucher->allow_guest ?? true);
 
-        $this->dispatch('open-voucher-modal');
+        $this->dispatch('open-modal-voucher-modal');
     }
 
     public function saveVoucher(): void
@@ -193,7 +193,7 @@ class VoucherIndex extends Component
             ]);
         }
 
-        $this->dispatch('close-voucher-modal');
+        $this->dispatch('close-modal-voucher-modal');
     }
 
     public function toggleStatus(int $id): void
@@ -214,7 +214,7 @@ class VoucherIndex extends Component
     {
         $this->viewingVoucherId = $id;
         $this->viewingVoucher = Voucher::with(['usages.order', 'usages.customer'])->findOrFail($id);
-        $this->dispatch('open-usages-modal');
+        $this->dispatch('open-modal-usages-modal');
     }
 
     public function confirmDelete(int $id): void
@@ -222,7 +222,10 @@ class VoucherIndex extends Component
         $voucher = Voucher::findOrFail($id);
         $this->deletingVoucherId = $voucher->id;
         $this->deletingVoucherCode = $voucher->code;
-        $this->dispatch('open-delete-modal');
+        $this->dispatch('open-confirmation-delete-voucher-modal', [
+            'title' => 'Konfirmasi Hapus Voucher',
+            'message' => "Apakah Anda yakin ingin menghapus voucher promo '{$voucher->code}'? Kupon ini tidak dapat digunakan lagi di Storefront.",
+        ]);
     }
 
     public function deleteVoucher(): void
@@ -240,7 +243,7 @@ class VoucherIndex extends Component
 
             $this->deletingVoucherId = null;
             $this->deletingVoucherCode = '';
-            $this->dispatch('close-delete-modal');
+            $this->dispatch('close-confirmation-delete-voucher-modal');
         }
     }
 
