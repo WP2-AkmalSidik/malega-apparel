@@ -127,6 +127,10 @@ class CreateOrderAction
             }
 
             $shippingTotal = max(0, (int) ($data['shipping_total'] ?? 0));
+            // Enforce baseline shipping fee for storefront checkouts to prevent arbitrary zero shipping tampering
+            if ($isStorefront && $shippingTotal < 10000) {
+                $shippingTotal = 15000;
+            }
             $serviceFee = max(0, (int) ($data['service_fee'] ?? 0));
             $taxTotal = max(0, (int) ($data['tax_total'] ?? 0));
 

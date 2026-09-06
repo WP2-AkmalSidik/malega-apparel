@@ -27,7 +27,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
 
     // 2. Order & Checkout Endpoints
-    Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
+    Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout')->middleware('throttle:15,1');
     Route::get('/orders/{order_number}', [OrderController::class, 'track'])->name('orders.track')->middleware('throttle:60,1');
 
     // 3. Payment Gateway Endpoints (Duitku)

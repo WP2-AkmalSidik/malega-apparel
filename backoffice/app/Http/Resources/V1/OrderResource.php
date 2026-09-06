@@ -54,6 +54,17 @@ class OrderResource extends JsonResource
             return strlen($addr) > 12 ? substr($addr, 0, 10).' **** (Disamarkan demi privasi)' : '****';
         };
 
+        $maskName = function (?string $name) use ($shouldMask) {
+            if (! $name || ! $shouldMask) {
+                return $name;
+            }
+            $parts = explode(' ', trim($name));
+            if (count($parts) > 1) {
+                return substr($parts[0], 0, 2).'*** '.substr(end($parts), 0, 1).'***';
+            }
+            return strlen($name) > 2 ? substr($name, 0, 2).'***' : substr($name, 0, 1).'***';
+        };
+
         return [
             'order_number' => $this->order_number,
             'created_at' => $this->created_at->toIso8601String(),
@@ -79,12 +90,12 @@ class OrderResource extends JsonResource
                 'formatted_grand_total' => $this->formatted_grand_total,
             ],
             'customer' => [
-                'name' => $this->customer?->name,
+                'name' => $maskName($this->customer?->name),
                 'email' => $maskEmail($this->customer?->email),
                 'phone' => $maskPhone($this->customer?->phone),
             ],
             'shipping_address' => [
-                'recipient_name' => $this->address?->recipient_name,
+                'recipient_name' => $maskName($this->address?->recipient_name),
                 'phone' => $maskPhone($this->address?->phone),
                 'address_line1' => $maskAddress($this->address?->address_line1),
                 'address_line2' => $shouldMask ? null : $this->address?->address_line2,

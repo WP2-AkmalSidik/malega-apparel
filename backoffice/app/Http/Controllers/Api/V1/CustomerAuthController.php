@@ -28,35 +28,22 @@ class CustomerAuthController extends Controller
         $existing = Customer::where('email', $validated['email'])->first();
 
         if ($existing) {
-            if ($existing->password) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Email ini sudah terdaftar sebagai akun anggota. Silakan login.',
-                ], 422);
-            }
-
-            // If customer was created via guest checkout without password, update them
-            $existing->update([
-                'name' => $validated['name'],
-                'phone' => $validated['phone'],
-                'password' => $validated['password'],
-                'marketing_opt_in' => $validated['marketing_opt_in'] ?? true,
-                'last_login_at' => now(),
-            ]);
-
-            $customer = $existing;
-        } else {
-            $customer = Customer::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'password' => $validated['password'],
-                'marketing_opt_in' => $validated['marketing_opt_in'] ?? true,
-                'membership_tier' => 'Silver',
-                'is_active' => true,
-                'last_login_at' => now(),
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Email ini sudah terdaftar dalam sistem. Silakan login ke akun Anda atau gunakan email lain.',
+            ], 422);
         }
+
+        $customer = Customer::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'password' => $validated['password'],
+            'marketing_opt_in' => $validated['marketing_opt_in'] ?? true,
+            'membership_tier' => 'Silver',
+            'is_active' => true,
+            'last_login_at' => now(),
+        ]);
 
         $token = 'mlg_cust_'.Str::random(40);
         $customer->remember_token = $token;

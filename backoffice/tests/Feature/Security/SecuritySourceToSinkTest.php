@@ -170,7 +170,14 @@ class SecuritySourceToSinkTest extends TestCase
 
         $response = $this->getJson(route('api.v1.orders.track', ['order_number' => $order->order_number]));
 
-        $response->assertOk();
+        // Nama pelanggan dan penerima harus disamarkan
+        $name = $response->json('data.customer.name');
+        $this->assertStringContainsString('***', $name);
+        $this->assertStringNotContainsString('Bambang Soedirman', $name);
+
+        $recipient = $response->json('data.shipping_address.recipient_name');
+        $this->assertStringContainsString('***', $recipient);
+        $this->assertStringNotContainsString('Bambang Soedirman', $recipient);
 
         // Email harus disamarkan (ba***@perusahaan.co.id)
         $email = $response->json('data.customer.email');
@@ -318,5 +325,115 @@ class SecuritySourceToSinkTest extends TestCase
         $this->assertEquals('MLG', $parts[0]);
         $this->assertEquals(date('Ymd'), $parts[1]);
         $this->assertEquals(6, strlen($parts[2]), "Digit acak harus 6 digit untuk proteksi entropi tinggi.");
+    }
+
+    /**
+     * Temuan Remediasi 1: Manipulasi Ongkos Kirim Rp 0 Ditolak / Dikenakan Tarif Standar.
+     */
+    public function test_storefront_checkout_enforces_standard_shipping_baseline_when_client_sends_zero(): void
+    {
+        $payload = [
+            'customer' => [
+                'name' => 'Zero Shipping Attacker',
+                'email' => 'zeroship@attacker.com',
+                'phone' => '081299993333',
+            ],
+            'items' => [
+                [
+                    'variant_id' => $this->variant->id,
+                    'quantity' => 1,
+                ],
+            ],
+            'shipping_address' => [
+                'recipient_name' => 'Penerima Gratisan',
+                'phone' => '081299993333',
+                'address_line1' => 'Jl. Pelosok Jauh',
+                'city' => 'Merauke',
+                'province' => 'Papua Selatan',
+                'postal_code' => '99611',
+            ],
+            'shipping_total' => 0, // Mencoba manipulasi ongkir Rp 0
+        ];
+
+        $response = $this->postJson(route('api.v1.orders.checkout'), $payload);
+
+        $response->assertCreated();
+
+        // Ongkos kirim harus dinaikkan ke tarif minimum standar (Rp 15.000)
+        $this->assertEquals(15000, $response->json('data.pricing.shipping_total'));
+        $this->assertDatabaseHas('orders', [
+            'order_number' => $response->json('data.order_number'),
+            'shipping_total' => 15000,
+        ]);
+    }
+
+    /**
+     * Temuan Remediasi 2: Akun Pelanggan Tamu (Guest) Tidak Dapat Diklaim Langsung via Register.
+     */
+    public function test_guest_customer_record_cannot_be_claimed_without_verification(): void
+    {
+        Customer::create([
+            'name' => 'Pelanggan Tamu Sah',
+            'email' => 'guest.korban@malega.id',
+            'phone' => '081299995555',
+            'password' => null, // Dibuat saat checkout tamu
+            'is_active' => true,
+        ]);
+
+        // Attacker mencoba mendaftarkan akun dengan email korban tamu untuk mencuri data pesanan
+        $response = $this->postJson(route('api.v1.customers.register'), [
+            'name' => 'Attacker Pembajak',
+            'email' => 'guest.korban@malega.id',
+            'phone' => '081999996666',
+            'password' => 'newattackerpassword123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+            ]);
+
+        $this->assertStringContainsString('sudah terdaftar', $response->json('message'));
+    }
+
+    /**
+     * Temuan Remediasi 3: Endpoint Checkout Storefront Memiliki Pembatasan Laju (Throttle).
+     */
+    public function test_storefront_checkout_endpoint_is_rate_limited(): void
+    {
+        $payload = [
+            'customer' => [
+                'name' => 'Flooder',
+                'email' => 'flooder@botnet.com',
+                'phone' => '081299998888',
+            ],
+            'items' => [
+                [
+                    'variant_id' => $this->variant->id,
+                    'quantity' => 1,
+                ],
+            ],
+            'shipping_address' => [
+                'recipient_name' => 'Flooder',
+                'phone' => '081299998888',
+                'address_line1' => 'Jl. Flood',
+                'city' => 'Jakarta',
+                'province' => 'DKI Jakarta',
+                'postal_code' => '10110',
+            ],
+            'shipping_total' => 15000,
+        ];
+
+        // Eksekusi checkout hingga melebihi kuota 15 req/menit
+        $hitRateLimit = false;
+        for ($i = 0; $i < 17; $i++) {
+            $res = $this->postJson(route('api.v1.orders.checkout'), $payload);
+            if ($res->getStatusCode() === 429) {
+                $hitRateLimit = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($hitRateLimit, "Checkout harus memicu HTTP 429 ketika dibombardir melebihi limit.");
     }
 }
