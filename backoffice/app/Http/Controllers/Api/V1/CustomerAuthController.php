@@ -237,10 +237,8 @@ class CustomerAuthController extends Controller
             ], 401);
         }
 
-        $orders = Order::where('customer_id', $customer->id)
-            ->orWhere('customer_email', $customer->email)
+        $orders = $customer->orders()
             ->with(['items', 'payment', 'shipment'])
-            ->latest('id')
             ->get();
 
         return response()->json([
@@ -249,10 +247,10 @@ class CustomerAuthController extends Controller
                 return [
                     'id' => $order->id,
                     'order_number' => $order->order_number,
-                    'status' => $order->status->value,
-                    'status_label' => $order->status->label(),
-                    'total_amount' => (int) $order->total_amount,
-                    'formatted_total' => 'Rp '.number_format($order->total_amount, 0, ',', '.'),
+                    'status' => $order->order_status->value,
+                    'status_label' => $order->order_status->label(),
+                    'total_amount' => (int) $order->grand_total,
+                    'formatted_total' => $order->formatted_grand_total,
                     'created_at' => $order->created_at->format('d M Y, H:i'),
                     'items' => $order->items->map(fn ($item) => [
                         'title' => $item->variant_title,
@@ -262,9 +260,9 @@ class CustomerAuthController extends Controller
                         'subtotal' => (int) $item->subtotal,
                     ]),
                     'shipping' => $order->shipment ? [
-                        'courier' => $order->shipment->courier_name,
-                        'waybill' => $order->shipment->waybill_number,
-                        'tracking_url' => url('/track?order=' . $order->order_number),
+                        'courier' => $order->shipment->courier_company ?: $order->shipment->courier_service_name ?: 'Kurir Rekanan',
+                        'waybill' => $order->shipment->waybill_id ?: '-',
+                        'tracking_url' => url('/track?order='.$order->order_number),
                     ] : null,
                     'payment' => $order->payment ? [
                         'method' => $order->payment->payment_method,

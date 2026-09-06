@@ -23,18 +23,34 @@ class HandleBiteshipWebhookAction
     public function execute(array $payload): array
     {
         $event = $payload['event'] ?? 'order.status';
-        $orderId = $payload['order_id'] ?? null;
-        $trackingId = $payload['courier_tracking_id'] ?? null;
-        $waybillId = $payload['courier_waybill_id'] ?? null;
-        $status = strtolower($payload['status'] ?? '');
+        $orderId = ! empty($payload['order_id']) ? trim((string) $payload['order_id']) : null;
+        $trackingId = ! empty($payload['courier_tracking_id']) ? trim((string) $payload['courier_tracking_id']) : null;
+        $waybillId = ! empty($payload['courier_waybill_id']) ? trim((string) $payload['courier_waybill_id']) : null;
+        $status = strtolower(trim((string) ($payload['status'] ?? '')));
 
         Log::info("Biteship Webhook Received: {$event}", $payload);
 
-        // Find shipment by Biteship order id, tracking id, or waybill
-        $shipment = Shipment::where('biteship_order_id', $orderId)
-            ->orWhere('biteship_tracking_id', $trackingId)
-            ->orWhere('waybill_id', $waybillId)
-            ->first();
+        if (empty($orderId) && empty($trackingId) && empty($waybillId)) {
+            Log::warning('Biteship Webhook: Rejected payload without valid shipment identifiers', $payload);
+
+            return [
+                'success' => false,
+                'message' => 'No valid shipment identifier provided in payload.',
+            ];
+        }
+
+        // Find shipment by strictly matching non-empty Biteship order id, tracking id, or waybill
+        $shipment = Shipment::where(function ($query) use ($orderId, $trackingId, $waybillId) {
+            if ($orderId) {
+                $query->orWhere('biteship_order_id', $orderId);
+            }
+            if ($trackingId) {
+                $query->orWhere('biteship_tracking_id', $trackingId);
+            }
+            if ($waybillId) {
+                $query->orWhere('waybill_id', $waybillId);
+            }
+        })->first();
 
         if (! $shipment) {
             Log::warning("Biteship Webhook: Shipment not found for order_id={$orderId}, waybill={$waybillId}");

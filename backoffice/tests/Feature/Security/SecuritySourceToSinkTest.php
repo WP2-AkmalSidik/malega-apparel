@@ -436,4 +436,106 @@ class SecuritySourceToSinkTest extends TestCase
 
         $this->assertTrue($hitRateLimit, "Checkout harus memicu HTTP 429 ketika dibombardir melebihi limit.");
     }
+
+    /**
+     * Temuan Remediasi 4: Akses Riwayat Pesanan Pelanggan Wajib Terautentikasi dan Mengisolasi Objek Antar-Pelanggan (BOLA/IDOR Prevention).
+     */
+    public function test_customer_orders_endpoint_requires_auth_and_prevents_cross_customer_order_leakage(): void
+    {
+        // 1. Unauthenticated request harus 401
+        $resUnauth = $this->getJson(route('api.v1.customers.orders'));
+        $resUnauth->assertStatus(401);
+
+        // 2. Buat Customer A dan Pesanan miliknya
+        $customerA = Customer::create([
+            'name' => 'Pelanggan A',
+            'email' => 'customerA@malega.id',
+            'phone' => '081211112222',
+            'password' => 'secretA123',
+            'remember_token' => 'token_cust_a_12345',
+            'is_active' => true,
+        ]);
+
+        $orderA = Order::create([
+            'order_number' => 'MLG-20260907-111111',
+            'customer_id' => $customerA->id,
+            'source' => 'storefront',
+            'subtotal' => 500000,
+            'shipping_total' => 15000,
+            'grand_total' => 515000,
+        ]);
+
+        // 3. Buat Customer B dan Pesanan rahasia miliknya
+        $customerB = Customer::create([
+            'name' => 'Pelanggan B Rahasia',
+            'email' => 'customerB@malega.id',
+            'phone' => '081233334444',
+            'password' => 'secretB123',
+            'remember_token' => 'token_cust_b_67890',
+            'is_active' => true,
+        ]);
+
+        $orderB = Order::create([
+            'order_number' => 'MLG-20260907-222222',
+            'customer_id' => $customerB->id,
+            'source' => 'storefront',
+            'subtotal' => 1000000,
+            'shipping_total' => 20000,
+            'grand_total' => 1020000,
+        ]);
+
+        // Customer A mengakses endpoint /api/v1/customers/orders
+        $resAuthA = $this->withHeader('Authorization', 'Bearer token_cust_a_12345')
+            ->getJson(route('api.v1.customers.orders'));
+
+        $resAuthA->assertOk();
+        $ordersData = $resAuthA->json('data');
+
+        // Customer A HANYA boleh melihat Order A miliknya
+        $orderNumbers = array_column($ordersData, 'order_number');
+        $this->assertContains('MLG-20260907-111111', $orderNumbers);
+        $this->assertNotContains('MLG-20260907-222222', $orderNumbers, "Customer A TIDAK boleh melihat pesanan Customer B (BOLA/IDOR Tercegah).");
+    }
+
+    /**
+     * Temuan Remediasi 5: Webhook Biteship Wajib Menolak Payload Beridentifier Kosong/NULL untuk Mencegah Transisi Status Liar.
+     */
+    public function test_biteship_webhook_rejects_payload_with_null_identifiers_preventing_unauthorized_state_transition(): void
+    {
+        $order = Order::create([
+            'order_number' => 'MLG-20260907-333333',
+            'source' => 'storefront',
+            'subtotal' => 500000,
+            'shipping_total' => 15000,
+            'grand_total' => 515000,
+        ]);
+
+        $shipment = \App\Models\Shipment::create([
+            'order_id' => $order->id,
+            'courier_company' => 'jne',
+            'courier_service_name' => 'reg',
+            'waybill_id' => 'JNE9988776655',
+            'biteship_order_id' => null,
+            'biteship_tracking_id' => null,
+            'status' => 'confirmed',
+            'shipment_fee' => 15000,
+        ]);
+
+        // Attacker mengirim webhook kosong atau hanya berisi status=delivered tanpa identifier
+        $response = $this->postJson(route('api.v1.webhooks.biteship'), [
+            'status' => 'delivered',
+            'order_id' => null,
+            'courier_tracking_id' => null,
+            'courier_waybill_id' => null,
+        ]);
+
+        // Harus ditolak dengan status 400
+        $response->assertStatus(400);
+
+        // Status shipment dan order TIDAK boleh berubah menjadi delivered / completed
+        $this->assertEquals('confirmed', $shipment->fresh()->status);
+        $this->assertNotEquals(\App\Enums\OrderStatus::Completed, $order->fresh()->order_status);
+    }
 }
+
+
