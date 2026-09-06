@@ -18,6 +18,42 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $isPublicTrack = $request->routeIs('api.v1.orders.track');
+        $isOwnerOrAdmin = auth('sanctum')->check() || auth('web')->check();
+        $shouldMask = $isPublicTrack && ! $isOwnerOrAdmin;
+
+        $maskPhone = function (?string $phone) use ($shouldMask) {
+            if (! $phone || ! $shouldMask) {
+                return $phone;
+            }
+            $len = strlen($phone);
+            if ($len <= 6) {
+                return '***'.substr($phone, -2);
+            }
+            return substr($phone, 0, 4).'****'.substr($phone, -3);
+        };
+
+        $maskEmail = function (?string $email) use ($shouldMask) {
+            if (! $email || ! $shouldMask) {
+                return $email;
+            }
+            $parts = explode('@', $email, 2);
+            if (count($parts) < 2) {
+                return '***@malega.id';
+            }
+            $name = $parts[0];
+            $domain = $parts[1];
+            $maskedName = strlen($name) > 2 ? substr($name, 0, 2).'***' : substr($name, 0, 1).'***';
+            return $maskedName.'@'.$domain;
+        };
+
+        $maskAddress = function (?string $addr) use ($shouldMask) {
+            if (! $addr || ! $shouldMask) {
+                return $addr;
+            }
+            return strlen($addr) > 12 ? substr($addr, 0, 10).' **** (Disamarkan demi privasi)' : '****';
+        };
+
         return [
             'order_number' => $this->order_number,
             'created_at' => $this->created_at->toIso8601String(),
@@ -44,17 +80,17 @@ class OrderResource extends JsonResource
             ],
             'customer' => [
                 'name' => $this->customer?->name,
-                'email' => $this->customer?->email,
-                'phone' => $this->customer?->phone,
+                'email' => $maskEmail($this->customer?->email),
+                'phone' => $maskPhone($this->customer?->phone),
             ],
             'shipping_address' => [
                 'recipient_name' => $this->address?->recipient_name,
-                'phone' => $this->address?->phone,
-                'address_line1' => $this->address?->address_line1,
-                'address_line2' => $this->address?->address_line2,
+                'phone' => $maskPhone($this->address?->phone),
+                'address_line1' => $maskAddress($this->address?->address_line1),
+                'address_line2' => $shouldMask ? null : $this->address?->address_line2,
                 'city' => $this->address?->city,
                 'province' => $this->address?->province,
-                'postal_code' => $this->address?->postal_code,
+                'postal_code' => $shouldMask ? '*****' : $this->address?->postal_code,
                 'courier_name' => $this->address?->courier_name,
                 'tracking_number' => $this->address?->tracking_number,
             ],

@@ -28,12 +28,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // 2. Order & Checkout Endpoints
     Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
-    Route::get('/orders/{order_number}', [OrderController::class, 'track'])->name('orders.track');
+    Route::get('/orders/{order_number}', [OrderController::class, 'track'])->name('orders.track')->middleware('throttle:60,1');
 
     // 3. Payment Gateway Endpoints (Duitku)
     Route::get('/payments/methods', [\App\Http\Controllers\Api\V1\PaymentController::class, 'methods'])->name('payments.methods');
-    Route::post('/payments/invoice', [\App\Http\Controllers\Api\V1\PaymentController::class, 'createInvoice'])->name('payments.invoice');
-    Route::get('/payments/status/{order_number}', [\App\Http\Controllers\Api\V1\PaymentController::class, 'status'])->name('payments.status');
+    Route::post('/payments/invoice', [\App\Http\Controllers\Api\V1\PaymentController::class, 'createInvoice'])->name('payments.invoice')->middleware('throttle:30,1');
+    Route::get('/payments/status/{order_number}', [\App\Http\Controllers\Api\V1\PaymentController::class, 'status'])->name('payments.status')->middleware('throttle:60,1');
 
     // 4. Customer Authentication & Account Endpoints
     Route::post('/customers/register', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'register'])->name('customers.register');

@@ -32,7 +32,6 @@ class StorefrontCheckoutRequest extends FormRequest
             'items.*.sku' => ['nullable', 'string', 'max:100'],
             'items.*.product_name' => ['nullable', 'string', 'max:255'],
             'items.*.variant_title' => ['nullable', 'string', 'max:255'],
-            'items.*.unit_price' => ['nullable', 'integer', 'min:0'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
 
             'payment_method' => ['nullable', 'string', 'max:50'],
@@ -49,7 +48,6 @@ class StorefrontCheckoutRequest extends FormRequest
 
             'shipping_total' => ['nullable', 'integer', 'min:0'],
             'service_fee' => ['nullable', 'integer', 'min:0'],
-            'discount_total' => ['nullable', 'integer', 'min:0'],
             'voucher_code' => ['nullable', 'string', 'max:50'],
             'voucher_codes' => ['nullable', 'array'],
             'voucher_codes.*' => ['string', 'max:50'],

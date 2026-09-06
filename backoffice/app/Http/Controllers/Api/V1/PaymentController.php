@@ -33,7 +33,17 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'order_number' => ['required', 'string'],
             'payment_method' => ['nullable', 'string', 'max:10'],
-            'return_url' => ['nullable', 'url'],
+            'return_url' => [
+                'nullable',
+                'url',
+                function ($attribute, $value, $fail) {
+                    $host = parse_url($value, PHP_URL_HOST);
+                    $allowed = ['malega.my.id', 'store.malega.my.id', 'localhost', '127.0.0.1'];
+                    if (! in_array($host, $allowed, true) && ! str_ends_with((string) $host, '.malega.my.id')) {
+                        $fail('Domain tujuan pengalihan (return_url) tidak diizinkan untuk alasan keamanan.');
+                    }
+                },
+            ],
         ]);
 
         $order = Order::with(['customer', 'items', 'address'])

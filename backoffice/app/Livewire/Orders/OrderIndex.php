@@ -250,6 +250,7 @@ class OrderIndex extends Component
                     'postal_code' => $this->postalCode,
                     'courier_name' => $this->courierName,
                 ],
+                'source' => 'manual',
                 'shipping_total' => $this->shippingTotal,
                 'discount_total' => $this->discountTotal,
                 'notes' => $this->notes ?: null,

@@ -68,15 +68,17 @@ class CreateOrderAction
 
             // 2. Generate canonical Order Number (MLG-YYYYMMDD-XXXX)
             $datePrefix = date('Ymd');
-            $randomDigits = str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+            $randomDigits = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
             $orderNumber = "MLG-{$datePrefix}-{$randomDigits}";
 
             while (Order::where('order_number', $orderNumber)->exists()) {
-                $randomDigits = str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+                $randomDigits = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
                 $orderNumber = "MLG-{$datePrefix}-{$randomDigits}";
             }
 
             // 3. Server-Authoritative Price Calculation & Variant Verification (ADR-004)
+            $source = $data['source'] ?? (isset($data['user_id']) || auth()->check() ? 'manual' : 'storefront');
+            $isStorefront = $source === 'storefront';
             $subtotal = 0;
             $itemsToCreate = [];
 
@@ -105,9 +107,10 @@ class CreateOrderAction
                     ]);
                 }
 
-                $unitPrice = isset($itemData['unit_price']) && (int) $itemData['unit_price'] > 0
-                    ? (int) $itemData['unit_price']
-                    : (int) $variant->price;
+                // Enforce server-authoritative price for storefront checkouts to prevent client-side price tampering
+                $unitPrice = ($isStorefront || ! isset($itemData['unit_price']) || (int) $itemData['unit_price'] <= 0)
+                    ? (int) $variant->price
+                    : (int) $itemData['unit_price'];
 
                 $lineSubtotal = $unitPrice * $quantity;
                 $subtotal += $lineSubtotal;
@@ -139,6 +142,12 @@ class CreateOrderAction
                 $voucherCodes = array_merge($voucherCodes, $data['voucher_codes']);
             }
 
+            // Only consider customer as an authenticated member if verified via bearer token or session
+            $authenticatedCustomerId = $data['authenticated_customer_id'] ?? $data['user_id'] ?? null;
+            if (! $authenticatedCustomerId && ! $isStorefront) {
+                $authenticatedCustomerId = $customer->id;
+            }
+
             foreach (array_unique($voucherCodes) as $vCode) {
                 $vRes = $this->validateVoucher->execute(
                     (string) $vCode,
@@ -146,7 +155,7 @@ class CreateOrderAction
                     $shippingTotal,
                     $customer->email,
                     $customer->phone,
-                    $customer->id
+                    $authenticatedCustomerId
                 );
 
                 if ($vRes['valid'] && $vRes['voucher']) {
@@ -161,9 +170,10 @@ class CreateOrderAction
                 }
             }
 
-            $discountTotal = ($computedDiscount > 0)
+            // Storefront checkouts must strictly use validated voucher discounts
+            $discountTotal = $isStorefront
                 ? $computedDiscount
-                : max(0, (int) ($data['discount_total'] ?? 0));
+                : (($computedDiscount > 0) ? $computedDiscount : max(0, (int) ($data['discount_total'] ?? 0)));
 
             $grandTotal = max(0, ($subtotal - $discountTotal) + $shippingTotal + $serviceFee + $taxTotal);
 
@@ -171,7 +181,7 @@ class CreateOrderAction
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'customer_id' => $customer->id,
-                'source' => $data['source'] ?? 'storefront',
+                'source' => $source,
                 'order_status' => OrderStatus::Pending,
                 'payment_status' => PaymentStatus::Unpaid,
                 'fulfillment_status' => FulfillmentStatus::Unfulfilled,

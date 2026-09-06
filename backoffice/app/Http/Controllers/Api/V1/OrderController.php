@@ -27,6 +27,18 @@ class OrderController extends Controller
             $paymentMethod = $request->input('payment_method', 'VC');
             unset($data['shipping_address']);
 
+            // Resolve authenticated customer if Bearer token is present
+            $authHeader = $request->header('Authorization');
+            if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+                $token = substr($authHeader, 7);
+                if (! empty($token)) {
+                    $authCustomer = \App\Models\Customer::where('remember_token', $token)->first();
+                    if ($authCustomer) {
+                        $data['authenticated_customer_id'] = $authCustomer->id;
+                    }
+                }
+            }
+
             $order = $createOrder->execute($data);
 
             // Auto-generate Duitku invoice for instant payment redirection

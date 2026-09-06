@@ -35,9 +35,6 @@ class VoucherController extends Controller
                 $customerId = \App\Models\Customer::where('remember_token', $token)->value('id');
             }
         }
-        if (! $customerId && $email) {
-            $customerId = \App\Models\Customer::where('email', $email)->value('id');
-        }
 
         $result = $validateVoucher->execute(
             $validated['code'],
