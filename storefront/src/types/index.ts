@@ -221,6 +221,17 @@ export interface LiveTrackingOrder {
     shipped_at?: string;
     delivered_at?: string;
   } | null;
+  payment?: {
+    reference?: string;
+    payment_method?: string;
+    payment_method_name?: string;
+    payment_url?: string;
+    va_number?: string;
+    qr_string?: string;
+    status?: string;
+    paid_at?: string;
+    expires_at?: string;
+  } | null;
   items: Array<{
     sku: string;
     product_name: string;

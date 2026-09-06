@@ -34,6 +34,7 @@ function LiveTrackingContent() {
   const [order, setOrder] = useState<LiveTrackingOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -48,6 +49,33 @@ function LiveTrackingContent() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCreatePaymentInvoice = async (orderNumber: string) => {
+    setIsGeneratingInvoice(true);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+    try {
+      const res = await fetch(`${apiUrl}/payments/invoice`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          order_number: orderNumber,
+          payment_method: 'SP'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.data?.payment_url) {
+        window.location.href = data.data.payment_url;
+        return;
+      }
+      setIsGeneratingInvoice(false);
+    } catch (err) {
+      console.error('Failed to create payment invoice:', err);
+      setIsGeneratingInvoice(false);
+    }
   };
 
   const fetchTracking = async (term: string) => {
@@ -84,6 +112,7 @@ function LiveTrackingContent() {
             customer: d.customer || { name: d.shipping_address?.recipient_name },
             shippingAddress: d.shipping_address,
             shipment: d.shipment || null,
+            payment: d.payment || null,
             items: d.items || []
           };
           setOrder(liveOrder);
@@ -398,6 +427,40 @@ function LiveTrackingContent() {
                 </button>
               </div>
             </div>
+
+            {/* Unpaid Alert & Resume Payment Call-to-Action */}
+            {order.paymentStatus?.code === 'unpaid' && (
+              <div className="mt-6 p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#CBAC70]/15 to-amber-500/10 border border-amber-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                    <span>Menunggu Pembayaran Pesanan</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Stok busana Anda telah direservasi. Silakan selesaikan pembayaran sebesar <span className="font-mono font-bold text-[#CBAC70]">{order.pricing?.formatted_grand_total}</span> untuk memproses pengiriman.
+                  </p>
+                </div>
+                {order.payment?.payment_url ? (
+                  <a
+                    href={order.payment.payment_url}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#CBAC70]/20 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-all"
+                  >
+                    <span>Bayar Sekarang (Duitku)</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleCreatePaymentInvoice(order.orderNumber)}
+                    disabled={isGeneratingInvoice}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#CBAC70]/20 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span>{isGeneratingInvoice ? 'Memuat Gateway...' : 'Buka Halaman Pembayaran'}</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* 2. Interactive 5-Stage Stepper Progress Bar */}
             <div className="mt-8 pt-6 border-t border-[#1C284D]">

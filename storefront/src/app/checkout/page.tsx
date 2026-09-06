@@ -276,6 +276,18 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (data.success) {
+        // Persist guest order token in localStorage for accidental tab close recovery
+        try {
+          localStorage.setItem('malega_last_order', JSON.stringify({
+            orderNumber: data.data?.order_number,
+            grandTotal: data.data?.pricing?.grand_total,
+            paymentUrl: data.payment?.payment_url,
+            createdAt: new Date().toISOString()
+          }));
+        } catch (e) {
+          console.warn('Could not save pending order to localStorage:', e);
+        }
+
         // Simpan pesanan di state & bersihkan sesi checkout
         createOrder();
 
