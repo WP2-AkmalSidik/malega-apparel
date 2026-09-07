@@ -534,6 +534,8 @@ export const productsCatalog: Product[] = rawProducts.map(p => {
   };
 });
 
+export const products = productsCatalog;
+
 export const availableVouchers: Voucher[] = [
   {
     code: 'MALEGAVIP15',

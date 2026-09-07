@@ -190,6 +190,7 @@ export interface LiveTrackingOrder {
     subtotal: number;
     discount_total: number;
     shipping_total: number;
+    service_fee?: number;
     tax_total: number;
     grand_total: number;
     formatted_grand_total: string;
@@ -236,6 +237,7 @@ export interface LiveTrackingOrder {
     sku: string;
     product_name: string;
     variant_title: string;
+    image?: string;
     unit_price: number;
     formatted_unit_price: string;
     quantity: number;

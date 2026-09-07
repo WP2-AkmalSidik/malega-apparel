@@ -20,9 +20,102 @@ import {
   ShoppingBag,
   ExternalLink,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  ArrowUpRight,
+  BadgePercent,
+  Receipt,
+  CreditCard,
+  Calendar,
+  Share2
 } from 'lucide-react';
 import { LiveTrackingOrder, TrackingMilestone } from '../../types';
+import { products } from '../../data/products';
+
+// Helper to extract clean product title, variant color, and size
+const parseItemDetails = (productName: string, variantTitle: string, sku: string) => {
+  let title = productName;
+  let color = '';
+  let size = '';
+
+  const cleanVariant = variantTitle || '';
+  const cleanName = productName || '';
+
+  // If productName is generic Malega Apparel, parse from variantTitle
+  if (cleanName.toLowerCase().includes('malega') || cleanName.length <= 15) {
+    if (cleanVariant.includes(' - ')) {
+      const [parsedTitle, rest] = cleanVariant.split(' - ');
+      if (parsedTitle && parsedTitle.trim().length > 3) {
+        title = parsedTitle.trim();
+      }
+      if (rest) {
+        const parts = rest.split('/').map((s) => s.trim());
+        color = parts.length > 2 ? `${parts[0]} / ${parts[1]}` : parts[0] || '';
+        size = parts.length > 2 ? parts.slice(2).join(' / ') : parts[1] || '';
+      }
+    } else if (cleanVariant.includes('/')) {
+      const parts = cleanVariant.split('/').map((s) => s.trim());
+      color = parts[0] || '';
+      size = parts.slice(1).join(' / ') || '';
+    }
+  } else {
+    // Specific product title, parse variantTitle for color / size
+    if (cleanVariant.includes(' - ')) {
+      const [, rest] = cleanVariant.split(' - ');
+      if (rest) {
+        const parts = rest.split('/').map((s) => s.trim());
+        color = parts.length > 2 ? `${parts[0]} / ${parts[1]}` : parts[0] || '';
+        size = parts.length > 2 ? parts.slice(2).join(' / ') : parts[1] || '';
+      }
+    } else if (cleanVariant.includes('/')) {
+      const parts = cleanVariant.split('/').map((s) => s.trim());
+      color = parts[0] || '';
+      size = parts.slice(1).join(' / ') || '';
+    } else {
+      color = cleanVariant;
+    }
+  }
+
+  // Resolve real high-resolution product artwork from catalog
+  const normTitle = title.toLowerCase();
+  const normSku = sku.toLowerCase();
+  let image = '';
+
+  const matchedProduct = products.find((p) =>
+    normTitle.includes(p.title.toLowerCase()) ||
+    p.title.toLowerCase().includes(normTitle) ||
+    (p.slug && normSku.includes(p.slug.toLowerCase())) ||
+    normSku.includes(p.id.toLowerCase())
+  );
+
+  if (matchedProduct) {
+    const matchedColor = matchedProduct.colors?.find(
+      (c) =>
+        color &&
+        (c.name.toLowerCase().includes(color.toLowerCase()) ||
+          color.toLowerCase().includes(c.name.toLowerCase()))
+    );
+    image = matchedColor?.image || matchedProduct.colors?.[0]?.image || matchedProduct.gallery?.[0] || '';
+  }
+
+  // Fallback high-fashion assets if catalog match is approximate
+  if (!image) {
+    if (normTitle.includes('cap') || normTitle.includes('topi')) {
+      image = 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80';
+    } else if (normTitle.includes('oxford') || normTitle.includes('shirt') || normTitle.includes('kemeja')) {
+      image = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80';
+    } else if (normTitle.includes('chino') || normTitle.includes('pant') || normTitle.includes('celana')) {
+      image = 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&auto=format&fit=crop&q=80';
+    } else if (normTitle.includes('belt') || normTitle.includes('ikat pinggang')) {
+      image = 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=80';
+    } else if (normTitle.includes('robe') || normTitle.includes('kimono') || normTitle.includes('jacket') || normTitle.includes('coat')) {
+      image = 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=80';
+    } else {
+      image = 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80';
+    }
+  }
+
+  return { title, color, size, image };
+};
 
 function LiveTrackingContent() {
   const searchParams = useSearchParams();
@@ -33,7 +126,7 @@ function LiveTrackingContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [order, setOrder] = useState<LiveTrackingOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
 
   const formatRupiah = (val: number) => {
@@ -44,22 +137,22 @@ function LiveTrackingContent() {
     }).format(val);
   };
 
-  const copyToClipboard = (text: string) => {
-    if (!text) return;
+  const copyToClipboard = (text: string, key: string) => {
+    if (!text || text === '-') return;
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
 
   const handleCreatePaymentInvoice = async (orderNumber: string) => {
     setIsGeneratingInvoice(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://malega.my.id/api/v1';
     try {
       const res = await fetch(`${apiUrl}/payments/invoice`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          Accept: 'application/json'
         },
         body: JSON.stringify({
           order_number: orderNumber,
@@ -84,7 +177,7 @@ function LiveTrackingContent() {
     setIsLoading(true);
     setError(null);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://malega.my.id/api/v1';
 
     try {
       const res = await fetch(`${apiUrl}/orders/${encodeURIComponent(term.trim())}`, {
@@ -105,9 +198,11 @@ function LiveTrackingContent() {
               subtotal: d.pricing?.subtotal || 0,
               discount_total: d.pricing?.discount_total || 0,
               shipping_total: d.pricing?.shipping_total || 0,
+              service_fee: d.pricing?.service_fee ?? 0,
               tax_total: d.pricing?.tax_total || 0,
               grand_total: d.pricing?.grand_total || 0,
-              formatted_grand_total: d.pricing?.formatted_grand_total || formatRupiah(d.pricing?.grand_total || 0)
+              formatted_grand_total:
+                d.pricing?.formatted_grand_total || formatRupiah(d.pricing?.grand_total || 0)
             },
             customer: d.customer || { name: d.shipping_address?.recipient_name },
             shippingAddress: d.shipping_address,
@@ -121,63 +216,75 @@ function LiveTrackingContent() {
         }
       }
 
-      // If search query looks like recent mock/sample or not found in server
-      if (term.includes('MLG-') || term.includes('WYB-') || term.includes('JNE-') || term.includes('SICEPAT-')) {
-        // Construct fallback realistic simulation
+      // If search query looks like a test identifier but not found in DB
+      if (term.includes('MLG-') || term.includes('WYB-') || term.includes('JNE-')) {
         const isDelivered = term.toLowerCase().includes('deliv');
         const fallbackOrder: LiveTrackingOrder = {
-          orderNumber: term.startsWith('WYB-') ? 'MLG-20260831-0710' : term,
+          orderNumber: term.startsWith('WYB-') ? 'MLG-20260904-2637' : term,
           createdAt: new Date().toISOString(),
           orderStatus: { code: 'processing', label: 'Sedang Diproses' },
           paymentStatus: { code: 'paid', label: 'Lunas' },
-          fulfillmentStatus: { code: isDelivered ? 'delivered' : 'fulfilled', label: isDelivered ? 'Terkirim' : 'Diproses Kurir' },
+          fulfillmentStatus: {
+            code: isDelivered ? 'delivered' : 'fulfilled',
+            label: isDelivered ? 'Terkirim' : 'Diproses Kurir'
+          },
           pricing: {
-            subtotal: 589000,
-            discount_total: 0,
-            shipping_total: 18000,
+            subtotal: 189000,
+            discount_total: 15000,
+            shipping_total: 15000,
+            service_fee: 1000,
             tax_total: 0,
-            grand_total: 607000,
-            formatted_grand_total: 'Rp 607.000'
+            grand_total: 190000,
+            formatted_grand_total: 'Rp 190.000'
           },
           customer: {
-            name: 'Arya Bimasakti',
-            email: 'arya.bimasakti@example.com',
-            phone: '081298765432'
+            name: 'Ak*** R***',
+            email: 'ak***@malega.id',
+            phone: '0812****899'
           },
           shippingAddress: {
-            recipient_name: 'Arya Bimasakti',
-            phone: '081298765432',
-            address_line1: 'Jl. Boulevard Barat Raya Blok LA-1 No. 12, Kelapa Gading',
-            address_line2: 'Komplek Grand Orchard',
-            city: 'Jakarta Utara',
+            recipient_name: 'Ak*** R***',
+            phone: '0812****899',
+            address_line1: 'Jl. Senopati No. 25 **** (Disamarkan demi privasi)',
+            address_line2: 'Kebayoran Baru',
+            city: 'Jakarta Selatan',
             province: 'DKI Jakarta',
-            postal_code: '14240',
+            postal_code: '*****',
             courier_name: 'JNE (REG)',
-            tracking_number: term.startsWith('WYB-') ? term : 'WYB-1788147864651'
+            tracking_number: 'WYB-1788764838210'
           },
           shipment: {
             courier: 'JNE',
             service: 'REG',
-            waybill_id: term.startsWith('WYB-') ? term : 'WYB-1788147864651',
-            status: isDelivered ? 'delivered' : 'in_transit',
-            status_label: isDelivered ? 'Paket Diterima' : 'Dalam Perjalanan',
-            tracking_url: 'https://track.biteship.com/VEQvf93nqbA11aTm5n4qWbZ0?environment=development',
+            waybill_id: 'WYB-1788764838210',
+            status: isDelivered ? 'delivered' : 'confirmed',
+            status_label: isDelivered ? 'Paket Diterima' : 'Menunggu Pickup',
+            tracking_url: 'https://track.biteship.com/f6XUSKFG9Et4hSAUtRQ78rsR?environment=development',
             tracking_history: [
-              { status: 'confirmed', note: 'Nomor resi terbit, pesanan dipacking rapi oleh Malega Fulfillment Centre.', updated_at: new Date(Date.now() - 3600000 * 3).toISOString() },
-              { status: 'picked', note: 'Paket telah di-pickup oleh kurir JNE.', updated_at: new Date(Date.now() - 3600000 * 2).toISOString() },
-              { status: 'in_transit', note: 'Paket tiba di Main Sorting Hub Jakarta Pusat dan sedang dalam perjalanan antar-gateway.', updated_at: new Date(Date.now() - 1800000).toISOString() }
+              {
+                status: 'confirmed',
+                note: 'Courier order is confirmed. JNE has been notified to pick up.',
+                updated_at: new Date().toISOString()
+              }
             ]
+          },
+          payment: {
+            reference: 'SIMULATED-126E677087B2',
+            payment_method: 'SP',
+            payment_method_name: 'QRIS Real-Time',
+            status: 'success',
+            paid_at: new Date().toISOString()
           },
           items: [
             {
-              sku: 'MLG-ROYAL-SLV-L',
-              product_name: 'Malega Royal Batik Signature Shirt',
-              variant_title: 'Silver Obsidian / L',
-              unit_price: 589000,
-              formatted_unit_price: 'Rp 589.000',
+              sku: 'MLG-STRU-BLK-ALL-SIZE-ADJUSTABLE',
+              product_name: 'Structured Minimal 6-Panel Gold Monogram Cap',
+              variant_title: 'Structured Minimal 6-Panel Gold Monogram Cap - Onyx Black / Gold / All Size (Adjustable)',
+              unit_price: 189000,
+              formatted_unit_price: 'Rp 189.000',
               quantity: 1,
-              subtotal: 589000,
-              formatted_subtotal: 'Rp 589.000'
+              subtotal: 189000,
+              formatted_subtotal: 'Rp 189.000'
             }
           ]
         };
@@ -186,7 +293,7 @@ function LiveTrackingContent() {
         return;
       }
 
-      setError(`Pesanan dengan nomor atau resi "${term}" tidak ditemukan di database. Pastikan format nomor pesanan Anda benar.`);
+      setError(`Pesanan dengan nomor atau resi "${term}" tidak ditemukan. Pastikan format nomor pesanan Anda benar.`);
       setOrder(null);
     } catch (err) {
       setError('Gagal menghubungkan ke server logistik. Silakan periksa koneksi internet Anda atau coba beberapa saat lagi.');
@@ -199,6 +306,20 @@ function LiveTrackingContent() {
   useEffect(() => {
     if (initialQuery) {
       fetchTracking(initialQuery);
+    } else {
+      // Auto-populate last order from localStorage if available
+      try {
+        const stored = localStorage.getItem('malega_last_order');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.orderNumber) {
+            setSearchQuery(parsed.orderNumber);
+            fetchTracking(parsed.orderNumber);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
     }
   }, [initialQuery]);
 
@@ -232,48 +353,76 @@ function LiveTrackingContent() {
     // 1. Order Placed
     list.push({
       title: 'Pesanan Berhasil Dibuat',
-      note: `Pesanan #${order.orderNumber} diterima di sistem Malega Apparel.`,
+      note: `Pesanan #${order.orderNumber} telah diterima dan diverifikasi di sistem Malega.`,
       status: 'order_placed',
-      timestamp: new Date(order.createdAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      location: 'Malega Online Storefront'
+      timestamp: new Date(order.createdAt).toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) + ' WIB',
+      location: 'Storefront Malega Apparel'
     });
 
     // 2. Payment Verified
     if (order.paymentStatus?.code === 'paid' || progressStep >= 2) {
+      const payTime = order.payment?.paid_at
+        ? new Date(order.payment.paid_at).toLocaleString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) + ' WIB'
+        : new Date(new Date(order.createdAt).getTime() + 120000).toLocaleString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) + ' WIB';
+
       list.push({
-        title: 'Pembayaran Terverifikasi (Lunas)',
-        note: 'Pembayaran telah dikonfirmasi. Pesanan diteruskan ke bagian pemenuhan dan QC pakaian.',
+        title: 'Pembayaran Lunas & Terverifikasi',
+        note: `Pembayaran sebesar ${order.pricing.formatted_grand_total} berhasil dikonfirmasi (${order.payment?.payment_method_name || 'Payment Gateway'}). Busana siap dikemas.`,
         status: 'payment_verified',
-        timestamp: new Date(new Date(order.createdAt).getTime() + 120000).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        location: 'Payment Gateway Otomatis'
+        timestamp: payTime,
+        location: 'Duitku Payment Gateway'
       });
     }
 
-    // 3. AWB Generated & Packed
+    // 3. AWB Generated & Ready to pickup
     if (order.shipment?.waybill_id || progressStep >= 3) {
       list.push({
-        title: `Resi Auto-AWB Terbit (${courier})`,
-        note: `Nomor resi resmi ${waybill} telah diterbitkan via Biteship. Paket selesai dikemas dengan segel keamanan eksklusif Malega.`,
+        title: `Nomor Resi Resmi Terbit (${courier})`,
+        note: `Resi ${waybill} telah diterbitkan via Biteship. Paket busana telah dikemas rapi dengan segel QC & kotak eksklusif Malega, menunggu penjemputan kurir.`,
         status: 'awb_generated',
-        timestamp: new Date(new Date(order.createdAt).getTime() + 900000).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        location: 'Gudang Pusat Malega (Jakarta Pusat 10220)'
+        timestamp: new Date(new Date(order.createdAt).getTime() + 900000).toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ' WIB',
+        location: 'Gudang Pusat Malega (Jakarta Pusat)'
       });
     }
 
-    // 4. Raw Biteship History Events (if any)
+    // 4. Raw Biteship History Events
     const history = order.shipment?.tracking_history || [];
     history.forEach((h) => {
-      let tTitle = 'Pembaruan Logistik';
-      let tLoc = 'Hub Sortir Ekspedisi';
+      let tTitle = 'Pembaruan Status Ekspedisi';
+      let tLoc = 'Hub Sortir Logistik';
       if (['picking_up', 'allocated'].includes(h.status)) {
         tTitle = `Kurir Ditugaskan (${courier})`;
         tLoc = 'Gudang Malega (Jakarta Pusat)';
       } else if (h.status === 'picked') {
-        tTitle = 'Paket Berhasil Di-Pickup Kurir';
+        tTitle = 'Paket Telah Di-Pickup Kurir';
         tLoc = 'Gudang Malega (Jakarta Pusat)';
       } else if (['dropping_off', 'in_transit'].includes(h.status)) {
         tTitle = 'Paket Sedang Dalam Perjalanan';
-        tLoc = `Hub Sortir Ekspedisi (${order.shippingAddress?.city || 'Transit'})`;
+        tLoc = `Hub Ekspedisi ${order.shippingAddress?.city || 'Transit'}`;
       } else if (h.status === 'delivered') {
         tTitle = 'Paket Berhasil Diterima';
         tLoc = `${order.shippingAddress?.recipient_name} (${order.shippingAddress?.city})`;
@@ -283,18 +432,32 @@ function LiveTrackingContent() {
         title: tTitle,
         note: h.note,
         status: h.status,
-        timestamp: h.updated_at ? new Date(h.updated_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-',
+        timestamp: h.updated_at
+          ? new Date(h.updated_at).toLocaleString('id-ID', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) + ' WIB'
+          : '-',
         location: tLoc
       });
     });
 
     if (progressStep === 4 && history.length <= 1) {
       list.push({
-        title: `Paket Diberangkatkan ke Hub Sortir (${courier})`,
-        note: 'Paket busana Malega telah keluar dari gudang asal dan sedang menuju fasilitas sortir logistik.',
+        title: `Paket Menuju Hub Sortir Tujuan (${courier})`,
+        note: 'Paket busana dalam perjalanan menuju fasilitas distribusi kota tujuan penerima.',
         status: 'in_transit',
-        timestamp: new Date().toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        location: 'Main Gateway Sorting Hub'
+        timestamp: new Date().toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ' WIB',
+        location: 'Main Logistics Gateway'
       });
     }
 
@@ -303,372 +466,433 @@ function LiveTrackingContent() {
         title: 'Paket Berhasil Diterima Pelanggan',
         note: `Paket telah diterima dengan baik oleh ${order.shippingAddress?.recipient_name}.`,
         status: 'delivered',
-        timestamp: new Date().toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        location: `Alamat Tujuan (${order.shippingAddress?.city})`
+        timestamp: new Date().toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ' WIB',
+        location: `Alamat Penerima (${order.shippingAddress?.city})`
       });
     }
 
-    // Mark the last chronological milestone as active
-    return list.map((item, idx) => ({
-      ...item,
-      isActive: idx === list.length - 1
-    })).reverse();
+    return list
+      .map((item, idx) => ({
+        ...item,
+        isActive: idx === list.length - 1
+      }))
+      .reverse();
   };
 
   const milestones = getMilestones();
-
   const waybillNumber = order?.shipment?.waybill_id || order?.shippingAddress?.tracking_number || '-';
-  const courierCompany = order?.shipment?.courier || order?.shippingAddress?.courier_name || 'Kurir Ekspedisi';
+  const courierCompany = order?.shipment?.courier || order?.shippingAddress?.courier_name || 'JNE (Reguler)';
 
   const waText = encodeURIComponent(
-    `Halo Customer Concierge Malega Apparel, saya ingin menanyakan status pesanan saya:\n\n*No. Pesanan:* ${order?.orderNumber || '-'}\n*No. Resi:* ${waybillNumber}\n*Penerima:* ${order?.shippingAddress?.recipient_name || '-'}\n\nMohon bantuannya ya min, terima kasih!`
+    `Halo Concierge Malega Apparel, saya ingin menanyakan status pesanan saya:\n\n` +
+      `*No. Pesanan:* ${order?.orderNumber || '-'}\n` +
+      `*No. Resi:* ${waybillNumber}\n` +
+      `*Penerima:* ${order?.shippingAddress?.recipient_name || '-'}\n\n` +
+      `Mohon bantuannya ya min, terima kasih!`
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10">
-      
-      {/* Hero Header & Search Section */}
-      <div className="text-center max-w-2xl mx-auto space-y-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#CBAC70]/10 border border-[#CBAC70]/30 text-[#CBAC70] text-xs font-mono font-semibold">
-          <span className="w-2 h-2 rounded-full bg-[#CBAC70] animate-ping"></span>
-          <span>Live Logistics Tracking Portal &bull; Malega Bespoke</span>
-        </div>
-        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-[#FDFCFF] font-bold tracking-tight">
-          Lacak Perjalanan Paket Anda
-        </h1>
-        <p className="text-[#94A3B8] text-sm sm:text-base leading-relaxed">
-          Pantau status pesanan pakaian Malega secara langsung dan akurat, mulai dari penyiapan di atelier hingga paket tiba di depan pintu Anda.
-        </p>
+    <div className="min-h-screen bg-[#060913] text-[#FDFCFF] pb-24 sm:pb-16">
+      {/* Top Ambient Glow Accent */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 bg-gradient-to-b from-[#CBAC70]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
 
-        {/* Search Input Box */}
-        <form onSubmit={handleSearch} className="pt-2">
-          <div className="relative max-w-xl mx-auto">
-            <div className="relative flex items-center rounded-2xl bg-[#0B132B] border border-[#CBAC70]/30 shadow-2xl shadow-black/60 overflow-hidden focus-within:border-[#CBAC70] focus-within:ring-2 focus-within:ring-[#CBAC70]/20 transition-all">
-              <div className="pl-4 text-[#94A3B8]">
-                <Search className="w-5 h-5" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8 relative z-10">
+        {/* Search & Header Section */}
+        <div className="space-y-3 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#CBAC70]/10 border border-[#CBAC70]/30 text-[#CBAC70] text-[11px] font-mono font-semibold tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-[#CBAC70] animate-ping" />
+                <span>Malega Live Tracking &bull; Atelier Portal</span>
+              </div>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1.5">
+                Lacak Status Pesanan
+              </h1>
+            </div>
+
+            {order && (
+              <button
+                type="button"
+                onClick={() => fetchTracking(order.orderNumber)}
+                disabled={isLoading}
+                className="self-center sm:self-auto px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#0B132B] hover:bg-[#14204A] text-slate-300 text-xs font-medium transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-sky-400 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>Perbarui Data</span>
+              </button>
+            )}
+          </div>
+
+          {/* Minimalist Search Bar */}
+          <form onSubmit={handleSearch} className="relative max-w-2xl">
+            <div className="relative flex items-center rounded-2xl bg-[#0B132B]/90 backdrop-blur-xl border border-white/10 focus-within:border-[#CBAC70] focus-within:ring-2 focus-within:ring-[#CBAC70]/20 shadow-xl transition-all">
+              <div className="pl-3.5 text-slate-400">
+                <Search className="w-4 h-4" />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ketik No. Pesanan (MLG-...) atau No. Resi (WYB-...)..."
-                className="w-full bg-transparent border-0 py-3.5 pl-3 pr-28 text-sm text-[#FDFCFF] placeholder:text-[#64748B] focus:outline-none font-mono"
+                placeholder="Ketik Nomor Pesanan (MLG-...) atau No. Resi..."
+                className="w-full bg-transparent py-3 pl-3 pr-24 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none font-mono"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-90 text-[#0B132B] font-bold text-xs shadow-md shadow-[#CBAC70]/20 transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50 active:scale-95"
-                >
-                  {isLoading ? (
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <span>Lacak</span>
-                  )}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#BD9B58] text-[#0B132B] font-bold text-xs shadow-md shadow-[#CBAC70]/20 active:scale-95 transition-all"
+              >
+                {isLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <span>Cari</span>}
+              </button>
             </div>
-          </div>
-        </form>
-      </div>
-
-      {/* Error Message Banner */}
-      {error && (
-        <div className="max-w-xl mx-auto p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-center space-y-2 animate-fade-in">
-          <div className="w-10 h-10 mx-auto rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center">
-            <AlertCircle className="w-5 h-5" />
-          </div>
-          <p className="text-sm font-semibold text-rose-300">{error}</p>
-          <p className="text-xs text-[#94A3B8]">
-            Contoh nomor pesanan yang dapat dicoba: <span className="font-mono text-[#CBAC70] font-bold">MLG-20260831-0710</span> atau nomor resi <span className="font-mono text-sky-400 font-bold">WYB-1788147864651</span>
-          </p>
+          </form>
         </div>
-      )}
 
-      {/* Active Order Tracking Dashboard */}
-      {order && (
-        <div className="space-y-8 animate-fade-in">
-          
-          {/* 1. Top Order Summary Card */}
-          <div className="relative rounded-3xl bg-[#0B132B] border border-[#CBAC70]/30 p-6 sm:p-8 shadow-2xl shadow-black/80 overflow-hidden">
-            {/* Ambient Gold Accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#CBAC70] to-transparent opacity-80" />
+        {/* Error Banner */}
+        {error && (
+          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-center space-y-1 animate-fade-in">
+            <p className="font-semibold">{error}</p>
+          </div>
+        )}
 
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h2 className="font-mono font-bold text-2xl sm:text-3xl text-[#CBAC70] tracking-tight">
+        {/* Active Order Card */}
+        {order && (
+          <div className="space-y-6 animate-fade-in">
+            {/* 1. Primary Order Hero Header (Mobile-Optimized) */}
+            <div className="p-5 sm:p-6 rounded-3xl bg-[#0B132B] border border-white/10 shadow-2xl relative overflow-hidden space-y-5">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#CBAC70] to-transparent opacity-80" />
+
+              {/* Order Number & Live Badges */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Nomor Pesanan</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(order.orderNumber, 'order')}
+                      className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-[#CBAC70] transition-colors"
+                      title="Salin Nomor Pesanan"
+                    >
+                      {copiedKey === 'order' ? (
+                        <span className="text-[10px] text-emerald-400 font-mono font-bold">✓ Tersalin</span>
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="font-mono font-bold text-xl sm:text-2xl text-[#CBAC70] tracking-tight">
                     {order.orderNumber}
-                  </h2>
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#CBAC70]/15 text-[#CBAC70] border border-[#CBAC70]/30">
                     {order.orderStatus.label}
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                      order.paymentStatus.code === 'paid'
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-400 border-amber-500/30 animate-pulse'
+                    }`}
+                  >
                     {order.paymentStatus.label}
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/30">
-                    ⏱ Estimasi: 1 - 3 Hari Kerja
+                  {waybillNumber !== '-' && (
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                      Resi: {waybillNumber}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Kurir & Detail Singkat */}
+              <div className="pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-[#CBAC70]" />
+                  <span>
+                    Ekspedisi: <strong className="text-white">{courierCompany}</strong>
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#94A3B8]">
-                  Waktu Transaksi: {new Date(order.createdAt).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB &bull; Pemesan: <span className="text-[#FDFCFF] font-semibold">{order.customer?.name || order.shippingAddress.recipient_name}</span>
-                </p>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>
+                    {new Date(order.createdAt).toLocaleString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}{' '}
+                    WIB
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => fetchTracking(order.orderNumber)}
-                  disabled={isLoading}
-                  className="px-4 py-2.5 rounded-xl border border-[#CBAC70]/30 bg-[#14204A] hover:bg-[#1A2A5E] text-[#FDFCFF] text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-4 h-4 text-sky-400 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>Refresh Status</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Unpaid Alert & Resume Payment Call-to-Action */}
-            {order.paymentStatus?.code === 'unpaid' && (
-              <div className="mt-6 p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#CBAC70]/15 to-amber-500/10 border border-amber-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
-                    <span>Menunggu Pembayaran Pesanan</span>
+              {/* Progress Stepper Line (Mobile Clean Minimalist) */}
+              <div className="pt-4 border-t border-white/5 space-y-3">
+                <div className="relative">
+                  {/* Connecting Bar */}
+                  <div className="absolute top-1/2 -translate-y-1/2 inset-x-3 sm:inset-x-6 h-1 bg-[#14204A] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#CBAC70] to-[#E3CD99] transition-all duration-700"
+                      style={{ width: `${((progressStep - 1) / 4) * 100}%` }}
+                    />
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Stok busana Anda telah direservasi. Silakan selesaikan pembayaran sebesar <span className="font-mono font-bold text-[#CBAC70]">{order.pricing?.formatted_grand_total}</span> untuk memproses pengiriman.
+
+                  {/* 5 Points */}
+                  <div className="relative flex justify-between">
+                    {[
+                      { step: 1, label: 'Dipesan' },
+                      { step: 2, label: 'Diproses' },
+                      { step: 3, label: 'Siap Kirim' },
+                      { step: 4, label: 'Dikirim' },
+                      { step: 5, label: 'Terkirim' }
+                    ].map((st) => (
+                      <div key={st.step} className="flex flex-col items-center gap-1.5">
+                        <div
+                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all relative z-10 ${
+                            progressStep >= st.step
+                              ? 'bg-[#CBAC70] text-[#0B132B] shadow-[0_0_12px_rgba(203,172,112,0.6)]'
+                              : 'bg-[#0B132B] text-slate-500 border border-slate-700'
+                          }`}
+                        >
+                          {progressStep > st.step ? '✓' : st.step}
+                        </div>
+                        <span
+                          className={`text-[10px] sm:text-xs font-medium ${
+                            progressStep >= st.step ? 'text-white' : 'text-slate-500'
+                          }`}
+                        >
+                          {st.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Subtitle Step Indicator */}
+                <div className="text-center pt-1">
+                  <p className="text-xs text-[#CBAC70] font-medium">
+                    {progressStep === 1 && 'Tahap 1: Pesanan baru saja dibuat dan menunggu verifikasi.'}
+                    {progressStep === 2 && 'Tahap 2: Busana sedang dipacking dan melewati Quality Control Malega.'}
+                    {progressStep === 3 && 'Tahap 3: Nomor resi terbit, paket menunggu penjemputan oleh kurir.'}
+                    {progressStep === 4 && 'Tahap 4: Paket sedang dalam perjalanan antar-hub logistik.'}
+                    {progressStep === 5 && 'Tahap 5: Paket telah sampai dan diterima oleh pelanggan.'}
                   </p>
                 </div>
-                {order.payment?.payment_url ? (
-                  <a
-                    href={order.payment.payment_url}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#CBAC70]/20 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-all"
-                  >
-                    <span>Bayar Sekarang (Duitku)</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                ) : (
+              </div>
+
+              {/* Unpaid Alert Card */}
+              {order.paymentStatus?.code === 'unpaid' && (
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                      <span>Menunggu Pembayaran</span>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      Tagihan: <strong className="font-mono text-[#CBAC70]">{order.pricing.formatted_grand_total}</strong>
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => handleCreatePaymentInvoice(order.orderNumber)}
+                    onClick={() =>
+                      order.payment?.payment_url
+                        ? (window.location.href = order.payment.payment_url)
+                        : handleCreatePaymentInvoice(order.orderNumber)
+                    }
                     disabled={isGeneratingInvoice}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#CBAC70]/20 flex items-center gap-2 whitespace-nowrap active:scale-95 transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] font-bold text-xs shadow-lg shadow-[#CBAC70]/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
                   >
-                    <span>{isGeneratingInvoice ? 'Memuat Gateway...' : 'Buka Halaman Pembayaran'}</span>
-                    <ExternalLink className="w-4 h-4" />
+                    <span>{isGeneratingInvoice ? 'Memuat Gateway...' : '⚡ Bayar Sekarang (Duitku)'}</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </button>
-                )}
+                </div>
+              )}
+            </div>
+
+            {/* 2. Mobile-First Segmented Control Tabs */}
+            <div className="p-1 rounded-2xl bg-[#0B132B] border border-white/10 grid grid-cols-3 gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab('timeline')}
+                className={`py-2.5 px-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === 'timeline'
+                    ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-md shadow-[#CBAC70]/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Truck className="w-3.5 h-3.5" />
+                <span className="truncate">Riwayat Pengiriman</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('package')}
+                className={`py-2.5 px-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === 'package'
+                    ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-md shadow-[#CBAC70]/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span className="truncate">Rincian Busana</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('invoice')}
+                className={`py-2.5 px-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === 'invoice'
+                    ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-md shadow-[#CBAC70]/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                <span className="truncate">Faktur Biaya</span>
+              </button>
+            </div>
+
+            {/* TAB 1: RINCIAN BUSANA & PAKET */}
+            {activeTab === 'package' && (
+              <div className="space-y-4">
+                <div className="p-5 sm:p-6 rounded-3xl bg-[#0B132B] border border-white/10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-mono text-xs uppercase font-bold text-[#CBAC70] tracking-wider flex items-center gap-2">
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      <span>Daftar Busana Pesanan</span>
+                    </h3>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {order.items.reduce((acc, it) => acc + it.quantity, 0)} Item Produk
+                    </span>
+                  </div>
+
+                  <div className="divide-y divide-white/5">
+                    {order.items.map((item, idx) => {
+                      const details = parseItemDetails(item.product_name, item.variant_title, item.sku);
+
+                      return (
+                        <div
+                          key={idx}
+                          className="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                            {/* Real Product Artwork Thumbnail */}
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 relative">
+                              <img
+                                src={details.image}
+                                alt={details.title}
+                                className="w-full h-full object-cover object-center"
+                                onError={(e) => {
+                                  // Fallback gracefully if image fails
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+
+                            {/* Clean Micro Details */}
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <p className="font-bold text-sm text-white leading-snug line-clamp-2">
+                                {details.title}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                                {details.color && (
+                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300 font-medium">
+                                    {details.color}
+                                  </span>
+                                )}
+                                {details.size && (
+                                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300 font-medium">
+                                    {details.size}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="font-mono text-[10px] text-slate-400 truncate">
+                                SKU: <span className="text-[#CBAC70]">{item.sku}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Quantity & Subtotal */}
+                          <div className="w-full sm:w-auto flex items-center justify-between sm:flex-col sm:items-end gap-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                            <span className="text-xs text-slate-400">
+                              {item.quantity} x {item.formatted_unit_price || formatRupiah(item.unit_price)}
+                            </span>
+                            <span className="font-mono font-bold text-sm text-[#CBAC70]">
+                              {item.formatted_subtotal || formatRupiah(item.subtotal)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Quality & Packaging Badges */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-4 rounded-2xl bg-[#0B132B] border border-white/10 space-y-2 text-xs">
+                    <p className="font-mono text-[11px] font-bold text-[#CBAC70] uppercase">Jaminan Kualitas Atelier</p>
+                    <div className="space-y-1.5 text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>100% Busana Asli Malega Apparel Bespoke</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Melewati Quality Control Jahitan & Kancing Presisi</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Garansi Penukaran Ukuran dalam 7 Hari</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#0B132B] border border-white/10 space-y-2 text-xs">
+                    <p className="font-mono text-[11px] font-bold text-[#CBAC70] uppercase">Standar Kemasan Mewah</p>
+                    <div className="space-y-1.5 text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Exclusive Black Gift Box + Silk Ribbon</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Dust Bag Pelindung Serat Kain Premium</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Segel Keamanan Hologram Anti-Buka</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* 2. Interactive 5-Stage Stepper Progress Bar */}
-            <div className="mt-8 pt-6 border-t border-[#1C284D]">
-              <div className="grid grid-cols-5 gap-2 relative">
-                
-                {/* Step 1 */}
-                <div className="text-center space-y-2">
-                  <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-bold transition-all ${progressStep >= 1 ? 'bg-[#CBAC70] text-[#0B132B] shadow-[0_0_15px_rgba(203,172,112,0.6)]' : 'bg-[#14204A] text-[#64748B]'}`}>
-                    1
-                  </div>
-                  <div>
-                    <p className={`text-xs font-bold ${progressStep >= 1 ? 'text-[#FDFCFF]' : 'text-[#64748B]'}`}>Dipesan</p>
-                    <p className="text-[10px] text-[#94A3B8] hidden sm:block">Pesanan Masuk</p>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="text-center space-y-2">
-                  <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-bold transition-all ${progressStep >= 2 ? 'bg-[#CBAC70] text-[#0B132B] shadow-[0_0_15px_rgba(203,172,112,0.6)]' : 'bg-[#14204A] text-[#64748B]'}`}>
-                    2
-                  </div>
-                  <div>
-                    <p className={`text-xs font-bold ${progressStep >= 2 ? 'text-[#FDFCFF]' : 'text-[#64748B]'}`}>Diproses</p>
-                    <p className="text-[10px] text-[#94A3B8] hidden sm:block">Packing Busana</p>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="text-center space-y-2">
-                  <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-bold transition-all ${progressStep >= 3 ? 'bg-[#CBAC70] text-[#0B132B] shadow-[0_0_15px_rgba(203,172,112,0.6)]' : 'bg-[#14204A] text-[#64748B]'}`}>
-                    3
-                  </div>
-                  <div>
-                    <p className={`text-xs font-bold ${progressStep >= 3 ? 'text-[#FDFCFF]' : 'text-[#64748B]'}`}>Resi Terbit</p>
-                    <p className="text-[10px] text-[#94A3B8] hidden sm:block">Menunggu Kurir</p>
-                  </div>
-                </div>
-
-                {/* Step 4 */}
-                <div className="text-center space-y-2">
-                  <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-bold transition-all ${progressStep >= 4 ? 'bg-[#CBAC70] text-[#0B132B] shadow-[0_0_15px_rgba(203,172,112,0.6)]' : 'bg-[#14204A] text-[#64748B]'}`}>
-                    4
-                  </div>
-                  <div>
-                    <p className={`text-xs font-bold ${progressStep >= 4 ? 'text-[#FDFCFF]' : 'text-[#64748B]'}`}>Dikirim</p>
-                    <p className="text-[10px] text-[#94A3B8] hidden sm:block">Dalam Perjalanan</p>
-                  </div>
-                </div>
-
-                {/* Step 5 */}
-                <div className="text-center space-y-2">
-                  <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-bold transition-all ${progressStep >= 5 ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.6)]' : 'bg-[#14204A] text-[#64748B]'}`}>
-                    ✓
-                  </div>
-                  <div>
-                    <p className={`text-xs font-bold ${progressStep >= 5 ? 'text-emerald-400' : 'text-[#64748B]'}`}>Terkirim</p>
-                    <p className="text-[10px] text-[#94A3B8] hidden sm:block">Paket Diterima</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Visual Interactive Route Map Flow */}
-          <div className="p-6 rounded-3xl bg-[#0B132B] border border-[#1C284D] shadow-xl relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-xs font-mono text-[#CBAC70] uppercase font-bold tracking-wider flex items-center gap-2">
-                <span>🗺️</span>
-                <span>Rute & Hub Ekspedisi Logistik</span>
-              </p>
-              <span className="text-[11px] font-mono text-[#94A3B8]">
-                {courierCompany} &bull; {order.shipment?.service || 'REG'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-[#070C1A] p-4.5 rounded-2xl border border-[#1C284D]/80">
-              {/* Origin Node */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                  <Package className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] font-mono uppercase text-amber-400 font-bold">Asal Pengiriman</span>
-                  <p className="text-xs font-bold text-[#FDFCFF] truncate">Gudang Pusat Malega</p>
-                  <p className="text-[10px] text-[#94A3B8] truncate">Jakarta Pusat, DKI Jakarta</p>
-                </div>
-              </div>
-
-              {/* Transit Node */}
-              <div className="flex items-center gap-3 border-t md:border-t-0 md:border-l md:border-r border-[#1C284D] pt-3 md:pt-0 md:px-4">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                  <Truck className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] font-mono uppercase text-sky-400 font-bold">Hub Sortir Ekspedisi</span>
-                  <p className="text-xs font-bold text-[#FDFCFF] truncate">
-                    {courierCompany} Sortir Gateway
-                  </p>
-                  <p className="text-[10px] text-[#94A3B8] truncate">
-                    Status: {order.shipment?.status_label || 'Confirmed'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Destination Node */}
-              <div className="flex items-center gap-3 border-t md:border-t-0 border-[#1C284D] pt-3 md:pt-0">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold">Tujuan Penerima</span>
-                  <p className="text-xs font-bold text-[#FDFCFF] truncate">{order.shippingAddress.recipient_name}</p>
-                  <p className="text-[10px] text-[#94A3B8] truncate">{order.shippingAddress.city}, {order.shippingAddress.postal_code}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 4. Tab Navigation Selector */}
-          <div className="flex items-center gap-2 border-b border-[#1C284D] pb-2 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab('timeline')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'timeline'
-                  ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-lg shadow-[#CBAC70]/20'
-                  : 'bg-[#0B132B] text-[#94A3B8] hover:text-[#FDFCFF] border border-[#1C284D]'
-              }`}
-            >
-              <span>🚚 Riwayat Perjalanan (Live Timeline)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('package')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'package'
-                  ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-lg shadow-[#CBAC70]/20'
-                  : 'bg-[#0B132B] text-[#94A3B8] hover:text-[#FDFCFF] border border-[#1C284D]'
-              }`}
-            >
-              <span>📦 Rincian Busana & Paket</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('invoice')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'invoice'
-                  ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-lg shadow-[#CBAC70]/20'
-                  : 'bg-[#0B132B] text-[#94A3B8] hover:text-[#FDFCFF] border border-[#1C284D]'
-              }`}
-            >
-              <span>💳 Faktur & Pembayaran</span>
-            </button>
-          </div>
-
-          {/* 5. Tab Content: TIMELINE */}
-          {activeTab === 'timeline' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              
-              {/* Left 2 Columns: Full Rich Milestones Timeline */}
-              <div className="lg:col-span-2 space-y-6">
-                
-                {/* Courier & AWB Barcode Card */}
-                <div className="p-6 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
+            {/* TAB 1: RIWAYAT PENGIRIMAN & RESI */}
+            {activeTab === 'timeline' && (
+              <div className="space-y-4">
+                {/* Status Pengiriman & Resi Card (Clean Minimalist, Tanpa Diagram / Barcode) */}
+                <div className="p-5 rounded-3xl bg-[#0B132B] border border-white/10 space-y-3.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-bold text-[#FDFCFF] text-base">
-                          {courierCompany}
-                        </p>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#14204A] text-[#CBAC70] border border-[#CBAC70]/30">
-                          {order.shipment?.service || 'REG'}
+                        <span className="font-bold text-sm text-white">{courierCompany}</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                          {order.shipment?.status_label || 'Diproses Ekspedisi'}
                         </span>
                       </div>
-                      <p className="text-xs text-[#94A3B8] mt-0.5">
-                        Status Pengiriman: <span className="text-[#FDFCFF] font-semibold">{order.shipment?.status_label || order.fulfillmentStatus.label}</span>
+                      <p className="text-xs text-slate-400">
+                        Tujuan:{' '}
+                        <strong className="text-slate-200">{order.shippingAddress.recipient_name}</strong> &bull;{' '}
+                        {order.shippingAddress.city}
                       </p>
-                    </div>
-
-                    {/* Waybill ID with 1-Click Copy */}
-                    <div className="flex items-center gap-2 bg-[#070C1A] border border-[#1C284D] px-3.5 py-2 rounded-2xl">
-                      <div>
-                        <p className="text-[9px] uppercase font-mono text-[#64748B] font-bold">Nomor Resi (AWB)</p>
-                        <p className="font-mono font-bold text-sm text-sky-400 select-all">{waybillNumber}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(waybillNumber)}
-                        className="p-2 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
-                        title="Salin Nomor Resi"
-                      >
-                        {copied ? (
-                          <span className="text-emerald-400 text-xs font-bold font-mono">✓ Tersalin</span>
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Decorative Barcode Strip */}
-                  <div className="pt-3 border-t border-[#1C284D] flex items-center justify-between text-xs text-[#94A3B8]">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-0.5 h-6 bg-[#14204A] px-2 py-1 rounded font-mono text-[9px] text-[#CBAC70]">
-                        <span>||| | |||| | || ||| || ||| |</span>
-                      </div>
-                      <span className="font-mono text-[10px] text-[#64748B]">Barcode Terotentikasi Ekspedisi</span>
                     </div>
 
                     {order.shipment?.tracking_url && (
@@ -676,249 +900,253 @@ function LiveTrackingContent() {
                         href={order.shipment.tracking_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 transition-colors"
+                        className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 font-semibold text-xs flex items-center gap-1.5 transition-all active:scale-95"
                       >
-                        <span>Web Biteship</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <span>Lacak di Portal Ekspedisi</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
                   </div>
+
+                  {/* Clean Resi Display */}
+                  <div className="p-3.5 rounded-2xl bg-[#060913] border border-white/5 flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] uppercase font-mono text-slate-400">Nomor Resi (AWB)</p>
+                      <p className="font-mono font-bold text-base text-sky-400 select-all tracking-wide">
+                        {waybillNumber}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(waybillNumber, 'waybill')}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-mono font-medium transition-colors flex items-center gap-1.5 active:scale-95"
+                    >
+                      {copiedKey === 'waybill' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400 font-bold">Tersalin</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-[#CBAC70]" />
+                          <span>Salin Resi</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                {/* Vertical Milestone Events Feed */}
-                <div className="p-6 sm:p-8 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-mono text-xs text-[#CBAC70] uppercase font-bold tracking-wider flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#CBAC70]" />
-                      <span>Riwayat Kronologis Perjalanan Paket</span>
-                    </h3>
-                    <span className="text-[10px] text-[#64748B] font-mono">Live Event Stream</span>
-                  </div>
+                {/* Milestones Vertical Feed */}
+                <div className="p-5 sm:p-6 rounded-3xl bg-[#0B132B] border border-white/10 space-y-4">
+                  <h4 className="font-mono text-xs uppercase font-bold text-[#CBAC70] tracking-wider flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Riwayat Perjalanan Paket</span>
+                  </h4>
 
-                  <div className="relative pl-8 space-y-6 before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#1C284D]">
+                  <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-white/10">
                     {milestones.map((m, idx) => (
-                      <div key={idx} className="relative group">
-                        {/* Active Radar Beacon Dot */}
+                      <div key={idx} className="relative space-y-1">
+                        {/* Bullet Marker */}
                         {m.isActive ? (
-                          <div className="absolute -left-8 top-1.5 w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,1)]">
-                            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                          <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-sky-500 flex items-center justify-center shadow-[0_0_10px_rgba(56,189,248,1)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                           </div>
                         ) : (
-                          <div className="absolute -left-7 top-2 w-3.5 h-3.5 rounded-full bg-[#070C1A] border-2 border-[#1C284D]" />
+                          <div className="absolute -left-5 top-1.5 w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-600" />
                         )}
 
-                        <div className={`p-4.5 rounded-2xl space-y-2 ${m.isActive ? 'bg-sky-950/30 border border-sky-500/40 shadow-lg shadow-sky-500/5' : 'bg-[#070C1A] border border-[#1C284D]/80'}`}>
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-bold text-xs uppercase tracking-wider ${m.isActive ? 'text-sky-400' : 'text-[#FDFCFF]'}`}>
-                                {m.title}
-                              </span>
-                              {m.isActive && (
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                                  STATUS TERKINI
-                                </span>
-                              )}
-                            </div>
-                            <span className="font-mono text-[11px] text-[#94A3B8]">
-                              {m.timestamp}
+                        <div
+                          className={`p-3.5 rounded-2xl space-y-1 text-xs ${
+                            m.isActive ? 'bg-sky-950/20 border border-sky-500/30' : 'bg-[#060913] border border-white/5'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`font-bold ${m.isActive ? 'text-sky-400' : 'text-white'}`}>
+                              {m.title}
                             </span>
+                            <span className="text-[10px] font-mono text-slate-400">{m.timestamp}</span>
                           </div>
-
-                          <p className="text-xs text-[#CBD5E1] leading-relaxed">{m.note}</p>
-
+                          <p className="text-slate-300 leading-relaxed text-[11px]">{m.note}</p>
                           {m.location && (
-                            <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] pt-1 border-t border-[#1C284D]/50">
-                              <MapPin className="w-3 h-3 text-[#CBAC70] shrink-0" />
-                              <span className="font-medium text-[#E2E8F0]">{m.location}</span>
-                            </div>
+                            <p className="text-[10px] text-slate-400 flex items-center gap-1 pt-1">
+                              <MapPin className="w-3 h-3 text-[#CBAC70]" />
+                              <span>{m.location}</span>
+                            </p>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-
               </div>
+            )}
 
-              {/* Right Column: Destination Address, Specs & CS */}
-              <div className="space-y-6">
-                
-                {/* Destination Card */}
-                <div className="p-6 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-3">
-                  <p className="text-xs font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Tujuan Pengiriman</p>
-                  <div className="text-xs space-y-1">
-                    <p className="text-[#FDFCFF] font-bold text-sm">{order.shippingAddress.recipient_name}</p>
-                    <p className="text-[#94A3B8] font-mono">{order.shippingAddress.phone}</p>
-                    <p className="text-[#CBD5E1] pt-1 leading-relaxed">{order.shippingAddress.address_line1}</p>
-                    {order.shippingAddress.address_line2 && (
-                      <p className="text-[#94A3B8]">{order.shippingAddress.address_line2}</p>
-                    )}
-                    <p className="text-[#94A3B8]">{order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.postal_code}</p>
+            {/* TAB 3: FAKTUR PEMBAYARAN & BIAYA */}
+            {activeTab === 'invoice' && (
+              <div className="p-5 sm:p-6 rounded-3xl bg-[#0B132B] border border-white/10 space-y-5 shadow-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-white/10 gap-2">
+                  <div>
+                    <p className="font-display font-bold text-base text-white">Rincian Faktur & Pembayaran</p>
+                    <p className="text-xs text-slate-400">
+                      Waktu Transaksi:{' '}
+                      {new Date(order.createdAt).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
                   </div>
-                </div>
-
-                {/* Packaging & Safety Specs */}
-                <div className="p-6 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-3">
-                  <p className="text-xs font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Spesifikasi Kemasan</p>
-                  <div className="text-xs space-y-2">
-                    <div className="flex justify-between text-[#94A3B8]">
-                      <span>Total Kuantitas</span>
-                      <span className="font-bold text-[#FDFCFF]">{order.items.reduce((acc, it) => acc + it.quantity, 0)} Item Busana</span>
-                    </div>
-                    <div className="flex justify-between text-[#94A3B8]">
-                      <span>Estimasi Berat</span>
-                      <span className="font-mono text-[#FDFCFF]">~{order.items.reduce((acc, it) => acc + it.quantity, 0) * 350} gram</span>
-                    </div>
-                    <div className="flex justify-between text-[#94A3B8]">
-                      <span>Proteksi Asuransi</span>
-                      <span className="text-emerald-400 font-semibold">🛡️ Aktif (Asuransi Pengiriman)</span>
-                    </div>
-                    <div className="flex justify-between text-[#94A3B8]">
-                      <span>Kemasan Eksklusif</span>
-                      <span className="text-[#CBAC70]">Luxury Box + Dust Bag</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Customer Concierge Support Card */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 to-[#0B132B] border border-emerald-500/30 space-y-3">
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <MessageSquare className="w-5 h-5" />
-                    <p className="font-bold text-xs uppercase tracking-wider">Butuh Bantuan Pengiriman?</p>
-                  </div>
-                  <p className="text-xs text-[#94A3B8] leading-relaxed">
-                    Jika ada kendala alamat, perubahan jadwal antar, atau pertanyaan seputar pakaian, Concierge Malega Apparel siap melayani Anda.
-                  </p>
-                  <a
-                    href={`https://wa.me/6281234567890?text=${waText}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+                  <span
+                    className={`self-start sm:self-auto px-3 py-1 rounded-full text-xs font-bold border ${
+                      order.paymentStatus.code === 'paid'
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    }`}
                   >
-                    <span>Hubungi CS via WhatsApp</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </a>
+                    {order.paymentStatus.label}
+                  </span>
                 </div>
 
-              </div>
+                {/* Mathematical Financial Breakdown (100% Klop dengan Tagihan Nyata) */}
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Subtotal Produk ({order.items.reduce((acc, it) => acc + it.quantity, 0)} Pcs)</span>
+                    <span className="font-mono text-white">{formatRupiah(order.pricing.subtotal)}</span>
+                  </div>
 
-            </div>
-          )}
+                  <div className="flex justify-between text-slate-300">
+                    <span>Ongkos Kirim ({courierCompany})</span>
+                    <span className="font-mono text-white">{formatRupiah(order.pricing.shipping_total)}</span>
+                  </div>
 
-          {/* 6. Tab Content: PACKAGE & GARMENTS */}
-          {activeTab === 'package' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <div className="lg:col-span-2 space-y-4">
-                <div className="p-6 sm:p-8 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-4">
-                  <h3 className="font-mono text-xs text-[#CBAC70] uppercase font-bold tracking-wider">
-                    Daftar Busana Dalam Paket Pengiriman
-                  </h3>
+                  {order.pricing.discount_total > 0 && (
+                    <div className="flex justify-between text-rose-400">
+                      <span>Potongan Diskon / Voucher</span>
+                      <span className="font-mono font-semibold">
+                        -Rp {order.pricing.discount_total.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  )}
 
-                  <div className="divide-y divide-[#1C284D]">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3.5">
-                          <div className="w-12 h-12 rounded-2xl bg-[#070C1A] border border-[#1C284D] flex items-center justify-center text-[#CBAC70] font-bold text-lg">
-                            👕
-                          </div>
-                          <div>
-                            <p className="font-bold text-[#FDFCFF] text-sm">{item.product_name}</p>
-                            <p className="text-xs text-[#94A3B8] mt-0.5">
-                              Varian: <span className="text-[#E2E8F0] font-medium">{item.variant_title}</span> &bull; SKU: <span className="font-mono text-[#CBAC70]">{item.sku}</span>
-                            </p>
-                          </div>
-                        </div>
+                  {/* Service Fee Display */}
+                  {(order.pricing.service_fee ?? 0) > 0 && (
+                    <div className="flex justify-between text-slate-300">
+                      <span>Biaya Layanan & Pemrosesan</span>
+                      <span className="font-mono text-white">{formatRupiah(order.pricing.service_fee || 0)}</span>
+                    </div>
+                  )}
 
-                        <div className="flex items-center justify-between sm:justify-end gap-6 text-xs">
-                          <div className="text-right">
-                            <p className="text-[#64748B] text-[10px] uppercase">Jumlah</p>
-                            <p className="font-bold text-[#FDFCFF] font-mono">{item.quantity} Pcs</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[#64748B] text-[10px] uppercase">Subtotal</p>
-                            <p className="font-bold text-[#CBAC70] font-mono">{item.formatted_subtotal}</p>
-                          </div>
-                        </div>
+                  <div className="pt-3 border-t border-white/10 flex justify-between items-center text-sm">
+                    <span className="font-bold text-white">Total Tagihan</span>
+                    <span className="font-mono font-bold text-base text-[#CBAC70]">
+                      {order.pricing.formatted_grand_total}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Gateway Information */}
+                {order.payment && (
+                  <div className="p-4 rounded-2xl bg-[#060913] border border-white/5 space-y-2 text-xs">
+                    <p className="font-mono text-[11px] font-bold text-[#CBAC70] uppercase">Info Transaksi Duitku</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-300">
+                      <div>
+                        <span className="text-slate-400 text-[11px]">Kanal Pembayaran:</span>
+                        <p className="font-medium text-white">{order.payment.payment_method_name || 'Online Payment'}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="p-6 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-3">
-                  <p className="text-xs font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Standar Kualitas & QC</p>
-                  <div className="text-xs text-[#CBD5E1] space-y-2 leading-relaxed">
-                    <p className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% Produk Asli Malega Apparel Bespoke</p>
-                    <p className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Melewati QC Jahitan & Kancing Presisi</p>
-                    <p className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Garansi Penukaran Ukuran dalam 7 Hari</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 7. Tab Content: INVOICE & FINANCIALS */}
-          {activeTab === 'invoice' && (
-            <div className="max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl bg-[#0B132B] border border-[#1C284D] space-y-6 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-[#1C284D] pb-4">
-                <div>
-                  <p className="font-display font-bold text-lg text-[#FDFCFF]">Faktur Pesanan #{order.orderNumber}</p>
-                  <p className="text-xs text-[#94A3B8] mt-0.5">Tanggal Transaksi: {new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                </div>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  {order.paymentStatus.label}
-                </span>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between text-[#94A3B8]">
-                  <span>Subtotal Produk</span>
-                  <span className="font-mono text-[#FDFCFF]">{formatRupiah(order.pricing.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-[#94A3B8]">
-                  <span>Ongkos Kirim ({courierCompany})</span>
-                  <span className="font-mono text-[#FDFCFF]">{formatRupiah(order.pricing.shipping_total)}</span>
-                </div>
-                {order.pricing.discount_total > 0 && (
-                  <div className="flex justify-between text-rose-400">
-                    <span>Potongan Diskon Promo</span>
-                    <span className="font-mono">-Rp {order.pricing.discount_total.toLocaleString('id-ID')}</span>
+                      {order.payment.reference && (
+                        <div>
+                          <span className="text-slate-400 text-[11px]">No. Referensi:</span>
+                          <p className="font-mono font-medium text-slate-200">{order.payment.reference}</p>
+                        </div>
+                      )}
+                      {order.payment.paid_at && (
+                        <div>
+                          <span className="text-slate-400 text-[11px]">Waktu Pelunasan:</span>
+                          <p className="font-mono text-emerald-400">
+                            {new Date(order.payment.paid_at).toLocaleString('id-ID')} WIB
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
-                <div className="pt-3 border-t border-[#1C284D] flex justify-between items-center text-sm">
-                  <span className="font-bold text-[#FDFCFF]">Total Pembayaran</span>
-                  <span className="font-mono font-bold text-[#CBAC70] text-base">{order.pricing.formatted_grand_total}</span>
+
+                {/* Print Button */}
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold transition-all flex items-center gap-2"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-[#CBAC70]" />
+                    <span>Cetak / Simpan PDF Faktur</span>
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+      </div>
 
-              <div className="pt-4 border-t border-[#1C284D] flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2.5 rounded-xl bg-[#14204A] hover:bg-[#1A2A5E] text-[#FDFCFF] font-semibold text-xs transition-colors flex items-center gap-2 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4 text-[#CBAC70]" />
-                  <span>Cetak Faktur Pesanan</span>
-                </button>
-              </div>
-            </div>
+      {/* Floating Sticky Mobile Quick Action Bar */}
+      {order && (
+        <div className="sm:hidden fixed bottom-0 inset-x-0 p-3 bg-[#070C1A]/95 backdrop-blur-xl border-t border-white/10 z-40 flex items-center gap-2">
+          {order.paymentStatus?.code === 'unpaid' ? (
+            <button
+              type="button"
+              onClick={() =>
+                order.payment?.payment_url
+                  ? (window.location.href = order.payment.payment_url)
+                  : handleCreatePaymentInvoice(order.orderNumber)
+              }
+              className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] font-bold text-xs shadow-lg shadow-[#CBAC70]/20 flex items-center justify-center gap-2 active:scale-95"
+            >
+              <span>Bayar {order.pricing.formatted_grand_total}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <a
+              href={`https://wa.me/6281234567890?text=${waText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-95"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>Bantuan CS WhatsApp</span>
+            </a>
           )}
 
+          {waybillNumber !== '-' && (
+            <button
+              type="button"
+              onClick={() => copyToClipboard(waybillNumber, 'waybill_float')}
+              className="py-3 px-3 rounded-xl bg-[#14204A] border border-white/10 text-slate-200 text-xs font-medium shrink-0 active:scale-95"
+              title="Salin Nomor Resi"
+            >
+              {copiedKey === 'waybill_float' ? (
+                <span className="text-emerald-400 font-bold font-mono">✓</span>
+              ) : (
+                <span className="flex items-center gap-1 font-mono">
+                  <Copy className="w-3.5 h-3.5" />
+                </span>
+              )}
+            </button>
+          )}
         </div>
       )}
-
     </div>
   );
 }
 
 export default function StorefrontTrackingPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#CBAC70] border-t-transparent animate-spin"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-[50vh] flex items-center justify-center bg-[#060913]">
+          <div className="w-8 h-8 rounded-full border-2 border-[#CBAC70] border-t-transparent animate-spin" />
+        </div>
+      }
+    >
       <LiveTrackingContent />
     </Suspense>
   );
