@@ -293,7 +293,7 @@ function LiveTrackingContent() {
         return;
       }
 
-      setError(`Pesanan dengan nomor atau resi "${term}" tidak ditemukan. Pastikan format nomor pesanan Anda benar.`);
+      setError(`Pesanan dengan nomor "${term}" tidak ditemukan. Pastikan format nomor pesanan Anda benar (contoh: MLG-20260904-2637).`);
       setOrder(null);
     } catch (err) {
       setError('Gagal menghubungkan ke server logistik. Silakan periksa koneksi internet Anda atau coba beberapa saat lagi.');
@@ -348,7 +348,6 @@ function LiveTrackingContent() {
 
     const list: TrackingMilestone[] = [];
     const courier = order.shipment?.courier || order.shippingAddress?.courier_name || 'Kurir Ekspedisi';
-    const waybill = order.shipment?.waybill_id || order.shippingAddress?.tracking_number || '-';
 
     // 1. Order Placed
     list.push({
@@ -392,12 +391,12 @@ function LiveTrackingContent() {
       });
     }
 
-    // 3. AWB Generated & Ready to pickup
+    // 3. Ready to ship / packed
     if (order.shipment?.waybill_id || progressStep >= 3) {
       list.push({
-        title: `Nomor Resi Resmi Terbit (${courier})`,
-        note: `Resi ${waybill} telah diterbitkan via Biteship. Paket busana telah dikemas rapi dengan segel QC & kotak eksklusif Malega, menunggu penjemputan kurir.`,
-        status: 'awb_generated',
+        title: `Paket Telah Dikemas & Siap Kirim (${courier})`,
+        note: `Busana pesanan Anda telah selesai dikemas rapi dengan kotak eksklusif Malega & segel QC, dan siap diserahterimakan kepada kurir ekspedisi.`,
+        status: 'ready_to_ship',
         timestamp: new Date(new Date(order.createdAt).getTime() + 900000).toLocaleString('id-ID', {
           day: 'numeric',
           month: 'short',
@@ -486,15 +485,14 @@ function LiveTrackingContent() {
   };
 
   const milestones = getMilestones();
-  const waybillNumber = order?.shipment?.waybill_id || order?.shippingAddress?.tracking_number || '-';
   const courierCompany = order?.shipment?.courier || order?.shippingAddress?.courier_name || 'JNE (Reguler)';
 
   const waText = encodeURIComponent(
     `Halo Concierge Malega Apparel, saya ingin menanyakan status pesanan saya:\n\n` +
       `*No. Pesanan:* ${order?.orderNumber || '-'}\n` +
-      `*No. Resi:* ${waybillNumber}\n` +
-      `*Penerima:* ${order?.shippingAddress?.recipient_name || '-'}\n\n` +
-      `Mohon bantuannya ya min, terima kasih!`
+      `*Penerima:* ${order?.shippingAddress?.recipient_name || '-'}\n` +
+      `*Ekspedisi:* ${courierCompany}\n\n` +
+      `Mohon dibantu informasinya ya min, terima kasih!`
   );
 
   return (
@@ -539,7 +537,7 @@ function LiveTrackingContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ketik Nomor Pesanan (MLG-...) atau No. Resi..."
+                placeholder="Ketik Nomor Pesanan (contoh: MLG-2026...)"
                 className="w-full bg-transparent py-3 pl-3 pr-24 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none font-mono"
               />
               <button
@@ -557,6 +555,78 @@ function LiveTrackingContent() {
         {error && (
           <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-center space-y-1 animate-fade-in">
             <p className="font-semibold">{error}</p>
+          </div>
+        )}
+
+        {/* Welcoming / Empty State (When No Order Searched Yet) */}
+        {!order && !isLoading && !error && (
+          <div className="space-y-5 animate-fade-in py-2">
+            {/* Guide Hero Card */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0B132B]/90 border border-white/10 shadow-2xl relative overflow-hidden text-center space-y-4">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#CBAC70] to-transparent opacity-80" />
+
+              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-[#CBAC70]/10 border border-[#CBAC70]/30 flex items-center justify-center text-[#CBAC70] shadow-lg shadow-[#CBAC70]/10">
+                <Truck className="w-7 h-7 sm:w-8 sm:h-8" />
+              </div>
+
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <h2 className="font-display text-lg sm:text-xl font-bold text-white tracking-tight">
+                  Pantau Perjalanan Busana Anda
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Masukkan nomor pesanan Malega Anda (<span className="font-mono text-[#CBAC70]">MLG-...</span>) pada kolom di atas untuk memantau status secara langsung.
+                </p>
+              </div>
+
+              {/* Sample Quick Search Button */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+                <span className="text-xs text-slate-500">Coba lacak pesanan aktif:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('MLG-20260904-2637');
+                    fetchTracking('MLG-20260904-2637');
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-[#CBAC70]/15 border border-white/10 hover:border-[#CBAC70]/40 text-[#CBAC70] font-mono text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>#MLG-20260904-2637</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* 3 Guidance Feature Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl bg-[#0B132B]/70 border border-white/5 space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-[#CBAC70]/10 border border-[#CBAC70]/20 text-[#CBAC70] flex items-center justify-center text-xs font-bold font-mono">
+                  01
+                </div>
+                <p className="font-bold text-xs text-white">Nomor Pesanan Resmi</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Tercantum pada email konfirmasi pesanan atau struk invoice pembayaran Anda.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#0B132B]/70 border border-white/5 space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xs font-bold font-mono">
+                  02
+                </div>
+                <p className="font-bold text-xs text-white">Integrasi Biteship & JNE</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Pergerakan status paket dan penugasan kurir terhubung secara real-time.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#0B132B]/70 border border-white/5 space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold font-mono">
+                  03
+                </div>
+                <p className="font-bold text-xs text-white">Bantuan WhatsApp CS</p>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Tim Concierge Malega siap membantu jika Anda membutuhkan informasi pesanan.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -603,11 +673,6 @@ function LiveTrackingContent() {
                   >
                     {order.paymentStatus.label}
                   </span>
-                  {waybillNumber !== '-' && (
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-sky-500/15 text-sky-400 border border-sky-500/30">
-                      Resi: {waybillNumber}
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -634,11 +699,11 @@ function LiveTrackingContent() {
                 </div>
               </div>
 
-              {/* Progress Stepper Line (Mobile Clean Minimalist) */}
+              {/* Progress Stepper Line (Centered & Clean Bespoke) */}
               <div className="pt-4 border-t border-white/5 space-y-3">
                 <div className="relative">
-                  {/* Connecting Bar */}
-                  <div className="absolute top-1/2 -translate-y-1/2 inset-x-3 sm:inset-x-6 h-1 bg-[#14204A] rounded-full overflow-hidden">
+                  {/* Connecting Bar - Positioned precisely at the vertical center of 32px (w-8 h-8) circles */}
+                  <div className="absolute top-4 -translate-y-1/2 left-4 right-4 sm:left-6 sm:right-6 h-1 bg-[#14204A] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-[#CBAC70] to-[#E3CD99] transition-all duration-700"
                       style={{ width: `${((progressStep - 1) / 4) * 100}%` }}
@@ -654,19 +719,23 @@ function LiveTrackingContent() {
                       { step: 4, label: 'Dikirim' },
                       { step: 5, label: 'Terkirim' }
                     ].map((st) => (
-                      <div key={st.step} className="flex flex-col items-center gap-1.5">
+                      <div key={st.step} className="flex flex-col items-center gap-2">
                         <div
-                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all relative z-10 ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all relative z-10 ring-4 ring-[#0B132B] ${
                             progressStep >= st.step
-                              ? 'bg-[#CBAC70] text-[#0B132B] shadow-[0_0_12px_rgba(203,172,112,0.6)]'
+                              ? 'bg-[#CBAC70] text-[#060913] shadow-[0_0_14px_rgba(203,172,112,0.7)]'
                               : 'bg-[#0B132B] text-slate-500 border border-slate-700'
                           }`}
                         >
-                          {progressStep > st.step ? '✓' : st.step}
+                          {progressStep > st.step ? (
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          ) : (
+                            st.step
+                          )}
                         </div>
                         <span
-                          className={`text-[10px] sm:text-xs font-medium ${
-                            progressStep >= st.step ? 'text-white' : 'text-slate-500'
+                          className={`text-[10px] sm:text-xs font-medium text-center ${
+                            progressStep >= st.step ? 'text-white font-semibold' : 'text-slate-500'
                           }`}
                         >
                           {st.label}
@@ -681,7 +750,7 @@ function LiveTrackingContent() {
                   <p className="text-xs text-[#CBAC70] font-medium">
                     {progressStep === 1 && 'Tahap 1: Pesanan baru saja dibuat dan menunggu verifikasi.'}
                     {progressStep === 2 && 'Tahap 2: Busana sedang dipacking dan melewati Quality Control Malega.'}
-                    {progressStep === 3 && 'Tahap 3: Nomor resi terbit, paket menunggu penjemputan oleh kurir.'}
+                    {progressStep === 3 && 'Tahap 3: Busana selesai dikemas dan siap diserahkan kepada kurir ekspedisi.'}
                     {progressStep === 4 && 'Tahap 4: Paket sedang dalam perjalanan antar-hub logistik.'}
                     {progressStep === 5 && 'Tahap 5: Paket telah sampai dan diterima oleh pelanggan.'}
                   </p>
@@ -717,45 +786,45 @@ function LiveTrackingContent() {
               )}
             </div>
 
-            {/* 2. Mobile-First Segmented Control Tabs */}
-            <div className="p-1 rounded-2xl bg-[#0B132B] border border-white/10 grid grid-cols-3 gap-1 text-xs">
+            {/* 2. Mobile-First Segmented Control Tabs (Ultra-Compact & Aesthetic) */}
+            <div className="p-1 sm:p-1.5 rounded-2xl bg-[#0B132B]/90 backdrop-blur-md border border-white/10 grid grid-cols-3 gap-1 text-xs shadow-lg">
               <button
                 type="button"
                 onClick={() => setActiveTab('timeline')}
-                className={`py-2.5 px-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-1 sm:py-2.5 sm:px-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === 'timeline'
-                    ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-md shadow-[#CBAC70]/20'
+                    ? 'bg-[#CBAC70] text-[#060913] font-bold shadow-[0_2px_10px_rgba(203,172,112,0.35)]'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Truck className="w-3.5 h-3.5" />
-                <span className="truncate">Riwayat Pengiriman</span>
+                <Truck className="w-3.5 h-3.5 shrink-0" />
+                <span className="tracking-wide">Status</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('package')}
-                className={`py-2.5 px-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-1 sm:py-2.5 sm:px-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === 'package'
-                    ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-md shadow-[#CBAC70]/20'
+                    ? 'bg-[#CBAC70] text-[#060913] font-bold shadow-[0_2px_10px_rgba(203,172,112,0.35)]'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Package className="w-3.5 h-3.5" />
-                <span className="truncate">Rincian Busana</span>
+                <Package className="w-3.5 h-3.5 shrink-0" />
+                <span className="tracking-wide">Busana</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('invoice')}
-                className={`py-2.5 px-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-1 sm:py-2.5 sm:px-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === 'invoice'
-                    ? 'bg-[#CBAC70] text-[#0B132B] font-bold shadow-md shadow-[#CBAC70]/20'
+                    ? 'bg-[#CBAC70] text-[#060913] font-bold shadow-[0_2px_10px_rgba(203,172,112,0.35)]'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Receipt className="w-3.5 h-3.5" />
-                <span className="truncate">Faktur Biaya</span>
+                <Receipt className="w-3.5 h-3.5 shrink-0" />
+                <span className="tracking-wide">Faktur</span>
               </button>
             </div>
 
@@ -875,23 +944,21 @@ function LiveTrackingContent() {
               </div>
             )}
 
-            {/* TAB 1: RIWAYAT PENGIRIMAN & RESI */}
+            {/* TAB 1: STATUS PENGIRIMAN */}
             {activeTab === 'timeline' && (
               <div className="space-y-4">
-                {/* Status Pengiriman & Resi Card (Clean Minimalist, Tanpa Diagram / Barcode) */}
+                {/* Status Pengiriman Ringkas & Informatif */}
                 <div className="p-5 rounded-3xl bg-[#0B132B] border border-white/10 space-y-3.5">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-white">{courierCompany}</span>
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
-                          {order.shipment?.status_label || 'Diproses Ekspedisi'}
+                          {order.shipment?.status_label || 'Sedang Diproses'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-400">
-                        Tujuan:{' '}
-                        <strong className="text-slate-200">{order.shippingAddress.recipient_name}</strong> &bull;{' '}
-                        {order.shippingAddress.city}
+                        Tujuan Penerima: <strong className="text-slate-200">{order.shippingAddress.recipient_name}</strong> &bull; {order.shippingAddress.city}
                       </p>
                     </div>
 
@@ -902,37 +969,20 @@ function LiveTrackingContent() {
                         rel="noopener noreferrer"
                         className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 font-semibold text-xs flex items-center gap-1.5 transition-all active:scale-95"
                       >
-                        <span>Lacak di Portal Ekspedisi</span>
+                        <span>Portal Ekspedisi</span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
                   </div>
 
-                  {/* Clean Resi Display */}
-                  <div className="p-3.5 rounded-2xl bg-[#060913] border border-white/5 flex items-center justify-between gap-3">
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] uppercase font-mono text-slate-400">Nomor Resi (AWB)</p>
-                      <p className="font-mono font-bold text-base text-sky-400 select-all tracking-wide">
-                        {waybillNumber}
-                      </p>
+                  {/* Informative Notice */}
+                  <div className="p-3.5 rounded-2xl bg-[#060913] border border-white/5 flex items-center gap-3 text-xs text-slate-300">
+                    <div className="w-8 h-8 rounded-xl bg-[#CBAC70]/10 border border-[#CBAC70]/20 text-[#CBAC70] flex items-center justify-center shrink-0">
+                      <Truck className="w-4 h-4" />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(waybillNumber, 'waybill')}
-                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-mono font-medium transition-colors flex items-center gap-1.5 active:scale-95"
-                    >
-                      {copiedKey === 'waybill' ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400 font-bold">Tersalin</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 text-[#CBAC70]" />
-                          <span>Salin Resi</span>
-                        </>
-                      )}
-                    </button>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Pesanan dalam penanganan logistik resmi Malega. Pantau riwayat perjalanan paket Anda secara langsung melalui linimasa di bawah.
+                    </p>
                   </div>
                 </div>
 
@@ -1008,41 +1058,54 @@ function LiveTrackingContent() {
                 </div>
 
                 {/* Mathematical Financial Breakdown (100% Klop dengan Tagihan Nyata) */}
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex justify-between text-slate-300">
-                    <span>Subtotal Produk ({order.items.reduce((acc, it) => acc + it.quantity, 0)} Pcs)</span>
-                    <span className="font-mono text-white">{formatRupiah(order.pricing.subtotal)}</span>
-                  </div>
+                {(() => {
+                  const subtotal = order.pricing.subtotal || 0;
+                  const shipping = order.pricing.shipping_total || 0;
+                  const discount = order.pricing.discount_total || 0;
+                  const grandTotal = order.pricing.grand_total || 0;
+                  // Explicit service fee or calculated delta to guarantee 100% mathematical consistency
+                  const serviceFee =
+                    (order.pricing.service_fee && order.pricing.service_fee > 0)
+                      ? order.pricing.service_fee
+                      : Math.max(0, grandTotal - (subtotal + shipping - discount));
 
-                  <div className="flex justify-between text-slate-300">
-                    <span>Ongkos Kirim ({courierCompany})</span>
-                    <span className="font-mono text-white">{formatRupiah(order.pricing.shipping_total)}</span>
-                  </div>
+                  return (
+                    <div className="space-y-2.5 text-xs">
+                      <div className="flex justify-between text-slate-300">
+                        <span>Subtotal Produk ({order.items.reduce((acc, it) => acc + it.quantity, 0)} Pcs)</span>
+                        <span className="font-mono text-white">{formatRupiah(subtotal)}</span>
+                      </div>
 
-                  {order.pricing.discount_total > 0 && (
-                    <div className="flex justify-between text-rose-400">
-                      <span>Potongan Diskon / Voucher</span>
-                      <span className="font-mono font-semibold">
-                        -Rp {order.pricing.discount_total.toLocaleString('id-ID')}
-                      </span>
+                      <div className="flex justify-between text-slate-300">
+                        <span>Ongkos Kirim ({courierCompany})</span>
+                        <span className="font-mono text-white">{formatRupiah(shipping)}</span>
+                      </div>
+
+                      {discount > 0 && (
+                        <div className="flex justify-between text-rose-400">
+                          <span>Potongan Diskon Promo</span>
+                          <span className="font-mono font-semibold">
+                            -Rp {discount.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      )}
+
+                      {serviceFee > 0 && (
+                        <div className="flex justify-between text-slate-300">
+                          <span>Biaya Layanan Sistem</span>
+                          <span className="font-mono text-white">{formatRupiah(serviceFee)}</span>
+                        </div>
+                      )}
+
+                      <div className="pt-3 border-t border-white/10 flex justify-between items-center text-sm">
+                        <span className="font-bold text-white">Total Tagihan</span>
+                        <span className="font-mono font-bold text-base text-[#CBAC70]">
+                          {formatRupiah(grandTotal)}
+                        </span>
+                      </div>
                     </div>
-                  )}
-
-                  {/* Service Fee Display */}
-                  {(order.pricing.service_fee ?? 0) > 0 && (
-                    <div className="flex justify-between text-slate-300">
-                      <span>Biaya Layanan & Pemrosesan</span>
-                      <span className="font-mono text-white">{formatRupiah(order.pricing.service_fee || 0)}</span>
-                    </div>
-                  )}
-
-                  <div className="pt-3 border-t border-white/10 flex justify-between items-center text-sm">
-                    <span className="font-bold text-white">Total Tagihan</span>
-                    <span className="font-mono font-bold text-base text-[#CBAC70]">
-                      {order.pricing.formatted_grand_total}
-                    </span>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Payment Gateway Information */}
                 {order.payment && (
@@ -1114,23 +1177,6 @@ function LiveTrackingContent() {
               <MessageSquare className="w-4 h-4" />
               <span>Bantuan CS WhatsApp</span>
             </a>
-          )}
-
-          {waybillNumber !== '-' && (
-            <button
-              type="button"
-              onClick={() => copyToClipboard(waybillNumber, 'waybill_float')}
-              className="py-3 px-3 rounded-xl bg-[#14204A] border border-white/10 text-slate-200 text-xs font-medium shrink-0 active:scale-95"
-              title="Salin Nomor Resi"
-            >
-              {copiedKey === 'waybill_float' ? (
-                <span className="text-emerald-400 font-bold font-mono">✓</span>
-              ) : (
-                <span className="flex items-center gap-1 font-mono">
-                  <Copy className="w-3.5 h-3.5" />
-                </span>
-              )}
-            </button>
           )}
         </div>
       )}
