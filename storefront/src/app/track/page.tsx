@@ -19,7 +19,6 @@ import {
   AlertCircle,
   ShoppingBag,
   ExternalLink,
-  ChevronRight,
   Sparkles,
   ArrowUpRight,
   BadgePercent,
@@ -293,7 +292,7 @@ function LiveTrackingContent() {
         return;
       }
 
-      setError(`Pesanan dengan nomor "${term}" tidak ditemukan. Pastikan format nomor pesanan Anda benar (contoh: MLG-20260904-2637).`);
+      setError(`Pesanan dengan nomor "${term}" tidak ditemukan. Silakan periksa kembali nomor pesanan pada email konfirmasi Anda.`);
       setOrder(null);
     } catch (err) {
       setError('Gagal menghubungkan ke server logistik. Silakan periksa koneksi internet Anda atau coba beberapa saat lagi.');
@@ -576,22 +575,6 @@ function LiveTrackingContent() {
                 <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                   Masukkan nomor pesanan Malega Anda (<span className="font-mono text-[#CBAC70]">MLG-...</span>) pada kolom di atas untuk memantau status secara langsung.
                 </p>
-              </div>
-
-              {/* Sample Quick Search Button */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
-                <span className="text-xs text-slate-500">Coba lacak pesanan aktif:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery('MLG-20260904-2637');
-                    fetchTracking('MLG-20260904-2637');
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-[#CBAC70]/15 border border-white/10 hover:border-[#CBAC70]/40 text-[#CBAC70] font-mono text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>#MLG-20260904-2637</span>
-                  <ChevronRight className="w-3 h-3" />
-                </button>
               </div>
             </div>
 
