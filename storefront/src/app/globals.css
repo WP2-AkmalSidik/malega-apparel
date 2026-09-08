@@ -58,21 +58,21 @@ body {
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B132B;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBAC70;
+  background: rgba(203, 172, 112, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #E3CD99;
+  background: rgba(203, 172, 112, 0.6);
 }
 
 /* Dropdown Animations */

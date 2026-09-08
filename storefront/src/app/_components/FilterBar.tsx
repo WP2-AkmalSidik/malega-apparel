@@ -47,10 +47,10 @@ export default function FilterBar({
     <div className="space-y-3">
       {/* 1. Search & Filter Controls */}
       <div className="space-y-2">
-        {/* Desktop: Single Row (Search + Sort + Filter) | Mobile: Top Search Row */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        {/* Single Row: Search Bar + Filter/Sort Controls */}
+        <div className="flex items-center gap-2">
           
-          {/* Search Bar Input (Full width on mobile) */}
+          {/* Search Bar Input (Takes flex-1) */}
           <div className="relative flex-1">
             <input
               type="text"
@@ -73,6 +73,27 @@ export default function FilterBar({
               </button>
             )}
           </div>
+
+          {/* Mobile Filter & Urutkan Trigger (Sejajar dengan Pencarian) */}
+          <button
+            type="button"
+            onClick={() => setIsFilterModalOpen(true)}
+            className={`sm:hidden h-[41px] px-3.5 rounded-xl text-xs font-bold border transition-all duration-200 flex items-center justify-center gap-1.5 shrink-0 shadow-sm active:scale-95 cursor-pointer ${
+              activeFilterCount > 0
+                ? 'bg-[#14204A] border-[#CBAC70] text-[#CBAC70]'
+                : 'bg-[#0E1736] border-white/10 text-[#FDFCFF]'
+            }`}
+            title="Filter & Urutkan Produk"
+            aria-label="Filter dan urutkan produk"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[#CBAC70]" />
+            <span>Filter</span>
+            {activeFilterCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-[#CBAC70] text-[#0B132B] font-black text-[9px] flex items-center justify-center ml-0.5">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
 
           {/* Desktop Sort Dropdown */}
           <div className="hidden sm:flex items-center gap-1.5 bg-[#0E1736] border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 shrink-0 transition-colors">
@@ -109,36 +130,6 @@ export default function FilterBar({
               </span>
             )}
           </button>
-
-          {/* Mobile Secondary Controls Row: [Filter (count)] [Urutkan] */}
-          <div className="grid grid-cols-2 gap-2 sm:hidden">
-            <button
-              type="button"
-              onClick={() => setIsFilterModalOpen(true)}
-              className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-bold border transition-all duration-200 flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer ${
-                activeFilterCount > 0
-                  ? 'bg-[#14204A] border-[#CBAC70] text-[#CBAC70]'
-                  : 'bg-[#0E1736] border-white/10 text-[#FDFCFF]'
-              }`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-[#CBAC70]" />
-              <span>Filter</span>
-              {activeFilterCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-[#CBAC70] text-[#0B132B] font-black text-[9px] flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsFilterModalOpen(true)}
-              className="min-h-[42px] px-3 py-2 rounded-xl text-xs font-bold border border-white/10 bg-[#0E1736] text-[#FDFCFF] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer"
-            >
-              <ArrowUpDown className="w-3.5 h-3.5 text-[#CBAC70]" />
-              <span>Urutkan</span>
-            </button>
-          </div>
 
         </div>
       </div>
