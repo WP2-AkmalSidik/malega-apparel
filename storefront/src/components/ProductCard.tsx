@@ -89,17 +89,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Top Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            {isFavorited && (
-              <span className="bg-rose-500 text-white text-[8px] sm:text-[9px] font-black tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow">
-                ♥ FAVORIT
-              </span>
-            )}
             {product.isNewDrop && (
               <span className="bg-[#CBAC70] text-[#0B132B] text-[8px] sm:text-[9px] font-black tracking-widest uppercase px-1.5 sm:px-2 py-0.5 rounded shadow">
                 NEW
               </span>
             )}
-            {product.isBestSeller && !isFavorited && (
+            {product.isBestSeller && (
               <span className="bg-[#0B132B]/85 border border-[#CBAC70]/40 text-[#CBAC70] text-[8px] sm:text-[9px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow backdrop-blur-md">
                 TOP
               </span>

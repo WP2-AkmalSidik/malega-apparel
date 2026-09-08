@@ -9,7 +9,7 @@ interface ProductGalleryProps {
   activeImage: string;
   setActiveImage: (img: string) => void;
   selectedColor: ColorOption;
-  sku: string;
+  sku?: string;
   isCurrentProductFavorited: boolean;
   toggleWishlist: (id: string) => void;
 }
@@ -48,11 +48,6 @@ export default function ProductGallery({
 
           {/* Wishlist Heart Button on Image */}
           <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-            {isCurrentProductFavorited && (
-              <span className="px-2 py-1 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-mono font-bold backdrop-blur-md">
-                ♥ FAVORIT ANDA
-              </span>
-            )}
             <button
               type="button"
               onClick={() => toggleWishlist(product.id)}
@@ -76,7 +71,6 @@ export default function ProductGallery({
               style={{ backgroundColor: selectedColor.hex }}
             />
             <span>Warna: {selectedColor.name}</span>
-            <span className="text-slate-400">• SKU: {sku}</span>
           </div>
         </div>
 
