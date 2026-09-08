@@ -14,7 +14,9 @@ import {
   Sparkles, 
   Trash2, 
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -37,6 +39,74 @@ export default function Navbar() {
   const [wishlistDropdownOpen, setWishlistDropdownOpen] = useState(false);
   const [isBagBouncing, setIsBagBouncing] = useState(false);
   const [showPlusOne, setShowPlusOne] = useState(false);
+
+  // Top Announcement Vouchers Vertical Slide Ticker
+  const [vouchers, setVouchers] = useState<any[]>([
+    {
+      prefix: 'SS26 DROP IS LIVE',
+      text: 'Gratis Ongkir se-Indonesia',
+      code: 'FREESHIPXTRA',
+      tag: 'FREE ONGKIR'
+    },
+    {
+      prefix: 'VIP GOLD ACCESS',
+      text: 'Diskon 15% Eksklusif Koleksi Baru',
+      code: 'MALEGAVIP15',
+      tag: 'DISKON 15%'
+    },
+    {
+      prefix: 'SPECIAL PROMO',
+      text: 'Potongan Langsung Rp 50.000',
+      code: 'NEWDROP50K',
+      tag: 'HEMAT 50K'
+    }
+  ]);
+  const [currentVoucherIndex, setCurrentVoucherIndex] = useState(0);
+  const [isTickerPaused, setIsTickerPaused] = useState(false);
+  const [copiedVoucher, setCopiedVoucher] = useState<string | null>(null);
+
+  // Load public vouchers from backend API
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchPublicVouchers() {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://malega.my.id/api/v1';
+        const res = await fetch(`${apiUrl}/vouchers/public`);
+        const json = await res.json();
+        if (isMounted && json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((v: any) => ({
+            prefix: v.type === 'shipping' ? 'SS26 FREE SHIPPING' : v.type === 'percentage' ? 'VIP GOLD ACCESS' : 'SPECIAL PROMO',
+            text: v.description || v.title || v.name,
+            code: v.code,
+            tag: v.type === 'shipping' ? 'FREE ONGKIR' : v.type === 'percentage' ? 'DISKON' : 'PROMO'
+          }));
+          setVouchers(mapped);
+        }
+      } catch (err) {
+        // fallback to default static coupons
+      }
+    }
+    fetchPublicVouchers();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Vertical Carousel Auto-Rotation Timer (Every 4 seconds)
+  useEffect(() => {
+    if (vouchers.length <= 1 || isTickerPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentVoucherIndex((prev) => (prev + 1) % vouchers.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [vouchers.length, isTickerPaused]);
+
+  const handleCopyVoucher = (e: React.MouseEvent, code: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopiedVoucher(code);
+    setTimeout(() => setCopiedVoucher(null), 2500);
+  };
 
   // Trigger bounce animation when an item finishes flying to bag
   useEffect(() => {
@@ -113,20 +183,79 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Top Luxury Announcement Bar */}
-      <div className="bg-[#080E20] border-b border-[#CBAC70]/20 text-[#CBAC70] text-[8.5px] xs:text-[9.5px] sm:text-[10.5px] py-1 px-3 sm:px-6 font-medium tracking-wide">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-1.5 sm:gap-2 leading-tight overflow-hidden">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#CBAC70] animate-pulse shrink-0"></span>
-            <span className="text-[#FDFCFF] font-bold tracking-wider shrink-0">SS26 DROP IS LIVE:</span>
-            <span className="truncate text-[#CBAC70]">Gratis Ongkir se-Indonesia kode &quot;FREESHIPXTRA&quot;</span>
+      {/* Top Luxury Announcement Bar with Vertical Slide Carousel */}
+      <div 
+        className="bg-[#080E20] border-b border-[#CBAC70]/20 text-[#CBAC70] text-[8.5px] xs:text-[9.5px] sm:text-[10.5px] py-1.5 px-3 sm:px-6 font-medium tracking-wide select-none"
+        onMouseEnter={() => setIsTickerPaused(true)}
+        onMouseLeave={() => setIsTickerPaused(false)}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          
+          {/* Vertical Sliding Vouchers Ticker */}
+          <div className="relative h-6 flex-1 overflow-hidden min-w-0">
+            {vouchers.map((v, idx) => {
+              const isCurrent = idx === currentVoucherIndex;
+              const isPrev = idx === (currentVoucherIndex - 1 + vouchers.length) % vouchers.length;
+
+              let positionClass = 'translate-y-full opacity-0 pointer-events-none';
+              if (isCurrent) {
+                positionClass = 'translate-y-0 opacity-100 pointer-events-auto';
+              } else if (isPrev) {
+                positionClass = '-translate-y-full opacity-0 pointer-events-none';
+              }
+
+              return (
+                <div
+                  key={v.code || idx}
+                  className={`absolute inset-0 flex items-center gap-1.5 sm:gap-2 leading-tight transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${positionClass}`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#CBAC70] animate-pulse shrink-0"></span>
+                  <span className="text-[#FDFCFF] font-black tracking-wider shrink-0 text-[8.5px] xs:text-[9.5px] sm:text-[10.5px]">
+                    {v.prefix}:
+                  </span>
+                  <span className="truncate text-[#CBAC70] text-[8.5px] xs:text-[9.5px] sm:text-[10.5px]">
+                    {v.text}
+                  </span>
+                  
+                  {v.code && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleCopyVoucher(e, v.code)}
+                      className={`ml-1 px-1.5 py-0.5 rounded-md border font-mono text-[8px] sm:text-[9.5px] font-bold tracking-wider transition-all active:scale-95 flex items-center gap-1 cursor-pointer shrink-0 ${
+                        copiedVoucher === v.code
+                          ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm shadow-emerald-500/20'
+                          : 'bg-[#CBAC70]/15 hover:bg-[#CBAC70]/30 border-[#CBAC70]/30 hover:border-[#CBAC70]/60 text-[#CBAC70]'
+                      }`}
+                      title="Klik untuk salin kode voucher"
+                    >
+                      {copiedVoucher === v.code ? (
+                        <>
+                          <Check className="w-2.5 h-2.5 text-emerald-400 stroke-[3]" />
+                          <span>TERSALIN</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>kode &quot;{v.code}&quot;</span>
+                          <Copy className="w-2.5 h-2.5 opacity-70" />
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          <div className="hidden sm:flex items-center gap-3 text-[10.5px] text-[#94A3B8]">
-            <span className="text-[#CBAC70] font-semibold">100% Original Streetwear Atelier</span>
+          {/* Right: Atelier Badge & Location */}
+          <div className="hidden sm:flex items-center gap-3 text-[10.5px] text-[#94A3B8] shrink-0">
+            <span className="text-[#CBAC70] font-semibold flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#CBAC70]" />
+              100% Original Streetwear Atelier
+            </span>
             <span>•</span>
             <span>Bandung, ID</span>
           </div>
+
         </div>
       </div>
 
