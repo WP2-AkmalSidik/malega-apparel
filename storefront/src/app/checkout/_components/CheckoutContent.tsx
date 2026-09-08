@@ -29,6 +29,7 @@ import { useShippingRates } from '../_hooks/useShippingRates';
 import { usePaymentMethods } from '../_hooks/usePaymentMethods';
 import { useCheckoutForm } from '../_hooks/useCheckoutForm';
 import { useCheckoutSubmit } from '../_hooks/useCheckoutSubmit';
+import { VoucherModal } from './VoucherModal';
 
 export default function CheckoutContent() {
   const {
@@ -161,7 +162,7 @@ export default function CheckoutContent() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-[#CBAC70] font-mono hidden sm:inline bg-[#14204A] px-2.5 py-1 rounded-lg border border-[#CBAC70]/30">
-            🔒 Duitku 256-Bit SSL • Biteship Integrated
+            🔒 256-Bit SSL Encrypted • Verified Checkout
           </span>
         </div>
       </div>
@@ -283,18 +284,19 @@ export default function CheckoutContent() {
           {/* Step 2: Courier Selection */}
           <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2 sm:p-2.5 border border-[#CBAC70]/30 shadow-xl">
             <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-5 space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <h3 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70] flex items-center gap-2">
-                  <Truck className="w-4 h-4" /> 2. Pilihan Kurir Pengiriman
+              <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                <h3 className="font-bold text-[11px] sm:text-xs uppercase tracking-wider text-[#CBAC70] flex items-center gap-1.5 sm:gap-2 whitespace-nowrap min-w-0">
+                  <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <span className="truncate">2. Pilihan Kurir Pengiriman</span>
                 </h3>
-                <div className="flex items-center gap-1.5 text-[10px] text-[#CBAC70]">
+                <div className="flex items-center gap-1.5 text-[10px] text-[#CBAC70] shrink-0">
                   {isLoadingRates ? (
-                    <span className="flex items-center gap-1 text-[#CBAC70]">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Menghitung Ongkir Biteship...
+                    <span className="flex items-center gap-1 text-[#CBAC70] text-[9px] sm:text-[10px] whitespace-nowrap font-medium">
+                      <Loader2 className="w-3 h-3 animate-spin shrink-0" /> Menghitung ongkir...
                     </span>
                   ) : (
-                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[9px] font-bold">
-                      ✓ Biteship Logistics Live
+                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[9px] font-bold whitespace-nowrap">
+                      ✓ Tarif Otomatis
                     </span>
                   )}
                 </div>
@@ -352,12 +354,13 @@ export default function CheckoutContent() {
           {/* Step 3: Payment Gateway */}
           <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2 sm:p-2.5 border border-[#CBAC70]/30 shadow-xl">
             <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-5 space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <h3 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70] flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" /> 3. Metode Pembayaran
+              <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                <h3 className="font-bold text-[11px] sm:text-xs uppercase tracking-wider text-[#CBAC70] flex items-center gap-1.5 sm:gap-2 whitespace-nowrap min-w-0">
+                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <span className="truncate">3. Metode Pembayaran</span>
                 </h3>
-                <span className="bg-[#CBAC70]/10 text-[#CBAC70] border border-[#CBAC70]/30 px-2 py-0.5 rounded text-[9px] font-bold">
-                  ⚡ Duitku Official Gateway
+                <span className="bg-[#CBAC70]/10 text-[#CBAC70] border border-[#CBAC70]/30 px-2 py-0.5 rounded text-[9px] font-bold whitespace-nowrap shrink-0">
+                  ⚡ Pembayaran Otomatis
                 </span>
               </div>
 
@@ -426,17 +429,21 @@ export default function CheckoutContent() {
         <div className="lg:col-span-5 space-y-4 sm:space-y-6 sticky top-24">
           <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-2 sm:p-2.5 border border-[#CBAC70]/30 shadow-xl">
             <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 p-4 sm:p-5 space-y-3.5 text-xs">
-              <h3 className="font-bold text-xs uppercase tracking-widest text-[#CBAC70] border-b border-white/10 pb-2.5 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span>Rincian Pesanan</span>
+              <div className="border-b border-white/10 pb-2.5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="font-bold text-[11px] sm:text-xs uppercase tracking-wider text-[#CBAC70] whitespace-nowrap">
+                    Rincian Pesanan
+                  </h3>
                   {isInstantBuyActive && (
-                    <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                    <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[9px] px-1.5 py-0.5 rounded font-bold tracking-wider whitespace-nowrap shrink-0">
                       ⚡ Instant Buy
                     </span>
                   )}
+                </div>
+                <span className="text-[10px] sm:text-xs text-[#94A3B8] font-mono whitespace-nowrap shrink-0">
+                  {checkoutItems.length} Produk ({checkoutCount} pcs)
                 </span>
-                <span>{checkoutItems.length} Produk ({checkoutCount} pcs)</span>
-              </h3>
+              </div>
 
               <div className="divide-y divide-white/5 max-h-56 overflow-y-auto space-y-2 pr-1">
                 {checkoutItems.map((item) => (
@@ -545,7 +552,7 @@ export default function CheckoutContent() {
               >
                 {isProcessing ? (
                   <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Menghubungkan ke Duitku Gateway...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Menyiapkan Pembayaran...
                   </span>
                 ) : (
                   <>
@@ -559,100 +566,17 @@ export default function CheckoutContent() {
         </div>
       </div>
 
-      {/* Voucher Selection Modal */}
-      {showVoucherModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#111D42] border border-[#CBAC70]/40 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 text-[#FDFCFF] max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Ticket className="w-5 h-5 text-[#CBAC70]" />
-                <div>
-                  <h3 className="font-bold text-sm text-[#FDFCFF]">Voucher & Diskon Spesial</h3>
-                  <p className="text-[10px] text-[#94A3B8]">Pilih voucher eksklusif untuk pesanan Anda</p>
-                </div>
-              </div>
-              <button onClick={() => setShowVoucherModal(false)} className="text-[#94A3B8] hover:text-white cursor-pointer text-lg font-bold">✕</button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-              {vouchers.length === 0 ? (
-                <div className="text-center py-8 text-xs text-[#94A3B8]">
-                  Belum ada voucher aktif yang tersedia saat ini.
-                </div>
-              ) : (
-                vouchers.map((v) => {
-                  const isApplied = appliedVouchers.some((av) => av.code.toUpperCase() === v.code.toUpperCase());
-                  const isMinSpendMet = subtotal >= (v.minSpend || v.min_spend || 0);
-
-                  return (
-                    <div
-                      key={v.code}
-                      className={`p-4 rounded-2xl border transition-all relative ${
-                        isApplied
-                          ? 'bg-[#14204A] border-[#CBAC70] ring-1 ring-[#CBAC70]'
-                          : isMinSpendMet
-                          ? 'bg-[#0B132B] border-white/10 hover:border-[#CBAC70]/50'
-                          : 'bg-[#070D1F]/60 border-white/5 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono text-xs font-black text-[#CBAC70] bg-[#070D1F] px-2 py-0.5 rounded border border-[#CBAC70]/30 tracking-wider">
-                              {v.code}
-                            </span>
-                            <span className="text-xs font-bold text-[#FDFCFF] truncate">{v.title || v.name}</span>
-                          </div>
-                          {v.description && (
-                            <p className="text-[11px] text-[#94A3B8] leading-relaxed">{v.description}</p>
-                          )}
-                          <div className="flex items-center gap-3 text-[10px] text-[#94A3B8] pt-1">
-                            <span>Min. Belanja: <strong className="text-[#FDFCFF]">{formatRupiah(v.minSpend || v.min_spend || 0)}</strong></span>
-                            {v.formatted_discount && (
-                              <span className="text-[#CBAC70] font-semibold">• {v.formatted_discount}</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isApplied) {
-                              toggleVoucher(v.code);
-                            } else {
-                              handleSelectVoucherFromModal(v.code);
-                            }
-                          }}
-                          disabled={!isMinSpendMet && !isApplied}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                            isApplied
-                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30'
-                              : isMinSpendMet
-                              ? 'bg-[#CBAC70] text-[#0B132B] hover:bg-[#E3CD99] shadow'
-                              : 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed'
-                          }`}
-                        >
-                          {isApplied ? 'Batalkan' : isMinSpendMet ? 'Gunakan' : 'S&K Belum Pas'}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="pt-2 border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowVoucherModal(false)}
-                className="px-4 py-2 bg-white/10 hover:bg-white/15 text-xs font-bold text-[#FDFCFF] rounded-xl cursor-pointer"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Animated Voucher Selection Modal */}
+      <VoucherModal
+        isOpen={showVoucherModal}
+        onClose={() => setShowVoucherModal(false)}
+        vouchers={vouchers}
+        appliedVouchers={appliedVouchers}
+        subtotal={subtotal}
+        toggleVoucher={toggleVoucher}
+        onSelectVoucher={handleSelectVoucherFromModal}
+        formatRupiah={formatRupiah}
+      />
 
       {/* Payment Modal */}
       {showPaymentModal && (
@@ -660,7 +584,7 @@ export default function CheckoutContent() {
           <div className="bg-[#111D42] border border-[#CBAC70]/40 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in zoom-in-95 text-[#FDFCFF]">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
-                <span className="text-[9px] font-mono text-[#CBAC70] uppercase tracking-widest block font-bold">DUITKU PAYMENT GATEWAY</span>
+                <span className="text-[9px] font-mono text-[#CBAC70] uppercase tracking-widest block font-bold">OFFICIAL PAYMENT GATEWAY</span>
                 <h3 className="font-bold text-sm text-[#FDFCFF]">{selectedPayment.name}</h3>
               </div>
               <button onClick={() => setShowPaymentModal(false)} className="text-[#94A3B8] hover:text-white cursor-pointer">✕</button>
@@ -668,14 +592,14 @@ export default function CheckoutContent() {
 
             {livePaymentResult?.payment_url && (
               <div className="p-3 bg-[#070D1F] border border-[#CBAC70]/30 rounded-xl space-y-2 text-center">
-                <p className="text-xs text-[#94A3B8]">Invoice Duitku Sandbox resmi telah terbit:</p>
+                <p className="text-xs text-[#94A3B8]">Tagihan pembayaran resmi telah terbit:</p>
                 <a
                   href={livePaymentResult.payment_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#CBAC70] text-[#0B132B] font-bold text-xs rounded-xl hover:bg-[#E3CD99]"
                 >
-                  <span>Buka Halaman Pembayaran Duitku</span>
+                  <span>Buka Halaman Pembayaran</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -699,7 +623,7 @@ export default function CheckoutContent() {
 
             {selectedPayment.category === 'va' && (
               <div className="space-y-3">
-                <p className="text-xs text-[#94A3B8]">Transfer ke nomor Virtual Account Duitku berikut:</p>
+                <p className="text-xs text-[#94A3B8]">Transfer ke nomor Virtual Account resmi berikut:</p>
                 <div className="p-3.5 rounded-xl bg-[#0B132B] border border-[#CBAC70]/30 space-y-1.5">
                   <div className="flex justify-between text-xs text-[#94A3B8]">
                     <span>Bank:</span>
@@ -732,8 +656,8 @@ export default function CheckoutContent() {
               <div className="space-y-2 text-xs text-[#94A3B8]">
                 <p>
                   {selectedPayment.category === 'cod'
-                    ? 'Pesanan akan dikemas & dikirim via Biteship. Mohon siapkan pembayaran tunai saat kurir tiba di alamat tujuan.'
-                    : 'Transaksi terproteksi dengan enkripsi perbankan 3D Secure Duitku.'}
+                    ? 'Pesanan akan dikemas & dikirim via kurir ekspedisi. Mohon siapkan pembayaran tunai saat kurir tiba di alamat tujuan.'
+                    : 'Transaksi terproteksi dengan standar keamanan enkripsi perbankan 256-Bit SSL.'}
                 </p>
                 <div className="p-3 rounded-xl bg-[#0B132B] border border-white/5 flex justify-between">
                   <span>Total:</span>
