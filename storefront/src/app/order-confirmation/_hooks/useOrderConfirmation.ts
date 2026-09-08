@@ -133,17 +133,17 @@ export function useOrderConfirmation() {
               name:
                 data.shipping_address?.courier_name ||
                 data.shipment?.courier ||
-                'Biteship Logistics',
+                'Ekspedisi Reguler',
               courier:
                 data.shipment?.courier ||
                 data.shipping_address?.courier_name ||
-                'Biteship Express',
+                'Kurir Ekspedisi',
               cost: data.pricing?.shipping_total ?? data.shipping_total ?? 15000,
               etd: '1 - 2 Hari Kerja',
             },
             payment: {
-              name: data.payment?.payment_method_name || 'Duitku Payment Gateway',
-              category: 'duitku',
+              name: data.payment?.payment_method_name || 'Official Payment Gateway',
+              category: 'gateway',
               status: data.payment_status?.label || 'Lunas',
             },
             subtotal: data.pricing?.subtotal ?? data.subtotal ?? 0,
@@ -191,7 +191,9 @@ export function useOrderConfirmation() {
       ? {
           ...lastOrder,
           hasActualResi: Boolean(
-            lastOrder.trackingNumber && !lastOrder.trackingNumber.includes('undefined')
+            lastOrder.trackingNumber &&
+            lastOrder.trackingNumber.trim() !== '' &&
+            !lastOrder.trackingNumber.includes('undefined')
           ),
         }
       : {
@@ -206,7 +208,7 @@ export function useOrderConfirmation() {
         });
 
   const waText = encodeURIComponent(
-    `Halo Admin Malega Apparel, saya baru saja melakukan pemesanan di Website Resmi:\n\n*No. Invoice:* ${order.invoiceNumber}\n*No. Resi:* ${order.trackingNumber}\n*Nama Penerima:* ${order.address.name} (${order.address.phone})\n*Total Pembayaran:* ${formatRupiah(order.total)}\n*Metode Pembayaran:* ${order.payment.name}\n\nMohon bantu verifikasi dan proses pengirimannya ya min, terima kasih!`
+    `Halo Admin Malega Apparel, saya baru saja melakukan pemesanan di Website Resmi:\n\n*No. Invoice:* ${order.invoiceNumber}\n*No. Resi:* ${order.hasActualResi ? order.trackingNumber : 'Sedang Diproses'}\n*Nama Penerima:* ${order.address.name} (${order.address.phone})\n*Total Pembayaran:* ${formatRupiah(order.total)}\n*Metode Pembayaran:* ${order.payment.name}\n\nMohon bantu verifikasi dan proses pengirimannya ya min, terima kasih!`
   );
 
   return {

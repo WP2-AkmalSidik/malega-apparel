@@ -1,8 +1,8 @@
 export const mockOrderConfirmation = {
   orderId: 'ORD-2026-918234',
   invoiceNumber: 'MLG-INV-2026-918234',
-  trackingNumber: 'SPXID09821849102',
-  hasActualResi: true,
+  trackingNumber: '',
+  hasActualResi: false,
   items: [
     {
       id: 'mock-1',
@@ -38,7 +38,7 @@ export const mockOrderConfirmation = {
   },
   payment: {
     id: 'qris',
-    name: 'QRIS Instant Pay (Duitku)',
+    name: 'QRIS Instant Pay',
     description: 'Lunas',
     category: 'qris',
     status: 'Lunas'

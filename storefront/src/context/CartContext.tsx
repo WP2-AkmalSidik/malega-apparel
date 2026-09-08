@@ -384,14 +384,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const year = new Date().getFullYear();
     const randDigits = Math.floor(100000 + Math.random() * 900000);
     const invoiceCode = `MLG-INV-${year}-${randDigits}`;
-    const trackingCode = `SPXID0${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 
     const orderItems = [...checkoutItems];
 
     const order: OrderReceipt = {
       orderId: `ORD-${year}-${randDigits}`,
       invoiceNumber: invoiceCode,
-      trackingNumber: trackingCode,
+      trackingNumber: '', // Resi belum diterbitkan saat pesanan baru dibuat
       items: orderItems,
       address: selectedAddress,
       shipping: selectedShipping,
