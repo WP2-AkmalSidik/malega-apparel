@@ -9,14 +9,18 @@ import {
   Truck, 
   MapPin, 
   Copy, 
+  Check,
   MessageSquare, 
   ArrowRight, 
   Clock, 
   FileText,
   ShieldCheck,
-  Loader2
+  Loader2,
+  ExternalLink,
+  Receipt
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { products } from '../../data/products';
 
 function OrderConfirmationContent() {
   const searchParams = useSearchParams();
@@ -25,14 +29,43 @@ function OrderConfirmationContent() {
 
   const [liveOrder, setLiveOrder] = useState<any>(null);
   const [isLoadingOrder, setIsLoadingOrder] = useState<boolean>(false);
+  const [toast, setToast] = useState<{ title: string; subtitle?: string } | null>(null);
+  const [copiedInvoice, setCopiedInvoice] = useState(false);
+  const [copiedResi, setCopiedResi] = useState(false);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyText = (text: string, type: 'invoice' | 'resi') => {
+    if (!text || text === '-' || text.includes('Menunggu') || text.includes('Sedang Diproses')) {
+      setToast({
+        title: 'Nomor Resi Belum Diterbitkan',
+        subtitle: 'Paket sedang disiapkan penjual. Gunakan Nomor Invoice untuk melacak status pesanan.'
+      });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
     navigator.clipboard.writeText(text);
-    alert(`Nomor resi / invoice ${text} berhasil disalin!`);
+
+    if (type === 'invoice') {
+      setCopiedInvoice(true);
+      setTimeout(() => setCopiedInvoice(false), 2000);
+      setToast({
+        title: 'Nomor Invoice Berhasil Disalin',
+        subtitle: text
+      });
+    } else {
+      setCopiedResi(true);
+      setTimeout(() => setCopiedResi(false), 2000);
+      setToast({
+        title: 'Nomor Resi Berhasil Disalin',
+        subtitle: text
+      });
+    }
+
+    setTimeout(() => setToast(null), 2500);
   };
 
   useEffect(() => {
@@ -43,25 +76,55 @@ function OrderConfirmationContent() {
     async function fetchLiveOrder() {
       setIsLoadingOrder(true);
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://malega.my.id/api/v1';
         const orderCode = String(currentOrderParam);
         const res = await fetch(`${apiUrl}/orders/${encodeURIComponent(orderCode)}`);
         const json = await res.json();
         if (isMounted && json.success && json.data) {
           const data = json.data;
+          const actualTrackingNum = data.shipment?.waybill_id || data.shipping_address?.tracking_number || null;
+          const invoiceNum = data.order_number || currentOrderParam;
+
+          // Save session to localStorage for seamless auto-tracking
+          try {
+            localStorage.setItem('malega_last_order', JSON.stringify({
+              orderNumber: invoiceNum,
+              trackingNumber: actualTrackingNum,
+              grandTotal: data.pricing?.grand_total || data.grand_total,
+              createdAt: data.created_at || new Date().toISOString()
+            }));
+            localStorage.setItem('malega_last_order_number', invoiceNum);
+            if (actualTrackingNum) {
+              localStorage.setItem('malega_last_tracking_number', actualTrackingNum);
+            }
+          } catch (e) {
+            console.warn('Storage write error:', e);
+          }
+
           setLiveOrder({
-            orderId: data.id || data.order_number,
-            invoiceNumber: data.order_number,
-            trackingNumber: data.shipment?.waybill_id || data.shipping_address?.tracking_number || `SPXID${String(data.id).padStart(8, '0')}`,
-            items: (data.items || []).map((item: any) => ({
-              id: item.id,
-              title: item.product_name,
-              color: item.variant_title?.split('/')[0]?.trim() || 'Signature',
-              size: item.variant_title?.split('/')[1]?.trim() || 'All Size',
-              price: item.unit_price,
-              quantity: item.quantity,
-              image: item.image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
-            })),
+            orderId: invoiceNum,
+            invoiceNumber: invoiceNum,
+            trackingNumber: actualTrackingNum || 'Sedang Diproses Penjual',
+            hasActualResi: Boolean(actualTrackingNum),
+            items: (data.items || []).map((item: any) => {
+              const catalogMatch = products.find(p => 
+                (p.title && item.product_name && p.title.toLowerCase().includes(item.product_name.toLowerCase())) ||
+                (p.title && item.product_name && item.product_name.toLowerCase().includes(p.title.toLowerCase())) ||
+                (p.slug && item.sku && item.sku.toLowerCase().includes(p.slug.toLowerCase()))
+              );
+              const colorParsed = item.variant_title?.split('/')[0]?.trim() || 'Signature';
+              const sizeParsed = item.variant_title?.split('/')[1]?.trim() || 'All Size';
+              const fallbackImg = catalogMatch?.gallery?.[0] || catalogMatch?.colors?.[0]?.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80';
+              return {
+                id: item.id || item.sku,
+                title: item.product_name,
+                color: colorParsed,
+                size: sizeParsed,
+                price: item.unit_price,
+                quantity: item.quantity,
+                image: item.image_url || fallbackImg,
+              };
+            }),
             address: {
               name: data.customer?.name || data.shipping_address?.recipient_name || 'Pelanggan Malega',
               phone: data.customer?.phone || data.shipping_address?.phone || '081234567890',
@@ -70,9 +133,9 @@ function OrderConfirmationContent() {
               postalCode: data.shipping_address?.postal_code || '12730',
             },
             shipping: {
-              name: data.shipping_address?.courier_name || data.shipment?.courier_name || 'Biteship Logistics Live',
-              courier: data.shipment?.courier_company || 'Biteship Express',
-              cost: data.shipping_total || 15000,
+              name: data.shipping_address?.courier_name || data.shipment?.courier || 'Biteship Logistics',
+              courier: data.shipment?.courier || data.shipping_address?.courier_name || 'Biteship Express',
+              cost: data.pricing?.shipping_total ?? data.shipping_total ?? 15000,
               etd: '1 - 2 Hari Kerja'
             },
             payment: {
@@ -80,13 +143,19 @@ function OrderConfirmationContent() {
               category: 'duitku',
               status: data.payment_status?.label || 'Lunas',
             },
-            subtotal: data.subtotal || 0,
-            shippingCost: data.shipping_total || 0,
-            shippingDiscount: 15000,
-            productDiscount: data.discount_total || 0,
-            serviceFee: 1000,
-            total: data.grand_total || 0,
-            createdAt: data.created_at ? new Date(data.created_at).toLocaleString('id-ID') : new Date().toLocaleString('id-ID'),
+            subtotal: data.pricing?.subtotal ?? data.subtotal ?? 0,
+            shippingCost: data.pricing?.shipping_total ?? data.shipping_total ?? 0,
+            shippingDiscount: (data.pricing?.shipping_total && data.pricing?.shipping_total > 0 && data.pricing?.grand_total < (data.pricing?.subtotal + data.pricing?.shipping_total)) ? 15000 : 0,
+            productDiscount: data.pricing?.discount_total ?? data.discount_total ?? 0,
+            serviceFee: data.pricing?.service_fee ?? 1000,
+            total: data.pricing?.grand_total ?? data.grand_total ?? 0,
+            createdAt: data.created_at ? new Date(data.created_at).toLocaleString('id-ID', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : new Date().toLocaleString('id-ID'),
             status: data.order_status?.label || 'Sedang Diproses',
           });
         }
@@ -105,10 +174,14 @@ function OrderConfirmationContent() {
   }, [orderNumberParam]);
 
   // Order display hierarchy: Live API Order -> Cart Last Order -> Mock Demo Order
-  const order = liveOrder || lastOrder || {
+  const order = liveOrder || (lastOrder ? {
+    ...lastOrder,
+    hasActualResi: Boolean(lastOrder.trackingNumber && !lastOrder.trackingNumber.includes('undefined'))
+  } : {
     orderId: 'ORD-2026-918234',
     invoiceNumber: 'MLG-INV-2026-918234',
     trackingNumber: 'SPXID09821849102',
+    hasActualResi: true,
     items: [
       {
         id: 'mock-1',
@@ -146,7 +219,8 @@ function OrderConfirmationContent() {
       id: 'qris',
       name: 'QRIS Instant Pay (Duitku)',
       description: 'Lunas',
-      category: 'qris'
+      category: 'qris',
+      status: 'Lunas'
     },
     subtotal: 229000,
     shippingCost: 15000,
@@ -163,7 +237,7 @@ function OrderConfirmationContent() {
     }),
     status: 'Sedang Dikemas Penjual',
     buyerNote: 'Harap dicek sebelum kirim, terima kasih!'
-  };
+  });
 
   const waText = encodeURIComponent(
     `Halo Admin Malega Apparel, saya baru saja melakukan pemesanan di Website Resmi:\n\n*No. Invoice:* ${order.invoiceNumber}\n*No. Resi:* ${order.trackingNumber}\n*Nama Penerima:* ${order.address.name} (${order.address.phone})\n*Total Pembayaran:* ${formatRupiah(order.total)}\n*Metode Pembayaran:* ${order.payment.name}\n\nMohon bantu verifikasi dan proses pengirimannya ya min, terima kasih!`
@@ -195,25 +269,73 @@ function OrderConfirmationContent() {
         </div>
 
         {/* Invoice Code & Resi Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto pt-2 text-xs">
-          <div className="p-4 rounded-xl bg-[#080E20] border border-white/10 text-left space-y-1">
-            <span className="text-[#94A3B8] text-[11px] block">Nomor Invoice:</span>
-            <span className="font-mono font-black text-[#FDFCFF] text-sm">{order.invoiceNumber}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto pt-2 text-xs">
+          
+          {/* Invoice Box */}
+          <div className="p-4 rounded-2xl bg-[#080E20]/90 border border-[#CBAC70]/30 text-left space-y-1.5 backdrop-blur-md shadow-lg group hover:border-[#CBAC70] transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[#94A3B8] text-[11px] font-medium flex items-center gap-1.5">
+                <Receipt className="w-3.5 h-3.5 text-[#CBAC70]" />
+                Nomor Invoice:
+              </span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
+                {order.payment?.status || 'Lunas'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono font-black text-[#FDFCFF] text-sm tracking-tight truncate">
+                {order.invoiceNumber}
+              </span>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => copyText(order.invoiceNumber, 'invoice')}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-[#CBAC70]/20 text-[#94A3B8] hover:text-[#CBAC70] border border-white/10 hover:border-[#CBAC70]/40 transition-all active:scale-90 cursor-pointer"
+                  title="Salin Nomor Invoice"
+                >
+                  {copiedInvoice ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+                <Link
+                  href={`/track?q=${encodeURIComponent(order.invoiceNumber)}`}
+                  className="p-1.5 rounded-lg bg-[#CBAC70]/10 hover:bg-[#CBAC70]/25 text-[#CBAC70] border border-[#CBAC70]/30 transition-all active:scale-90"
+                  title="Lacak dengan Invoice"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#080E20] border border-[#CBAC70]/30 text-left space-y-1">
-            <span className="text-[#94A3B8] text-[11px] block">No. Resi Pelacakan ({order.shipping.courier}):</span>
+          {/* Resi Box */}
+          <div className="p-4 rounded-2xl bg-[#080E20]/90 border border-white/10 text-left space-y-1.5 backdrop-blur-md shadow-lg group hover:border-white/25 transition-all">
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-[#CBAC70] text-sm">{order.trackingNumber}</span>
+              <span className="text-[#94A3B8] text-[11px] font-medium flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-sky-400" />
+                No. Resi ({order.shipping.courier}):
+              </span>
+              {order.hasActualResi ? (
+                <span className="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded font-medium">
+                  Aktif
+                </span>
+              ) : (
+                <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium">
+                  Proses Kemas
+                </span>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className={`font-mono text-xs sm:text-sm font-bold truncate ${order.hasActualResi ? 'text-[#CBAC70]' : 'text-slate-400'}`}>
+                {order.trackingNumber}
+              </span>
               <button 
-                onClick={() => copyToClipboard(order.trackingNumber)}
-                className="text-[#94A3B8] hover:text-[#CBAC70] p-1 cursor-pointer"
-                title="Salin Resi"
+                onClick={() => copyText(order.trackingNumber, 'resi')}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-[#CBAC70]/20 text-[#94A3B8] hover:text-[#CBAC70] border border-white/10 hover:border-[#CBAC70]/40 transition-all active:scale-90 cursor-pointer"
+                title="Salin Nomor Resi"
               >
-                <Copy className="w-3.5 h-3.5" />
+                {copiedResi ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
+
         </div>
 
       </div>
@@ -329,7 +451,7 @@ function OrderConfirmationContent() {
 
             {/* Live Tracking Portal Button */}
             <Link
-              href={`/track?q=${order.invoiceNumber || order.trackingNumber}`}
+              href={`/track?q=${encodeURIComponent(order.invoiceNumber)}`}
               className="w-full py-4 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-[#CBAC70]/20 transition-all active:scale-98"
             >
               <Truck className="w-4 h-4 text-[#0B132B]" />
@@ -358,6 +480,23 @@ function OrderConfirmationContent() {
         </div>
 
       </div>
+
+      {/* Modern Minimalist Luxury Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="pointer-events-auto max-w-sm w-full bg-[#0B132B]/95 backdrop-blur-xl border border-[#CBAC70]/50 rounded-2xl p-3.5 shadow-2xl shadow-black/80 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#CBAC70]/20 border border-[#CBAC70]/40 text-[#CBAC70] flex items-center justify-center shrink-0 shadow-sm">
+              <Check className="w-4 h-4 stroke-[2.5]" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <p className="text-xs font-bold text-white tracking-tight">{toast.title}</p>
+              {toast.subtitle && (
+                <p className="text-[11px] font-mono text-[#CBAC70] truncate">{toast.subtitle}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

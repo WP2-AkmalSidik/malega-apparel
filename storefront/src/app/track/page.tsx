@@ -118,7 +118,7 @@ const parseItemDetails = (productName: string, variantTitle: string, sku: string
 
 function LiveTrackingContent() {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || searchParams.get('order') || '';
+  const initialQuery = searchParams.get('q') || searchParams.get('order') || searchParams.get('order_number') || searchParams.get('merchantOrderId') || searchParams.get('tracking_number') || '';
 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState<'timeline' | 'package' | 'invoice'>('timeline');
@@ -127,6 +127,7 @@ function LiveTrackingContent() {
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const [toast, setToast] = useState<{ title: string; subtitle?: string } | null>(null);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -136,11 +137,16 @@ function LiveTrackingContent() {
     }).format(val);
   };
 
-  const copyToClipboard = (text: string, key: string) => {
+  const copyToClipboard = (text: string, key: string, label: string = 'Nomor') => {
     if (!text || text === '-') return;
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
+    setToast({
+      title: `${label} Berhasil Disalin`,
+      subtitle: text
+    });
     setTimeout(() => setCopiedKey(null), 2000);
+    setTimeout(() => setToast(null), 2500);
   };
 
   const handleCreatePaymentInvoice = async (orderNumber: string) => {
@@ -209,6 +215,23 @@ function LiveTrackingContent() {
             payment: d.payment || null,
             items: d.items || []
           };
+
+          // Save active session for instant auto-populate
+          try {
+            localStorage.setItem('malega_last_order', JSON.stringify({
+              orderNumber: liveOrder.orderNumber,
+              trackingNumber: liveOrder.shippingAddress?.tracking_number || liveOrder.shipment?.waybill_id,
+              grandTotal: liveOrder.pricing?.grand_total,
+              createdAt: liveOrder.createdAt
+            }));
+            localStorage.setItem('malega_last_order_number', liveOrder.orderNumber);
+            if (liveOrder.shippingAddress?.tracking_number || liveOrder.shipment?.waybill_id) {
+              localStorage.setItem('malega_last_tracking_number', liveOrder.shippingAddress?.tracking_number || liveOrder.shipment?.waybill_id || '');
+            }
+          } catch (e) {
+            // ignore
+          }
+
           setOrder(liveOrder);
           setIsLoading(false);
           return;
@@ -304,17 +327,27 @@ function LiveTrackingContent() {
 
   useEffect(() => {
     if (initialQuery) {
+      setSearchQuery(initialQuery);
       fetchTracking(initialQuery);
     } else {
       // Auto-populate last order from localStorage if available
       try {
+        const lastOrderNum = localStorage.getItem('malega_last_order_number');
+        const lastTrackingNum = localStorage.getItem('malega_last_tracking_number');
         const stored = localStorage.getItem('malega_last_order');
-        if (stored) {
+        let targetTerm = '';
+        if (lastOrderNum) {
+          targetTerm = lastOrderNum;
+        } else if (lastTrackingNum) {
+          targetTerm = lastTrackingNum;
+        } else if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed?.orderNumber) {
-            setSearchQuery(parsed.orderNumber);
-            fetchTracking(parsed.orderNumber);
-          }
+          targetTerm = parsed?.orderNumber || parsed?.trackingNumber || '';
+        }
+
+        if (targetTerm) {
+          setSearchQuery(targetTerm);
+          fetchTracking(targetTerm);
         }
       } catch (e) {
         // ignore
@@ -627,8 +660,8 @@ function LiveTrackingContent() {
                     <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Nomor Pesanan</span>
                     <button
                       type="button"
-                      onClick={() => copyToClipboard(order.orderNumber, 'order')}
-                      className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-[#CBAC70] transition-colors"
+                      onClick={() => copyToClipboard(order.orderNumber, 'order', 'Nomor Pesanan')}
+                      className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-[#CBAC70] transition-colors cursor-pointer"
                       title="Salin Nomor Pesanan"
                     >
                       {copiedKey === 'order' ? (
@@ -1161,6 +1194,23 @@ function LiveTrackingContent() {
               <span>Bantuan CS WhatsApp</span>
             </a>
           )}
+        </div>
+      )}
+
+      {/* Modern Minimalist Luxury Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="pointer-events-auto max-w-sm w-full bg-[#0B132B]/95 backdrop-blur-xl border border-[#CBAC70]/50 rounded-2xl p-3.5 shadow-2xl shadow-black/80 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#CBAC70]/20 border border-[#CBAC70]/40 text-[#CBAC70] flex items-center justify-center shrink-0 shadow-sm">
+              <Check className="w-4 h-4 stroke-[2.5]" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <p className="text-xs font-bold text-white tracking-tight">{toast.title}</p>
+              {toast.subtitle && (
+                <p className="text-[11px] font-mono text-[#CBAC70] truncate">{toast.subtitle}</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
