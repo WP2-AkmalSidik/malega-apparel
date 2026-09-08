@@ -186,7 +186,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Lookbook Koleksi', href: '/katalog' },
+    { label: 'Koleksi', href: '/katalog' },
     { label: 'Lacak Pesanan', href: '/track' },
   ];
 
@@ -378,14 +378,15 @@ export default function Navbar() {
                           </div>
 
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={(e) => handleQuickAddFromWishlist(p, e)}
-                              className="p-1.5 rounded-lg bg-[#CBAC70] text-[#0B132B] hover:bg-[#E3CD99] transition shadow text-xs font-bold cursor-pointer"
-                              title="Beli / Tambah ke Bag"
-                            >
-                              <ShoppingBag className="w-3.5 h-3.5" />
-                            </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleQuickAddFromWishlist(p, e)}
+                                className="p-1.5 rounded-lg bg-[#CBAC70] text-[#0B132B] hover:bg-[#E3CD99] transition shadow text-xs font-bold cursor-pointer"
+                                title="Tambah ke Keranjang"
+                                aria-label="Tambah ke Keranjang"
+                              >
+                                <ShoppingBag className="w-3.5 h-3.5" />
+                              </button>
                             <button
                               type="button"
                               onClick={() => toggleWishlist(p.id)}
@@ -508,13 +509,13 @@ export default function Navbar() {
                 id="navbar-bag-button"
                 type="button"
                 onClick={handleBagClick}
-                className={`relative p-2 sm:px-3 sm:py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+                className={`relative min-h-[40px] px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
                   isBagBouncing ? 'animate-bag-pop ring-2 ring-[#E3CD99]' : ''
                 }`}
-                aria-label="Open Shopping Bag"
+                aria-label="Buka Keranjang Belanja"
               >
                 <ShoppingBag className={`w-4 h-4 transition-transform ${isBagBouncing ? 'scale-110' : ''}`} />
-                <span className="hidden sm:inline">Bag</span>
+                <span className="hidden sm:inline">Keranjang</span>
                 {cartCount > 0 && (
                   <span className={`bg-[#0B132B] text-[#CBAC70] text-[10px] px-1.5 py-0.2 rounded-full font-mono transition-transform ${
                     isBagBouncing ? 'animate-badge-bump ring-1 ring-[#E3CD99]' : ''
@@ -567,7 +568,7 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5"
               >
-                <span>Wishlist / Favorit</span>
+                <span>Favorit Saya</span>
                 <span className="text-[#CBAC70] font-mono">{wishlistCount} item</span>
               </Link>
               <Link

@@ -34,7 +34,8 @@ export default function MobileBottomBar({
             ? 'bg-rose-500/20 border-rose-500/60 text-rose-400'
             : 'bg-[#14204A] border-[#CBAC70]/40 text-slate-300 hover:text-rose-400'
         }`}
-        title="Wishlist (Cache)"
+        title="Favorit"
+        aria-label="Simpan ke Favorit"
       >
         <Heart
           className={`w-4 h-4 ${
@@ -47,10 +48,11 @@ export default function MobileBottomBar({
       <button
         type="button"
         onClick={handleAddToBag}
-        className="h-11 px-3.5 sm:px-4 bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 active:scale-95 shadow shrink-0 cursor-pointer whitespace-nowrap"
+        className="h-11 px-3 sm:px-3.5 bg-[#14204A] hover:bg-[#1A2A5E] border border-[#CBAC70]/40 text-[#CBAC70] font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 active:scale-95 shadow shrink-0 cursor-pointer whitespace-nowrap"
+        aria-label="Tambah ke Keranjang"
       >
         <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-        <span>+ Bag</span>
+        <span>+ Keranjang</span>
       </button>
 
       {/* 3. Instant Buy Button (Takes remaining width, strictly single line) */}
@@ -58,6 +60,7 @@ export default function MobileBottomBar({
         type="button"
         onClick={handleInstantBuy}
         className="flex-1 min-w-0 h-11 px-3 sm:px-4 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] hover:opacity-95 text-[#0B132B] font-black text-[11px] sm:text-xs uppercase tracking-tight rounded-xl flex items-center justify-center gap-1.5 shadow-lg active:scale-95 cursor-pointer whitespace-nowrap overflow-hidden"
+        aria-label="Beli Sekarang"
       >
         <Zap className="w-3.5 h-3.5 fill-current shrink-0" />
         <span className="truncate whitespace-nowrap">

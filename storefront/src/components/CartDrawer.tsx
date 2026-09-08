@@ -102,13 +102,14 @@ export default function CartDrawer() {
           <div className="flex items-center gap-2.5">
             <ShoppingBag className="w-5 h-5 text-[#CBAC70]" />
             <h3 className="font-bold text-[#FDFCFF] text-sm uppercase tracking-wider">
-              Shopping Bag ({cartCount})
+              Keranjang Belanja ({cartCount})
             </h3>
           </div>
           <button
             type="button"
             onClick={handleClose}
             className="p-1.5 rounded-full hover:bg-white/10 text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+            aria-label="Tutup keranjang"
           >
             <X className="w-5 h-5" />
           </button>
@@ -116,7 +117,7 @@ export default function CartDrawer() {
 
         {/* Free shipping notice */}
         <div className="bg-[#111D42] px-5 py-2 border-b border-white/5 text-[11px] text-[#CBAC70] flex items-center justify-between">
-          <span>✨ Complimentary Express Delivery Active</span>
+          <span>✨ Promo Gratis Ongkir Tersedia</span>
           <span className="font-bold">Gratis Ongkir</span>
         </div>
 
@@ -168,15 +169,15 @@ export default function CartDrawer() {
                 <ShoppingBag className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <p className="font-bold text-[#FDFCFF] text-sm">Shopping bag Anda masih kosong</p>
-                <p className="text-xs text-[#94A3B8]">Jelajahi koleksi boxy heavyweight & utility streetwear Malega.</p>
+                <p className="font-bold text-[#FDFCFF] text-sm">Keranjang kamu masih kosong</p>
+                <p className="text-xs text-[#94A3B8]">Pilih artikel apparel favoritmu untuk mulai berbelanja.</p>
               </div>
               <Link
                 href="/"
                 onClick={handleClose}
                 className="px-6 py-2.5 bg-gradient-to-r from-[#E3CD99] via-[#CBAC70] to-[#A58645] text-[#0B132B] rounded-xl text-xs font-black tracking-wider uppercase shadow hover:opacity-95"
               >
-                Jelajahi Katalog
+                Mulai Belanja
               </Link>
             </div>
           ) : (
@@ -386,7 +387,7 @@ export default function CartDrawer() {
             >
               <span>
                 {selectedItems.length > 0
-                  ? `Proceed to Checkout (${selectedItems.length})`
+                  ? `Lanjut ke Checkout (${selectedItems.length})`
                   : 'Pilih Produk untuk Checkout'}
               </span>
               <ArrowRight className="w-4 h-4" />
@@ -394,7 +395,7 @@ export default function CartDrawer() {
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-[#94A3B8]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#CBAC70]" />
-              <span>100% Original Guarantee • Encrypted Checkout</span>
+              <span>Produk Original Malega • Checkout Aman</span>
             </div>
 
           </div>

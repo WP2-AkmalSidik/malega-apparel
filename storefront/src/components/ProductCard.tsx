@@ -61,50 +61,49 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    /* OUTER CARD (First Layer of Packaging) */
-    <div className="group relative rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-1.5 sm:p-2.5 border border-[#CBAC70]/20 hover:border-[#CBAC70]/60 transition-all duration-300 shadow-xl hover:shadow-[#CBAC70]/10 flex flex-col justify-between">
+    /* OUTER CARD (Bespoke Frame - "Di dalam card") */
+    <div className="group relative rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#14204A] via-[#0E1736] to-[#0A1024] p-1.5 sm:p-2.5 border border-[#CBAC70]/25 hover:border-[#CBAC70]/60 transition-all duration-300 shadow-xl hover:shadow-[#CBAC70]/10 flex flex-col justify-between">
       
-      {/* Subtle Outer Glow & Corner Accents */}
+      {/* Subtle Corner Accents (Signature Streetwear Malega) */}
       <div className="absolute top-1.5 left-1.5 w-2 h-2 border-t border-l border-[#CBAC70]/40 rounded-tl pointer-events-none" />
       <div className="absolute top-1.5 right-1.5 w-2 h-2 border-t border-r border-[#CBAC70]/40 rounded-tr pointer-events-none" />
       <div className="absolute bottom-1.5 left-1.5 w-2 h-2 border-b border-l border-[#CBAC70]/40 rounded-bl pointer-events-none" />
       <div className="absolute bottom-1.5 right-1.5 w-2 h-2 border-b border-r border-[#CBAC70]/40 rounded-br pointer-events-none" />
 
-      {/* INNER CARD (Second Layer of Packaging) */}
+      {/* INNER CARD (Nested Content Container) */}
       <div className="rounded-xl sm:rounded-2xl bg-[#070D1F] border border-white/10 overflow-hidden flex flex-col justify-between h-full">
         
-        {/* Visual Product Image Container */}
+        {/* Visual Product Image Container (Slightly squarish aspect-[6/7], but not strictly square) */}
         <Link 
           href={`/products/${product.slug}`} 
-          className="relative aspect-[4/5] bg-[#050914] overflow-hidden block group-hover:opacity-95 transition-opacity"
+          className="relative aspect-[6/7] bg-[#050914] overflow-hidden block group-hover:opacity-95 transition-opacity"
         >
           <img
             src={activeImage}
             alt={product.title}
-            className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-500 ease-out"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
           />
 
-          {/* Gradient shadow overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070D1F] via-transparent to-black/20 opacity-70" />
+          {/* Subtle gradient vignette overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#070D1F] via-transparent to-black/20 opacity-60 pointer-events-none" />
 
-          {/* Top Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            {product.isNewDrop && (
-              <span className="bg-[#CBAC70] text-[#0B132B] text-[8px] sm:text-[9px] font-black tracking-widest uppercase px-1.5 sm:px-2 py-0.5 rounded shadow">
-                NEW
+          {/* Top Badges (Strictly max 1 status on left) */}
+          <div className="absolute top-2.5 left-2.5 z-10">
+            {product.isNewDrop ? (
+              <span className="bg-[#CBAC70] text-[#0B132B] text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded shadow">
+                BARU
               </span>
-            )}
-            {product.isBestSeller && (
-              <span className="bg-[#0B132B]/85 border border-[#CBAC70]/40 text-[#CBAC70] text-[8px] sm:text-[9px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow backdrop-blur-md">
-                TOP
+            ) : product.isBestSeller ? (
+              <span className="bg-[#0B132B]/90 border border-[#CBAC70]/40 text-[#CBAC70] text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded shadow backdrop-blur-md">
+                TERLARIS
               </span>
-            )}
+            ) : null}
           </div>
 
           {/* Discount & Wishlist Heart Button Top Right */}
-          <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
             {product.discountPercentage > 0 && (
-              <div className="bg-[#0B132B]/90 border border-[#CBAC70]/60 text-[#CBAC70] text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded shadow">
+              <div className="bg-[#0B132B]/90 border border-[#CBAC70]/50 text-[#CBAC70] text-[9.5px] font-black px-1.5 py-0.5 rounded shadow backdrop-blur-md">
                 -{product.discountPercentage}%
               </div>
             )}
@@ -115,57 +114,59 @@ export default function ProductCard({ product }: ProductCardProps) {
                 e.stopPropagation();
                 toggleWishlist(product.id);
               }}
-              className={`p-1.5 rounded-full backdrop-blur-md transition-all cursor-pointer ${
+              className={`w-8 h-8 rounded-full backdrop-blur-md transition-all cursor-pointer flex items-center justify-center ${
                 isFavorited
-                  ? 'bg-rose-500 text-white shadow-md scale-110'
+                  ? 'bg-rose-500 text-white shadow-md scale-105'
                   : 'bg-black/50 text-white/80 hover:text-rose-400 hover:bg-black/70'
               }`}
-              title="Tambah ke Wishlist (Cache)"
+              title="Tambah ke Favorit"
+              aria-label="Simpan ke Favorit"
             >
-              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-white' : ''}`} />
+              <Heart className={`w-4 h-4 ${isFavorited ? 'fill-white' : ''}`} />
             </button>
-          </div>
-
-          {/* GSM & Fit Pill Bottom Left */}
-          <div className="absolute bottom-2 left-2 z-10">
-            <span className="text-[9px] sm:text-[10px] font-bold text-[#FDFCFF] bg-[#0B132B]/90 border border-[#CBAC70]/30 backdrop-blur-md px-2 py-0.5 rounded-md">
-              {product.gsm ? `${product.gsm}GSM` : (product.material ? product.material.split(' ')[0] : 'Premium')}
-            </span>
           </div>
         </Link>
 
-        {/* Inner Content Details */}
+        {/* Content Details */}
         <div className="p-3 sm:p-4 flex flex-col justify-between flex-1 space-y-2.5">
           
           <div className="space-y-1.5">
-            {/* Colorway Swatches on Mobile & Desktop */}
-            <div className="flex items-center gap-1.5">
-              {safeColors.map((c, idx) => (
-                <button
-                  type="button"
-                  key={idx}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedColor(c);
-                  }}
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer ${
-                    selectedColor?.name === c.name
-                      ? 'border-[#CBAC70] ring-1.5 ring-[#CBAC70] scale-110'
-                      : 'border-white/30 hover:border-white/80'
-                  }`}
-                  style={{ backgroundColor: c.hex }}
-                  title={c.name}
-                />
-              ))}
-              <span className="text-[9px] sm:text-[10px] text-[#94A3B8] ml-auto font-medium">
-                {safeColors.length} warna
+            {/* Colorway Swatches & Fabric Spec Metadata */}
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1.5">
+                {safeColors.map((c, idx) => (
+                  <button
+                    type="button"
+                    key={idx}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedColor(c);
+                    }}
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer ${
+                      selectedColor?.name === c.name
+                        ? 'border-[#CBAC70] ring-2 ring-[#CBAC70] scale-110'
+                        : 'border-white/30 hover:border-white/70'
+                    }`}
+                    style={{ backgroundColor: c.hex }}
+                    title={c.name}
+                    aria-label={c.name}
+                  />
+                ))}
+                <span className="text-[10px] text-[#94A3B8] ml-1 font-medium">
+                  {safeColors.length} warna
+                </span>
+              </div>
+
+              {/* Subtle Material / GSM info moved from badge to secondary spec */}
+              <span className="text-[10px] text-[#94A3B8] font-mono">
+                {product.gsm ? `${product.gsm} GSM` : (product.material ? product.material.split(' ')[0] : '')}
               </span>
             </div>
 
             {/* Title */}
-            <Link href={`/products/${product.slug}`} className="block">
-              <h3 className="text-xs sm:text-sm font-bold text-[#FDFCFF] group-hover:text-[#CBAC70] transition-colors line-clamp-1 leading-snug">
+            <Link href={`/products/${product.slug}`} className="block group/link">
+              <h3 className="text-xs sm:text-sm font-bold text-[#FDFCFF] group-hover/link:text-[#CBAC70] transition-colors line-clamp-1 leading-snug">
                 {product.title}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-[#94A3B8] line-clamp-1 mt-0.5">
@@ -175,10 +176,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Pricing & Fast Buy Action */}
-          <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-1">
+          <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
             <div className="min-w-0">
               {product.originalPrice > product.price && (
-                <span className="text-[9px] sm:text-[10px] text-[#94A3B8] line-through block leading-none truncate">
+                <span className="text-[10px] text-[#94A3B8] line-through block leading-none truncate">
                   {formatRupiah(product.originalPrice)}
                 </span>
               )}
@@ -187,15 +188,15 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             </div>
 
-            {/* Quick Add Button */}
+            {/* Quick Add Button with Accessible Touch Target */}
             <button
               type="button"
               onClick={handleQuickAdd}
-              className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] border border-[#CBAC70]/40 transition-all duration-200 shadow active:scale-90 shrink-0 cursor-pointer"
-              title="Add to Bag"
-              aria-label="Add to Bag"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#14204A] hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] border border-[#CBAC70]/30 hover:border-[#CBAC70] transition-all duration-200 shadow-sm active:scale-95 shrink-0 flex items-center justify-center cursor-pointer"
+              title="Tambah ke Keranjang"
+              aria-label="Tambah ke Keranjang"
             >
-              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ShoppingBag className="w-4 h-4" />
             </button>
           </div>
 
