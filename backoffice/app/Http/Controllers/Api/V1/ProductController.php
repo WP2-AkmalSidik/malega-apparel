@@ -18,7 +18,7 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         $isAll = $request->input('per_page') === 'all' || $request->has('all');
-        $perPage = max(1, min(100, (int) $request->input('per_page', 50)));
+        $perPage = max(1, min(100, (int) $request->input('per_page', 12)));
 
         $query = Product::active()
             ->with([
@@ -48,6 +48,13 @@ class ProductController extends Controller
                         ->orWhere('description', 'like', $term)
                         ->orWhere('material', 'like', $term);
                 });
+            })
+            ->when($request->boolean('featured'), function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('badge', 'like', '%TOP%')
+                        ->orWhere('badge', 'like', '%BEST%')
+                        ->orWhere('badge', 'like', '%NEW%');
+                });
             });
 
         // Sorting
@@ -68,6 +75,22 @@ class ProductController extends Controller
             'rating' => $query->orderByDesc('rating')->latest('id'),
             default => $query->latest('id'),
         };
+
+        if ($request->filled('limit')) {
+            $limit = max(1, min(50, (int) $request->input('limit')));
+            $products = $query->limit($limit)->get();
+            return response()->json([
+                'success' => true,
+                'message' => 'Katalog produk berhasil dimuat.',
+                'data' => ProductListResource::collection($products),
+                'meta' => [
+                    'current_page' => 1,
+                    'per_page' => $limit,
+                    'total' => $products->count(),
+                    'last_page' => 1,
+                ],
+            ]);
+        }
 
         if ($isAll) {
             $products = $query->get();
