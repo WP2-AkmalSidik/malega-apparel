@@ -195,6 +195,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       sizes,
       gallery: [defaultImg],
       features: ['100% Original Malega Streetwear', 'Garansi Kepuasan & Retur Mudah'],
+      description: item.description || '',
       specifications: item.specifications || {},
       variants: item.variants || []
     };
