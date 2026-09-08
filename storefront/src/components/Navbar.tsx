@@ -126,10 +126,19 @@ export default function Navbar() {
     }
   }, [bagBounce]);
 
-  // Close dropdowns on outside click or escape
+  // Global Keyboard Shortcuts (Ctrl+K / Cmd+K to toggle search, Escape to close)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Ctrl+K or Cmd+K
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setSearchModalOpen((prev) => !prev);
+        setUserDropdownOpen(false);
+        setWishlistDropdownOpen(false);
+      }
+
       if (e.key === 'Escape') {
+        setSearchModalOpen(false);
         setUserDropdownOpen(false);
         setWishlistDropdownOpen(false);
       }
