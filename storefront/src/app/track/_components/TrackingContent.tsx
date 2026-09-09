@@ -42,6 +42,7 @@ export default function TrackingContent() {
     handleCreatePaymentInvoice,
     fetchTracking,
     handleSearch,
+    handleReset,
   } = useTracking({ initialQuery });
 
   return (
@@ -58,6 +59,7 @@ export default function TrackingContent() {
           hasOrder={!!order}
           onSearch={handleSearch}
           onRefresh={() => order && fetchTracking(order.orderNumber)}
+          onReset={handleReset}
         />
 
         {/* Error Banner */}

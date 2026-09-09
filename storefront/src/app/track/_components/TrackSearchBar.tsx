@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, ArrowLeft } from 'lucide-react';
 
 interface TrackSearchBarProps {
   searchQuery: string;
@@ -8,6 +8,7 @@ interface TrackSearchBarProps {
   hasOrder: boolean;
   onSearch: (e: React.FormEvent) => void;
   onRefresh: () => void;
+  onReset?: () => void;
 }
 
 export default function TrackSearchBar({
@@ -17,6 +18,7 @@ export default function TrackSearchBar({
   hasOrder,
   onSearch,
   onRefresh,
+  onReset,
 }: TrackSearchBarProps) {
   return (
     <div className="space-y-3 text-center sm:text-left">
@@ -32,15 +34,29 @@ export default function TrackSearchBar({
         </div>
 
         {hasOrder && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading}
-            className="self-center sm:self-auto px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#0B132B] hover:bg-[#14204A] text-slate-300 text-xs font-medium transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-sky-400 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>Perbarui Data</span>
-          </button>
+          <div className="flex items-center justify-center sm:justify-start gap-2">
+            {onReset && (
+              <button
+                type="button"
+                onClick={onReset}
+                className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                title="Lacak Pesanan Lain"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-[#CBAC70]" />
+                <span>Ganti Pesanan</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-[#0B132B] hover:bg-[#14204A] text-slate-300 text-xs font-medium transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50 cursor-pointer"
+              title="Perbarui Data Status Pesanan"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-sky-400 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Perbarui Data</span>
+            </button>
+          </div>
         )}
       </div>
 

@@ -212,6 +212,17 @@ export function useTracking({ initialQuery }: UseTrackingOptions) {
       )
     : '';
 
+  const handleReset = () => {
+    setOrder(null);
+    setSearchQuery('');
+    setError(null);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.search = '';
+      window.history.pushState({}, '', url.pathname);
+    }
+  };
+
   return {
     // State
     searchQuery,
@@ -235,5 +246,6 @@ export function useTracking({ initialQuery }: UseTrackingOptions) {
     handleCreatePaymentInvoice,
     fetchTracking,
     handleSearch,
+    handleReset,
   };
 }
