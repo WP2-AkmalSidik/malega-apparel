@@ -66,6 +66,31 @@ class ValidateVoucherAction
             ];
         }
 
+        // Membership Tier Exclusivity Check
+        $tier = \App\Models\MembershipTier::where('voucher_id', $voucher->id)->where('is_active', true)->first();
+        if ($tier) {
+            if (! $customerId) {
+                return [
+                    'valid' => false,
+                    'message' => "Voucher \"{$voucher->code}\" khusus untuk member Malega tingkat {$tier->name}. Silakan login ke akun Anda.",
+                    'discount_amount' => 0,
+                    'voucher' => null,
+                ];
+            }
+
+            $customer = \App\Models\Customer::find($customerId);
+            if ($customer && $customer->total_spend_amount < $tier->min_spend) {
+                $minSpendFormatted = 'Rp ' . number_format($tier->min_spend, 0, ',', '.');
+
+                return [
+                    'valid' => false,
+                    'message' => "Voucher \"{$voucher->code}\" khusus untuk member tingkat {$tier->name} (Minimal akumulasi belanja {$minSpendFormatted}).",
+                    'discount_amount' => 0,
+                    'voucher' => null,
+                ];
+            }
+        }
+
         $now = now();
         if ($voucher->valid_from && $voucher->valid_from->isFuture()) {
             return [

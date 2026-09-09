@@ -45,8 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders', OrderIndex::class)->name('orders.index');
     Route::get('/orders/{order}/shipping-label', [\App\Http\Controllers\ShippingLabelController::class, 'print'])->name('orders.shipping-label');
 
-    // Module 06: Customer Management
+    // Module 06: Customer Management & Loyalty Tiers
     Route::get('/customers', CustomerIndex::class)->name('customers.index');
+    Route::get('/customers/tiers', \App\Livewire\Customers\MembershipTierIndex::class)->name('customers.tiers');
 
     // Module 07: Finance & Treasury Management
     Route::prefix('finance')->name('finance.')->group(function () {

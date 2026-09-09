@@ -29,6 +29,7 @@ class Customer extends Authenticatable
         'is_active',
         'marketing_opt_in',
         'membership_tier',
+        'membership_tier_id',
         'total_orders_count',
         'total_spend_amount',
         'saved_addresses',
@@ -104,18 +105,41 @@ class Customer extends Authenticatable
         );
     }
 
+    public function tier(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(MembershipTier::class, 'membership_tier_id');
+    }
+
     /**
-     * Recalculate membership tier based on lifetime spend.
+     * Recalculate membership tier based on lifetime spend and master tier settings.
      */
     public function updateMembershipTier(): void
     {
-        if ($this->total_spend_amount >= 1500000) {
-            $this->membership_tier = 'VIP Platinum';
-        } elseif ($this->total_spend_amount >= 500000) {
-            $this->membership_tier = 'Gold';
+        $activeTiers = MembershipTier::active()->orderBy('min_spend', 'desc')->get();
+
+        if ($activeTiers->isNotEmpty()) {
+            foreach ($activeTiers as $tier) {
+                if ($this->total_spend_amount >= $tier->min_spend) {
+                    $this->membership_tier = $tier->name;
+                    $this->membership_tier_id = $tier->id;
+                    $this->saveQuietly();
+                    return;
+                }
+            }
+
+            $lowestTier = $activeTiers->last();
+            $this->membership_tier = $lowestTier->name;
+            $this->membership_tier_id = $lowestTier->id;
         } else {
-            $this->membership_tier = 'Silver';
+            if ($this->total_spend_amount >= 1500000) {
+                $this->membership_tier = 'VIP Platinum';
+            } elseif ($this->total_spend_amount >= 500000) {
+                $this->membership_tier = 'Gold';
+            } else {
+                $this->membership_tier = 'Silver';
+            }
         }
+
         $this->saveQuietly();
     }
 }

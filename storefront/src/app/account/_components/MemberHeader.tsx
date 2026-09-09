@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LogOut,
   ShieldCheck,
@@ -22,34 +22,81 @@ interface MemberHeaderProps {
   onEditProfile?: () => void;
 }
 
+interface BasicTier {
+  name: string;
+  min_spend: number;
+  discount_label?: string;
+}
+
 export default function MemberHeader({
   customer,
   logout,
   onEditProfile,
 }: MemberHeaderProps) {
   const [showTierModal, setShowTierModal] = useState(false);
+  const [tiers, setTiers] = useState<BasicTier[]>([]);
+
+  const API_BASE =
+    process.env.NEXT_PUBLIC_BACKEND_API_URL || 'https://malega.my.id/api/v1';
+
+  useEffect(() => {
+    fetch(`${API_BASE}/membership-tiers`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          setTiers(data.data);
+        }
+      })
+      .catch(() => {});
+  }, [API_BASE]);
 
   const spend = customer?.total_spend || 0;
   const currentTier = customer?.membership_tier || 'Silver';
 
   // Calculate progress towards next tier based on Malega tier thresholds
   let nextTierName = 'Gold';
-  let nextTierThreshold = 500000;
   let remainingSpend = Math.max(0, 500000 - spend);
   let progressPercent = Math.min(100, Math.round((spend / 500000) * 100));
+  let nextDiscountLabel = 'Diskon 15% & Bebas Ongkir';
 
-  if (currentTier === 'Gold') {
-    nextTierName = 'VIP Platinum';
-    nextTierThreshold = 1500000;
-    remainingSpend = Math.max(0, 1500000 - spend);
-    progressPercent = Math.min(
-      100,
-      Math.round(((spend - 500000) / 1000000) * 100)
+  if (tiers.length > 0) {
+    const idx = tiers.findIndex(
+      (t) => t.name.toLowerCase() === currentTier.toLowerCase()
     );
-  } else if (currentTier === 'VIP Platinum') {
-    nextTierName = 'Tingkat Tertinggi';
-    remainingSpend = 0;
-    progressPercent = 100;
+    if (idx !== -1 && idx < tiers.length - 1) {
+      const nextT = tiers[idx + 1];
+      nextTierName = nextT.name;
+      remainingSpend = Math.max(0, nextT.min_spend - spend);
+      const prevMin = tiers[idx].min_spend;
+      const range = nextT.min_spend - prevMin;
+      progressPercent =
+        range > 0
+          ? Math.min(
+              100,
+              Math.max(0, Math.round(((spend - prevMin) / range) * 100))
+            )
+          : 100;
+      nextDiscountLabel = nextT.discount_label || 'Benefit Eksklusif';
+    } else if (idx === tiers.length - 1) {
+      nextTierName = 'Tingkat Tertinggi';
+      remainingSpend = 0;
+      progressPercent = 100;
+    }
+  } else {
+    // Fallback if API hasn't resolved
+    if (currentTier === 'Gold') {
+      nextTierName = 'VIP Platinum';
+      remainingSpend = Math.max(0, 1500000 - spend);
+      progressPercent = Math.min(
+        100,
+        Math.round(((spend - 500000) / 1000000) * 100)
+      );
+      nextDiscountLabel = 'Diskon 20% & Early Drop 24 Jam';
+    } else if (currentTier === 'VIP Platinum') {
+      nextTierName = 'Tingkat Tertinggi';
+      remainingSpend = 0;
+      progressPercent = 100;
+    }
   }
 
   // Tier styling helpers
@@ -209,7 +256,7 @@ export default function MemberHeader({
                 </strong>{' '}
                 lagi untuk unlock{' '}
                 <span className="text-white font-semibold">
-                  {nextTierName === 'Gold' ? 'Diskon 15% & Bebas Ongkir' : 'Diskon 20% & Early Drop 24 Jam'}
+                  {nextDiscountLabel}
                 </span>
                 .
               </span>
