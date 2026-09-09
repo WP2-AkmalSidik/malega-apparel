@@ -9,8 +9,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (emailOrPhone: string, password: string) => Promise<{ success: boolean; message: string }>;
+  loginWithGoogle: (credential: string) => Promise<{ success: boolean; message: string }>;
   register: (data: { name: string; email: string; phone: string; password: string; marketing_opt_in?: boolean }) => Promise<{ success: boolean; message: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (data: Partial<CustomerProfile>) => Promise<boolean>;
   addSavedAddress: (address: Address) => Promise<boolean>;
 }
@@ -19,12 +20,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'https://malega.my.id/api/v1';
 
+const ensureCsrfCookie = async () => {
+  try {
+    const backendRoot = API_BASE.replace(/\/api\/v1\/?$/, '');
+    await fetch(`${backendRoot}/sanctum/csrf-cookie`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+  } catch (e) {
+    // Non-blocking fallback
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize from localStorage on mount
+  // Initialize from localStorage on mount & verify session
   useEffect(() => {
     try {
       const savedToken = localStorage.getItem('malega_customer_token');
@@ -33,9 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (savedToken && savedCustomer) {
         setToken(savedToken);
         setCustomer(JSON.parse(savedCustomer));
-        // Verify with backend silently
+        // Verify with backend silently with credentials included
         fetch(`${API_BASE}/customers/me`, {
-          headers: { Authorization: `Bearer ${savedToken}` }
+          headers: {
+            Authorization: `Bearer ${savedToken}`,
+            Accept: 'application/json',
+          },
+          credentials: 'include',
         })
           .then(res => res.json())
           .then(resData => {
@@ -55,9 +72,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (emailOrPhone: string, password: string) => {
     try {
+      await ensureCsrfCookie();
+
       const res = await fetch(`${API_BASE}/customers/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({ email_or_phone: emailOrPhone, password })
       });
 
@@ -77,11 +100,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async (credential: string) => {
+    try {
+      await ensureCsrfCookie();
+
+      const res = await fetch(`${API_BASE}/customers/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        setToken(data.data.token);
+        setCustomer(data.data.customer);
+        localStorage.setItem('malega_customer_token', data.data.token);
+        localStorage.setItem('malega_customer_data', JSON.stringify(data.data.customer));
+        return { success: true, message: data.message || 'Login dengan Google berhasil.' };
+      }
+
+      return { success: false, message: data.message || 'Login dengan Google gagal. Silakan coba kembali.' };
+    } catch (err) {
+      return { success: false, message: 'Gagal terhubung ke server autentikasi Malega. Silakan coba lagi.' };
+    }
+  };
+
   const register = async (data: { name: string; email: string; phone: string; password: string; marketing_opt_in?: boolean }) => {
     try {
+      await ensureCsrfCookie();
+
       const res = await fetch(`${API_BASE}/customers/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
@@ -101,11 +160,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setCustomer(null);
-    localStorage.removeItem('malega_customer_token');
-    localStorage.removeItem('malega_customer_data');
+  const logout = async () => {
+    try {
+      if (token) {
+        await fetch(`${API_BASE}/customers/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: 'include',
+        });
+      }
+    } catch (e) {
+      // Continue cleanup on client
+    } finally {
+      setToken(null);
+      setCustomer(null);
+      localStorage.removeItem('malega_customer_token');
+      localStorage.removeItem('malega_customer_data');
+    }
   };
 
   const updateProfile = async (data: Partial<CustomerProfile>) => {
@@ -116,8 +191,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
           Authorization: `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
@@ -149,6 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!customer,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         updateProfile,

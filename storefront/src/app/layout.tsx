@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { GoogleAuthProvider } from "../providers/GoogleAuthProvider";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
 import { WishlistProvider } from "../context/WishlistContext";
@@ -33,22 +34,24 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${plusJakarta.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#0B132B] text-[#FDFCFF] selection:bg-[#CBAC70] selection:text-[#0B132B]">
-        <AuthProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <FlyToCartProvider>
-                <Navbar />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <CartDrawer />
-                <WishlistModal />
-                <FlyToCartAnimation />
-                <Footer />
-              </FlyToCartProvider>
-            </CartProvider>
-          </WishlistProvider>
-        </AuthProvider>
+        <GoogleAuthProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <FlyToCartProvider>
+                  <Navbar />
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                  <CartDrawer />
+                  <WishlistModal />
+                  <FlyToCartAnimation />
+                  <Footer />
+                </FlyToCartProvider>
+              </CartProvider>
+            </WishlistProvider>
+          </AuthProvider>
+        </GoogleAuthProvider>
       </body>
     </html>
   );

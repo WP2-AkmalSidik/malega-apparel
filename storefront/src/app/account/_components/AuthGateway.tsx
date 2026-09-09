@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { User, UserPlus, ArrowRight } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuthForm } from '../_hooks/useAuthForm';
 
 export default function AuthGateway() {
@@ -28,6 +29,8 @@ export default function AuthGateway() {
     isSubmitting,
     handleLogin,
     handleRegister,
+    handleGoogleSuccess,
+    handleGoogleError,
   } = useAuthForm();
 
   return (
@@ -205,6 +208,41 @@ export default function AuthGateway() {
             </button>
           </form>
         )}
+
+        {/* Social Auth Divider */}
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-[#0E1736] px-3 text-slate-400 font-medium">
+              {isLoginMode ? 'atau masuk lebih cepat' : 'atau daftar instan'}
+            </span>
+          </div>
+        </div>
+
+        {/* Google Authentication Button */}
+        <div className="flex flex-col items-center justify-center w-full min-h-[44px]">
+          {isSubmitting ? (
+            <div className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-center text-xs text-slate-300 font-medium flex items-center justify-center gap-2">
+              <span className="w-3.5 h-3.5 border-2 border-[#CBAC70] border-t-transparent rounded-full animate-spin" />
+              <span>Memproses autentikasi Google...</span>
+            </div>
+          ) : (
+            <div className="w-full flex justify-center [&>div]:!w-full [&>div>div]:!w-full [&>div>div>iframe]:!w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap={false}
+                theme="filled_black"
+                shape="pill"
+                text={isLoginMode ? 'signin_with' : 'signup_with'}
+                size="large"
+                width="100%"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Direct Track as Guest Option */}
         <div className="pt-4 border-t border-white/5 text-center">

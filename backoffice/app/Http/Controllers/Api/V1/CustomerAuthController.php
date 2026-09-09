@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Auth\AuthenticateGoogleCustomerAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\GoogleAuthRequest;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Services\Auth\GoogleIdentityVerifierInterface;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CustomerAuthController extends Controller
 {
@@ -274,10 +283,114 @@ class CustomerAuthController extends Controller
     }
 
     /**
-     * Helper to resolve customer from Bearer token or header.
+     * Authenticate customer with verified Google ID token.
+     */
+    public function google(
+        GoogleAuthRequest $request,
+        GoogleIdentityVerifierInterface $verifier,
+        AuthenticateGoogleCustomerAction $action
+    ): JsonResponse {
+        try {
+            $credential = $request->validated('credential');
+            $identity = $verifier->verify($credential);
+            $result = $action->execute($identity, $request);
+
+            /** @var Customer $customer */
+            $customer = $result['customer'];
+            $token = $result['token'];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Selamat datang di Malega Apparel, '.$customer->name.'!',
+                'data' => [
+                    'token' => $token,
+                    'customer' => [
+                        'id' => $customer->id,
+                        'name' => $customer->name,
+                        'email' => $customer->email,
+                        'phone' => $customer->phone,
+                        'avatar' => $customer->avatar,
+                        'membership_tier' => $customer->membership_tier,
+                        'marketing_opt_in' => $customer->marketing_opt_in,
+                        'total_orders' => $customer->total_orders_count,
+                        'total_spend' => $customer->total_spend_amount,
+                        'wishlist' => $customer->wishlist ?: [],
+                        'saved_addresses' => $customer->saved_addresses ?: [],
+                    ],
+                ],
+            ]);
+        } catch (AuthenticationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Autentikasi Google gagal.',
+            ], 401);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Akses ditolak.',
+            ], 403);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            Log::error('Google Auth: Terjadi kesalahan internal saat login Google.', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat memproses login Google. Silakan coba beberapa saat lagi.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Customer logout from Storefront session and token invalidation.
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $customer = $this->resolveCustomerFromToken($request);
+
+        if ($customer) {
+            $customer->remember_token = null;
+            $customer->saveQuietly();
+        }
+
+        Auth::guard('customer')->logout();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Anda telah berhasil keluar dari akun Malega Apparel.',
+        ]);
+    }
+
+    /**
+     * Helper to resolve customer from stateful session, Sanctum guard, or Bearer token.
      */
     protected function resolveCustomerFromToken(Request $request): ?Customer
     {
+        // 1. First-party Laravel Sanctum session auth on customer guard
+        $sessionCustomer = Auth::guard('customer')->user();
+        if ($sessionCustomer instanceof Customer) {
+            return $sessionCustomer;
+        }
+
+        // 2. Sanctum guard request user check
+        $sanctumCustomer = $request->user('customer');
+        if ($sanctumCustomer instanceof Customer) {
+            return $sanctumCustomer;
+        }
+
+        // 3. Fallback: Bearer remember_token in Authorization header
         $header = $request->header('Authorization');
         if (! $header || ! str_starts_with($header, 'Bearer ')) {
             return null;

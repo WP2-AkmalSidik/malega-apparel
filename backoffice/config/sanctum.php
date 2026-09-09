@@ -20,7 +20,7 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,127.0.0.1:8100,malega.my.id,store.malega.my.id,::1',
+        'localhost,localhost:3000,localhost:3100,127.0.0.1,127.0.0.1:3000,127.0.0.1:3100,127.0.0.1:8000,127.0.0.1:8100,malega.my.id,store.malega.my.id,::1',
         Sanctum::currentApplicationUrlWithPort(),
         Sanctum::currentRequestHost(),
     ))),
@@ -37,7 +37,7 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    'guard' => ['web', 'customer'],
 
     /*
     |--------------------------------------------------------------------------

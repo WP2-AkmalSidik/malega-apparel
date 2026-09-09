@@ -38,6 +38,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // 4. Customer Authentication & Account Endpoints
     Route::post('/customers/register', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'register'])->name('customers.register');
     Route::post('/customers/login', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'login'])->name('customers.login');
+    Route::post('/customers/google', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'google'])->name('customers.google')->middleware('throttle:15,1');
+    Route::post('/customers/logout', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'logout'])->name('customers.logout');
     Route::get('/customers/me', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'me'])->name('customers.me');
     Route::put('/customers/profile', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'updateProfile'])->name('customers.profile');
     Route::post('/customers/wishlist', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'syncWishlist'])->name('customers.wishlist');

@@ -6,7 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 
 export function useAuthForm() {
   const searchParams = useSearchParams();
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
 
   const [isLoginMode, setIsLoginMode] = useState<boolean>(
     searchParams?.get('tab') !== 'register'
@@ -63,6 +63,27 @@ export function useAuthForm() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (!credentialResponse?.credential) {
+      setAuthError('Kredensial autentikasi Google tidak diterima. Silakan coba kembali.');
+      return;
+    }
+
+    setAuthError('');
+    setIsSubmitting(true);
+
+    const res = await loginWithGoogle(credentialResponse.credential);
+    setIsSubmitting(false);
+
+    if (!res.success) {
+      setAuthError(res.message);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setAuthError('Autentikasi dengan Google dibatalkan atau tidak berhasil. Silakan coba kembali.');
+  };
+
   return {
     isLoginMode,
     setIsLoginMode,
@@ -87,5 +108,7 @@ export function useAuthForm() {
     isSubmitting,
     handleLogin,
     handleRegister,
+    handleGoogleSuccess,
+    handleGoogleError,
   };
 }
