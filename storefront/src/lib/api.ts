@@ -255,7 +255,7 @@ export async function fetchProductDetailFromApi(identifier: string): Promise<Pro
         subtitle: item.subtitle || '',
         isNewDrop: item.badge?.includes('NEW') || item.badge?.includes('DROP'),
         isBestSeller: item.badge?.includes('BEST') || item.badge?.includes('TOP'),
-        rating: Number(item.rating) || 5.0,
+        rating: typeof item.rating === 'number' ? item.rating : (Number(item.rating) || 0),
         reviewCount: Number(item.review_count) || 0,
         soldCount: Number(item.sold_count) || 0,
         originalPrice: item.price?.compare_at || item.price?.max || item.price?.min,

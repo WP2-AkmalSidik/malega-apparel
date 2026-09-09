@@ -43,80 +43,89 @@ export default function ProductStudio({
   const stockAvailable = activeVariant.availableStock || product.stockTotal || 10;
 
   return (
-    <div className="lg:col-span-6 space-y-5">
-      <div className="rounded-2xl sm:rounded-3xl bg-[#0E1736] border border-white/10 shadow-2xl p-5 sm:p-7 space-y-5">
+    <div className="lg:col-span-6 space-y-4 sm:space-y-5">
+      <div className="rounded-2xl sm:rounded-3xl bg-[#0E1736] border border-white/10 shadow-2xl p-4 sm:p-7 space-y-4 sm:space-y-5">
         
         {/* Title & Category Header */}
-        <div className="space-y-2 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-2 text-[11px]">
+        <div className="space-y-1.5 sm:space-y-2 border-b border-white/10 pb-3 sm:pb-4">
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] flex-wrap">
             <span className="font-mono text-[#CBAC70] font-bold uppercase tracking-wider">
               {product.category} {product.gsm ? `• ${product.gsm} GSM` : ''}
             </span>
             <span className="text-white/20">•</span>
-            <div className="flex items-center gap-1 text-[#CBAC70]">
-              <Star className="w-3.5 h-3.5 fill-current" />
-              <span className="font-bold">{product.rating}</span>
-              <span className="text-[#94A3B8]">({product.reviewCount} ulasan)</span>
-            </div>
+            {product.reviewCount > 0 && product.rating > 0 ? (
+              <div className="flex items-center gap-1 text-[#CBAC70]">
+                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
+                <span className="font-bold">{Number(product.rating).toFixed(1)}</span>
+                <span className="text-[#94A3B8]">({product.reviewCount} ulasan)</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-[#94A3B8]">
+                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#94A3B8]/60" />
+                <span className="font-medium text-[10px] sm:text-[11px] text-[#94A3B8]">Belum ada ulasan</span>
+              </div>
+            )}
           </div>
 
           {/* Readable Title (Editorial Title Case, not screaming uppercase) */}
-          <h1 className="text-xl sm:text-2xl font-black text-[#FDFCFF] leading-snug">
+          <h1 className="text-lg sm:text-2xl font-black text-[#FDFCFF] leading-snug">
             {product.title}
           </h1>
 
-          <p className="text-xs text-[#94A3B8] leading-relaxed">{product.subtitle}</p>
+          {product.subtitle && (
+            <p className="text-[11px] sm:text-xs text-[#94A3B8] leading-relaxed">{product.subtitle}</p>
+          )}
         </div>
 
         {/* Single Unified Synchronized Price Box */}
-        <div className="p-3.5 sm:p-4 rounded-xl bg-[#0B132B] border border-white/5 flex items-baseline justify-between shadow-inner">
-          <div className="space-y-0.5">
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-2xl sm:text-3xl font-black text-[#CBAC70] gold-gradient-pure">
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0B132B] border border-white/5 flex items-center justify-between gap-2.5 shadow-inner">
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-xl sm:text-3xl font-black text-[#CBAC70] gold-gradient-pure">
                 {formatRupiah(currentPrice * quantity)}
               </span>
               {currentCompareAt && currentCompareAt > currentPrice && (
-                <span className="text-xs text-[#94A3B8] line-through">
+                <span className="text-[11px] sm:text-xs text-[#94A3B8] line-through">
                   {formatRupiah(currentCompareAt * quantity)}
                 </span>
               )}
             </div>
             {quantity > 1 && (
-              <p className="text-[10px] font-mono text-[#94A3B8]">
+              <p className="text-[10px] font-mono text-[#94A3B8] mt-0.5">
                 ({formatRupiah(currentPrice)} × {quantity} pcs)
               </p>
             )}
           </div>
 
-          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap">
             ✓ Ready Stock ({stockAvailable} pcs)
           </span>
         </div>
 
         {/* 1. Colorway Selection Swatches */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-between items-center text-xs">
             <span className="font-bold text-[#FDFCFF]">Pilihan Warna:</span>
-            <span className="text-[#CBAC70] font-semibold font-mono">
+            <span className="text-[#CBAC70] font-semibold font-mono text-[11px] sm:text-xs">
               {selectedColor.name}
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {product.colors.map((c, idx) => (
               <button
                 type="button"
                 key={idx}
                 onClick={() => handleColorChange(c)}
-                className={`min-h-[42px] px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`min-h-[36px] sm:min-h-[40px] px-3 py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
                   selectedColor.name === c.name
-                    ? 'border-[#CBAC70] bg-[#14204A] text-[#FDFCFF] ring-2 ring-[#CBAC70] shadow-md font-bold'
+                    ? 'border-[#CBAC70] bg-[#14204A] text-[#FDFCFF] ring-1.5 ring-[#CBAC70] shadow font-bold'
                     : 'border-white/10 hover:border-white/30 text-[#94A3B8] bg-[#0B132B]'
                 }`}
                 aria-label={`Pilih warna ${c.name}`}
               >
                 <span
-                  className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border border-white/20 shrink-0"
                   style={{ backgroundColor: c.hex }}
                 />
                 <span>{c.name}</span>
@@ -126,27 +135,27 @@ export default function ProductStudio({
         </div>
 
         {/* 2. Size Selection */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-between items-center text-xs">
             <span className="font-bold text-[#FDFCFF]">Pilih Ukuran:</span>
             <button
               type="button"
               onClick={() => setShowSizeChart(true)}
-              className="text-[#CBAC70] hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+              className="text-[#CBAC70] hover:underline flex items-center gap-1 font-semibold text-[10.5px] sm:text-[11px] cursor-pointer"
             >
-              <Ruler className="w-3.5 h-3.5" /> Panduan Ukuran
+              <Ruler className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Panduan Ukuran
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {product.sizes.map((s) => (
               <button
                 type="button"
                 key={s}
                 onClick={() => handleSizeChange(s)}
-                className={`min-w-[44px] min-h-[44px] py-2 px-3.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                className={`min-w-[38px] h-9 sm:min-w-[44px] sm:h-11 px-2.5 sm:px-3.5 rounded-lg sm:rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
                   selectedSize === s
-                    ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B] shadow-md font-black scale-102'
+                    ? 'border-[#CBAC70] bg-[#CBAC70] text-[#0B132B] shadow font-black scale-102'
                     : 'border-white/10 bg-[#0B132B] text-[#94A3B8] hover:text-white hover:border-[#CBAC70]/40'
                 }`}
                 aria-label={`Pilih ukuran ${s}`}
@@ -158,34 +167,34 @@ export default function ProductStudio({
         </div>
 
         {/* 3. Quantity Stepper */}
-        <div className="space-y-2 pt-2 border-t border-white/10">
+        <div className="space-y-1.5 pt-2 border-t border-white/10">
           <span className="font-bold text-xs text-[#FDFCFF] block">Jumlah Pesanan:</span>
           <div className="flex items-center gap-3">
-            <div className="flex items-center border border-white/20 rounded-xl bg-[#0B132B] overflow-hidden">
+            <div className="flex items-center border border-white/15 rounded-lg sm:rounded-xl bg-[#0B132B] overflow-hidden h-9 sm:h-10">
               <button
                 type="button"
                 onClick={() => handleQuantity(-1)}
                 disabled={quantity <= 1}
-                className="w-11 h-11 flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white hover:bg-white/5 transition disabled:opacity-30 cursor-pointer"
+                className="w-9 h-full flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white hover:bg-white/5 transition disabled:opacity-30 cursor-pointer"
                 aria-label="Kurangi jumlah"
               >
                 -
               </button>
-              <span className="w-12 h-11 flex items-center justify-center text-center font-black text-sm text-[#FDFCFF] font-mono">
+              <span className="w-10 h-full flex items-center justify-center text-center font-black text-xs sm:text-sm text-[#FDFCFF] font-mono">
                 {quantity}
               </span>
               <button
                 type="button"
                 onClick={() => handleQuantity(1)}
                 disabled={quantity >= stockAvailable}
-                className="w-11 h-11 flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white hover:bg-white/5 transition disabled:opacity-30 cursor-pointer"
+                className="w-9 h-full flex items-center justify-center font-bold text-base text-[#94A3B8] hover:text-white hover:bg-white/5 transition disabled:opacity-30 cursor-pointer"
                 aria-label="Tambah jumlah"
               >
                 +
               </button>
             </div>
 
-            <span className="text-[11px] text-[#94A3B8] font-mono">
+            <span className="text-[10.5px] sm:text-[11px] text-[#94A3B8] font-mono">
               Maks. {stockAvailable} pcs
             </span>
           </div>
@@ -233,18 +242,18 @@ export default function ProductStudio({
         </div>
 
         {/* 5. Customer Trust & Benefit Strip (Subtle, non-intrusive) */}
-        <div className="pt-3 border-t border-white/5 grid grid-cols-3 gap-2 text-center text-[10px] text-[#94A3B8]">
-          <div className="p-2 rounded-lg bg-[#0B132B]/60 space-y-0.5">
+        <div className="pt-2 sm:pt-3 border-t border-white/5 grid grid-cols-3 gap-1.5 sm:gap-2 text-center text-[9.5px] sm:text-[10px] text-[#94A3B8]">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-[#0B132B]/60 space-y-0.5">
             <span className="font-bold text-[#CBAC70] block">Gratis Ongkir*</span>
-            <span className="text-[9px] text-[#94A3B8]">Voucher tersedia</span>
+            <span className="text-[8.5px] sm:text-[9px] text-[#94A3B8]">Voucher tersedia</span>
           </div>
-          <div className="p-2 rounded-lg bg-[#0B132B]/60 space-y-0.5">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-[#0B132B]/60 space-y-0.5">
             <span className="font-bold text-[#CBAC70] block">Tukar Ukuran</span>
-            <span className="text-[9px] text-[#94A3B8]">Garansi retur</span>
+            <span className="text-[8.5px] sm:text-[9px] text-[#94A3B8]">Garansi retur</span>
           </div>
-          <div className="p-2 rounded-lg bg-[#0B132B]/60 space-y-0.5">
+          <div className="p-1.5 sm:p-2 rounded-lg bg-[#0B132B]/60 space-y-0.5">
             <span className="font-bold text-[#CBAC70] block">100% Original</span>
-            <span className="text-[9px] text-[#94A3B8]">Atelier Malega</span>
+            <span className="text-[8.5px] sm:text-[9px] text-[#94A3B8]">Atelier Malega</span>
           </div>
         </div>
 

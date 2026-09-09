@@ -99,6 +99,7 @@ export default function ProductDetailClient({
       <ProductReviews
         productId={product.id}
         productName={product.title}
+        rating={product.rating}
         reviewCount={product.reviewCount}
       />
 
