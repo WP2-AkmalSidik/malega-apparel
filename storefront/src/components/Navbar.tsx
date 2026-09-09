@@ -6,8 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   ShoppingBag, 
   Search, 
-  Menu, 
-  X, 
   Heart, 
   User, 
   LogOut, 
@@ -24,16 +22,16 @@ import { useAuth } from '../context/AuthContext';
 import { useFlyToCart } from '../context/FlyToCartContext';
 import BrandLogo from './BrandLogo';
 import SearchModal from './SearchModal';
+import MobileBottomNav from './MobileBottomNav';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { cart, cartCount, setIsCartOpen, addToCart } = useCart();
-  const { wishlistProducts, wishlistCount, toggleWishlist } = useWishlist();
+  const { wishlistProducts, wishlistCount, toggleWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist();
   const { customer, isAuthenticated, logout } = useAuth();
   const { bagBounce, triggerFly } = useFlyToCart();
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [wishlistDropdownOpen, setWishlistDropdownOpen] = useState(false);
@@ -155,7 +153,11 @@ export default function Navbar() {
 
   const handleHeartClick = () => {
     setUserDropdownOpen(false);
-    setWishlistDropdownOpen(!wishlistDropdownOpen);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsWishlistOpen(true);
+    } else {
+      setWishlistDropdownOpen(!wishlistDropdownOpen);
+    }
   };
 
   const handleQuickAddFromWishlist = (product: any, e?: React.MouseEvent) => {
@@ -301,11 +303,11 @@ export default function Navbar() {
           {/* Right Utilities (Search, Wishlist, User, Bag) */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             
-            {/* 1. Instant Search Trigger */}
+            {/* 1. Instant Search Trigger (Desktop Only) */}
             <button
               type="button"
               onClick={() => setSearchModalOpen(true)}
-              className="p-2 rounded-xl text-slate-300 hover:text-[#CBAC70] hover:bg-[#14204A] transition flex items-center gap-1.5 group cursor-pointer"
+              className="hidden lg:flex p-2 rounded-xl text-slate-300 hover:text-[#CBAC70] hover:bg-[#14204A] transition items-center gap-1.5 group cursor-pointer"
               title="Pencarian Cepat (Ctrl+K)"
             >
               <Search className="w-4 h-4" />
@@ -314,17 +316,18 @@ export default function Navbar() {
               </span>
             </button>
 
-            {/* 2. Wishlist / Favorites Dropdown Trigger */}
+            {/* 2. Wishlist / Favorites Trigger */}
             <div className="relative">
               <button
                 type="button"
                 onClick={handleHeartClick}
-                className={`relative p-2 rounded-xl transition cursor-pointer group ${
-                  wishlistDropdownOpen
+                className={`relative p-2 sm:p-2 rounded-xl transition cursor-pointer group ${
+                  wishlistDropdownOpen || isWishlistOpen
                     ? 'bg-[#14204A] text-rose-400 ring-1 ring-rose-500/50'
                     : 'text-slate-300 hover:text-rose-400 hover:bg-[#14204A]'
                 }`}
-                title="Daftar Favorit Tersimpan (Cache)"
+                title="Daftar Favorit"
+                aria-label="Daftar Favorit"
               >
                 <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'text-rose-500 fill-rose-500' : ''}`} />
                 {wishlistCount > 0 && (
@@ -334,13 +337,13 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* Wishlist Dropdown Content */}
+              {/* Wishlist Dropdown Content (Desktop Only) */}
               {wishlistDropdownOpen && (
                 <>
                   {/* Backdrop to close on outside click */}
                   <div className="fixed inset-0 z-40" onClick={() => setWishlistDropdownOpen(false)} />
                   <div 
-                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/40 shadow-2xl p-4 z-50 space-y-3 animate-[fadeInScale_0.25s_ease-out_forwards]"
+                    className="hidden lg:block absolute right-0 mt-2 w-80 sm:w-96 rounded-3xl bg-[#0E1736] border border-[#CBAC70]/40 shadow-2xl p-4 z-50 space-y-3 animate-[fadeInScale_0.25s_ease-out_forwards]"
                   >
                   <div className="flex items-center justify-between pb-2 border-b border-white/10">
                     <div className="flex items-center gap-2">
@@ -426,8 +429,8 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* 3. Customer Account / Member Portal Dropdown */}
-            <div className="relative">
+            {/* 3. Customer Account / Member Portal Dropdown (Desktop Only) */}
+            <div className="hidden lg:block relative">
               {isAuthenticated && customer ? (
                 <div>
                   <button
@@ -509,7 +512,7 @@ export default function Navbar() {
                 id="navbar-bag-button"
                 type="button"
                 onClick={handleBagClick}
-                className={`relative min-h-[40px] px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+                className={`relative min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
                   isBagBouncing ? 'animate-bag-pop ring-2 ring-[#E3CD99]' : ''
                 }`}
                 aria-label="Buka Keranjang Belanja"
@@ -535,58 +538,20 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Menu Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-
           </div>
         </div>
-
-        {/* Mobile Slide-Down Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-[#CBAC70]/20 bg-[#0B132B] p-4 space-y-3">
-            <div className="space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider ${
-                    pathname === link.href ? 'bg-[#14204A] text-[#CBAC70]' : 'text-slate-300 hover:bg-white/5'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Link
-                href="/favorites"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/5"
-              >
-                <span>Favorit Saya</span>
-                <span className="text-[#CBAC70] font-mono">{wishlistCount} item</span>
-              </Link>
-              <Link
-                href="/account"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 rounded-xl text-xs font-bold text-[#CBAC70] bg-[#14204A]/60"
-              >
-                {isAuthenticated ? `Akun Saya (${customer?.name})` : 'Masuk / Daftar Anggota'}
-              </Link>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Global Instant Search Modal */}
       <SearchModal
         isOpen={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
+      />
+
+      {/* Luxury Mobile App Bottom Navigation Bar */}
+      <MobileBottomNav
+        onOpenSearch={() => setSearchModalOpen(true)}
+        isSearchOpen={searchModalOpen}
       />
     </>
   );

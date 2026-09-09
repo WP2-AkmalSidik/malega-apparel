@@ -169,3 +169,9 @@ body {
 .animate-badge-bump {
   animation: badgeBump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
+
+/* Safe area padding for mobile bottom bar */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
