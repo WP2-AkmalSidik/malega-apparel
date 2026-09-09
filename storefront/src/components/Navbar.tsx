@@ -321,7 +321,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={handleHeartClick}
-                className={`relative p-2 sm:p-2 rounded-xl transition cursor-pointer group ${
+                className={`relative w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl transition cursor-pointer flex items-center justify-center group ${
                   wishlistDropdownOpen || isWishlistOpen
                     ? 'bg-[#14204A] text-rose-400 ring-1 ring-rose-500/50'
                     : 'text-slate-300 hover:text-rose-400 hover:bg-[#14204A]'
@@ -439,9 +439,9 @@ export default function Navbar() {
                       setWishlistDropdownOpen(false);
                       setUserDropdownOpen(!userDropdownOpen);
                     }}
-                    className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-[#CBAC70]/30 transition cursor-pointer"
+                    className="h-8 sm:h-8.5 flex items-center gap-1.5 px-2 sm:px-2.5 rounded-lg sm:rounded-xl bg-white/5 hover:bg-white/10 border border-[#CBAC70]/30 transition cursor-pointer"
                   >
-                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#CBAC70] to-[#997732] flex items-center justify-center text-[#0B132B] font-black text-[10px]">
+                    <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[#CBAC70] to-[#997732] flex items-center justify-center text-[#0B132B] font-black text-[9px]">
                       {customer.name.substring(0, 1).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline-block text-xs font-bold text-slate-200 truncate max-w-[90px]">
@@ -480,9 +480,9 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold text-slate-200 hover:text-[#CBAC70] bg-white/5 hover:bg-white/10 border border-white/10 transition flex items-center gap-1.5"
+                  className="h-8 sm:h-8.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-xs font-bold text-slate-200 hover:text-[#CBAC70] bg-white/5 hover:bg-white/10 border border-white/10 transition flex items-center gap-1.5"
                 >
-                  <User className="w-4 h-4 text-[#CBAC70]" />
+                  <User className="w-3.5 h-3.5 text-[#CBAC70]" />
                   <span className="hidden sm:inline">Masuk</span>
                 </Link>
               )}
@@ -494,15 +494,15 @@ export default function Navbar() {
                 id="navbar-bag-button"
                 type="button"
                 onClick={handleBagClick}
-                className={`relative min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] to-[#A58645] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+                className={`relative h-8 sm:h-8.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-[#0B132B] bg-gradient-to-r from-[#CBAC70] via-[#D8BC80] to-[#B89758] hover:from-[#E3CD99] hover:to-[#CBAC70] font-bold text-[11px] sm:text-xs shadow-sm transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer ${
                   isBagBouncing ? 'animate-bag-pop ring-2 ring-[#E3CD99]' : ''
                 }`}
                 aria-label="Buka Keranjang Belanja"
               >
-                <ShoppingBag className={`w-4 h-4 transition-transform ${isBagBouncing ? 'scale-110' : ''}`} />
-                <span className="hidden sm:inline">Keranjang</span>
+                <ShoppingBag className={`w-3.5 h-3.5 transition-transform ${isBagBouncing ? 'scale-110' : ''}`} />
+                <span className="hidden sm:inline font-bold">Keranjang</span>
                 {cartCount > 0 && (
-                  <span className={`bg-[#0B132B] text-[#CBAC70] text-[10px] px-1.5 py-0.2 rounded-full font-mono transition-transform ${
+                  <span className={`bg-[#0B132B] text-[#CBAC70] text-[9.5px] font-black px-1.5 min-w-[17px] h-4 rounded-full font-mono flex items-center justify-center leading-none transition-transform ${
                     isBagBouncing ? 'animate-badge-bump ring-1 ring-[#E3CD99]' : ''
                   }`}>
                     {cartCount}
@@ -512,8 +512,8 @@ export default function Navbar() {
 
               {/* Luxury Floating +1 Notification Particle */}
               {showPlusOne && (
-                <div className="absolute -top-3 right-0 transform translate-x-1 -translate-y-2 pointer-events-none z-50 animate-bounce">
-                  <span className="bg-gradient-to-r from-[#E3CD99] to-[#CBAC70] text-[#0B132B] text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-[0_0_12px_#CBAC70] border border-white/20">
+                <div className="absolute -top-2.5 right-0 transform translate-x-1 -translate-y-1 pointer-events-none z-50 animate-bounce">
+                  <span className="bg-gradient-to-r from-[#E3CD99] to-[#CBAC70] text-[#0B132B] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-[0_0_8px_#CBAC70] border border-white/20">
                     +1
                   </span>
                 </div>

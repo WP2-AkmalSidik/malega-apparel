@@ -79,13 +79,13 @@ export default function FavoritesPage() {
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                 />
 
-                {/* Badge */}
+                {/* Category & Discreet GSM Badge */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1">
-                  <span className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-[#0B132B]/80 text-[#CBAC70] border border-[#CBAC70]/30 backdrop-blur-sm">
+                  <span className="px-2 py-0.5 rounded-lg text-[9.5px] font-mono font-bold bg-[#0B132B]/80 text-[#CBAC70] border border-[#CBAC70]/30 backdrop-blur-sm">
                     {product.category}
                   </span>
                   {product.gsm && (
-                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-medium bg-black/60 text-white backdrop-blur-sm">
+                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-mono font-medium bg-black/60 text-white/80 backdrop-blur-sm">
                       {product.gsm}GSM
                     </span>
                   )}

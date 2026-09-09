@@ -131,8 +131,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="p-3 sm:p-4 flex flex-col justify-between flex-1 space-y-2.5">
           
           <div className="space-y-1.5">
-            {/* Colorway Swatches & Fabric Spec Metadata */}
-            <div className="flex items-center justify-between gap-1">
+            {/* Colorway Swatches & Discreet Fabric GSM */}
+            <div className="flex items-center justify-between gap-1 py-0.5">
               <div className="flex items-center gap-1.5">
                 {safeColors.map((c, idx) => (
                   <button
@@ -153,13 +153,10 @@ export default function ProductCard({ product }: ProductCardProps) {
                     aria-label={c.name}
                   />
                 ))}
-                <span className="text-[10px] text-[#94A3B8] ml-1 font-medium">
-                  {safeColors.length} warna
-                </span>
               </div>
 
-              {/* Subtle Material / GSM info moved from badge to secondary spec */}
-              <span className="text-[10px] text-[#94A3B8] font-mono">
+              {/* Discreet GSM spec with smaller font size */}
+              <span className="text-[9px] text-[#94A3B8]/75 font-mono tracking-tight">
                 {product.gsm ? `${product.gsm} GSM` : (product.material ? product.material.split(' ')[0] : '')}
               </span>
             </div>
