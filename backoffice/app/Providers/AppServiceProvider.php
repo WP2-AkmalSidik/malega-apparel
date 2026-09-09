@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             request()->isSecure() ||
             request()->server('HTTP_X_FORWARDED_PROTO') === 'https' ||
             request()->server('HTTP_X_FORWARDED_SSL') === 'on' ||
-            str_starts_with(config('app.url'), 'https://')
+            (app()->environment('production') && str_starts_with(config('app.url'), 'https://'))
         ) {
             URL::forceScheme('https');
         }

@@ -87,26 +87,37 @@ export function useProductDetail({
 
   // Compute Active Variant and its exact price and stock
   const activeVariant = useMemo(() => {
-    const found = product.variants?.find(
-      (v) =>
-        v.color.name.toLowerCase() === selectedColor.name.toLowerCase() &&
-        v.size === selectedSize
-    );
+    const sColor = (selectedColor?.name || '').toLowerCase();
+    const sSize = (selectedSize || '').toLowerCase();
+
+    const found = product.variants?.find((v) => {
+      const vColor = (v.color?.name || '').toLowerCase();
+      const vSize = (v.size || '').toLowerCase();
+
+      const colorMatch = !vColor || !sColor || vColor === sColor;
+      const sizeMatch = !vSize || !sSize || vSize === sSize;
+
+      return colorMatch && sizeMatch;
+    });
 
     if (found) return found;
 
     // Calculate dynamic price based on color + size surcharge
-    const colorExtra = selectedColor.priceExtra || 0;
+    const colorExtra = selectedColor?.priceExtra || 0;
     const sizeExtra = product.sizePriceExtra?.[selectedSize] || 0;
-    const finalPrice = product.price + colorExtra + sizeExtra;
+    const finalPrice = (product.price || 0) + colorExtra + sizeExtra;
     const compareAt = product.originalPrice
       ? product.originalPrice + colorExtra + sizeExtra
       : null;
 
+    const colorName = selectedColor?.name || 'Signature';
+    const slugPrefix = (product.slug || 'MLG').substring(0, 4).toUpperCase();
+    const colorPrefix = colorName.substring(0, 3).toUpperCase();
+
     return {
-      id: `${product.id}-${selectedColor.name}-${selectedSize}`,
-      sku: `MLG-${product.slug.substring(0, 4).toUpperCase()}-${selectedColor.name.substring(0, 3).toUpperCase()}-${selectedSize}`,
-      title: `${product.title} - ${selectedColor.name} / ${selectedSize}`,
+      id: `${product.id}-${colorName}-${selectedSize}`,
+      sku: `MLG-${slugPrefix}-${colorPrefix}-${selectedSize}`,
+      title: `${product.title} - ${colorName} / ${selectedSize}`,
       color: selectedColor,
       size: selectedSize,
       price: finalPrice,
@@ -215,10 +226,10 @@ export function useProductDetail({
     isInWishlist(product.id) || isInWishlist(product.slug);
 
   const isNumericSizeProduct = useMemo(() => {
-    if (product.sizes && product.sizes.some((s) => /^\d+$/.test(s.trim()))) {
+    if (product.sizes && product.sizes.some((s) => s && /^\d+$/.test(String(s).trim()))) {
       return true;
     }
-    const categoryAndName = (product.category + ' ' + product.title).toLowerCase();
+    const categoryAndName = `${product.category || ''} ${product.title || ''}`.toLowerCase();
     return ['celana', 'pants', 'jeans', 'denim', 'cargo', 'chino', 'trouser', 'short'].some(
       (k) => categoryAndName.includes(k)
     );
@@ -228,12 +239,12 @@ export function useProductDetail({
     if (
       product.sizes &&
       product.sizes.length === 1 &&
-      (product.sizes[0].toLowerCase() === 'all size' ||
-        product.sizes[0].toLowerCase() === 'one size')
+      (product.sizes[0]?.toLowerCase() === 'all size' ||
+        product.sizes[0]?.toLowerCase() === 'one size')
     ) {
       return true;
     }
-    const categoryAndName = (product.category + ' ' + product.title).toLowerCase();
+    const categoryAndName = `${product.category || ''} ${product.title || ''}`.toLowerCase();
     return [
       'aksesoris',
       'accessories',

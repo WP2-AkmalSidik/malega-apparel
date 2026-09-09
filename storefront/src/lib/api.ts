@@ -215,6 +215,39 @@ export async function fetchProductDetailFromApi(identifier: string): Promise<Pro
     const json = await res.json();
     if (json.success && json.data) {
       const item = json.data;
+      const defaultImg = item.featured_image_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80';
+      const colors = (Array.isArray(item.colors) && item.colors.length > 0)
+        ? item.colors
+        : [{ name: 'Obsidian Navy', hex: '#0B132B', image: defaultImg }];
+
+      const sizes = (Array.isArray(item.sizes) && item.sizes.length > 0)
+        ? item.sizes
+        : (item.variants && item.variants.some((v: any) => v.size)
+            ? Array.from(new Set(item.variants.map((v: any) => v.size).filter(Boolean)))
+            : ['S', 'M', 'L', 'XL']);
+
+      const variants = Array.isArray(item.variants) && item.variants.length > 0
+        ? item.variants.map((v: any) => {
+            const vSize = v.size || (v.title?.match(/(?:Ukuran\s+|Size\s+|-\s*)([A-Z0-9]+)$/i)?.[1]) || (v.sku?.match(/-([A-Z0-9]+)$/i)?.[1]) || sizes[0] || 'All Size';
+            const vColorName = v.color?.name || colors[0]?.name || 'Obsidian Navy';
+            const vColorHex = v.color?.hex || colors[0]?.hex || '#0B132B';
+            const vColorImg = v.color?.image || colors[0]?.image || defaultImg;
+            return {
+              ...v,
+              size: vSize,
+              color: {
+                name: vColorName,
+                hex: vColorHex,
+                image: vColorImg,
+              },
+            };
+          })
+        : [];
+
+      const gallery = (Array.isArray(item.gallery_images) && item.gallery_images.length > 0)
+        ? item.gallery_images.map((g: any) => g.image_url).filter(Boolean)
+        : [defaultImg];
+
       return {
         id: String(item.id),
         slug: item.slug,
@@ -222,9 +255,9 @@ export async function fetchProductDetailFromApi(identifier: string): Promise<Pro
         subtitle: item.subtitle || '',
         isNewDrop: item.badge?.includes('NEW') || item.badge?.includes('DROP'),
         isBestSeller: item.badge?.includes('BEST') || item.badge?.includes('TOP'),
-        rating: item.rating,
-        reviewCount: item.review_count,
-        soldCount: item.sold_count,
+        rating: Number(item.rating) || 5.0,
+        reviewCount: Number(item.review_count) || 0,
+        soldCount: Number(item.sold_count) || 0,
         originalPrice: item.price?.compare_at || item.price?.max || item.price?.min,
         price: item.price?.min || 0,
         priceMin: item.price?.min,
@@ -239,12 +272,12 @@ export async function fetchProductDetailFromApi(identifier: string): Promise<Pro
         fit: item.fit || item.specifications?.Cutting || item.specifications?.['Fit / Cutting'] || '',
         origin: item.origin || 'Bandung, Indonesia',
         stockTotal: item.total_stock || item.available_stock || 100,
-        colors: item.colors || [],
-        sizes: item.sizes || [],
-        gallery: item.gallery_images?.map((g: any) => g.image_url) || [item.featured_image_url],
+        colors,
+        sizes,
+        gallery,
         features: item.features || [],
         specifications: item.specifications || {},
-        variants: item.variants || []
+        variants,
       };
     }
   } catch (err) {

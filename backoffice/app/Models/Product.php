@@ -65,6 +65,29 @@ class Product extends Model
     }
 
     /**
+     * Customer reviews for this product.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Recalculate average rating and review count from approved reviews.
+     */
+    public function recalculateRating(): void
+    {
+        $approved = $this->reviews()->where('status', 'approved');
+        $count = $approved->count();
+        $avg = $count > 0 ? round((float) $approved->avg('rating'), 1) : 5.0;
+
+        $this->updateQuietly([
+            'rating' => $avg,
+            'review_count' => $count,
+        ]);
+    }
+
+    /**
      * Category that this product belongs to.
      */
     public function category(): BelongsTo
@@ -126,7 +149,7 @@ class Product extends Model
     {
         return Attribute::make(
             get: function () {
-                return $this->variants
+                $colors = $this->variants
                     ->filter(fn ($v) => ! empty($v->color_name))
                     ->unique('color_name')
                     ->map(fn ($v) => [
@@ -136,6 +159,19 @@ class Product extends Model
                     ])
                     ->values()
                     ->all();
+
+                if (empty($colors)) {
+                    $colorName = $this->subtitle ?: 'Obsidian Navy';
+                    return [
+                        [
+                            'name' => $colorName,
+                            'hex' => '#0B132B',
+                            'image' => $this->featured_image_url,
+                        ],
+                    ];
+                }
+
+                return $colors;
             }
         );
     }
@@ -147,12 +183,25 @@ class Product extends Model
     {
         return Attribute::make(
             get: function () {
-                return $this->variants
-                    ->filter(fn ($v) => ! empty($v->size))
-                    ->pluck('size')
+                $sizes = $this->variants
+                    ->map(function ($v) {
+                        if (! empty($v->size)) {
+                            return $v->size;
+                        }
+                        if (preg_match('/(?:Ukuran\s+|Size\s+|-\s*)([A-Z0-9]+)$/i', (string) $v->title, $m)) {
+                            return strtoupper($m[1]);
+                        }
+                        if (preg_match('/-([A-Z0-9]+)$/i', (string) $v->sku, $m)) {
+                            return strtoupper($m[1]);
+                        }
+                        return null;
+                    })
+                    ->filter()
                     ->unique()
                     ->values()
                     ->all();
+
+                return ! empty($sizes) ? $sizes : ['S', 'M', 'L', 'XL'];
             }
         );
     }

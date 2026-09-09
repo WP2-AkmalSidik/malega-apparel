@@ -25,6 +25,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('/collections/{slug}', [CollectionController::class, 'show'])->name('collections.show');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{id}/reviews', [\App\Http\Controllers\Api\V1\ProductReviewController::class, 'index'])->name('products.reviews.index');
+    Route::post('/products/{id}/reviews', [\App\Http\Controllers\Api\V1\ProductReviewController::class, 'store'])->name('products.reviews.store');
 
     // 2. Order & Checkout Endpoints
     Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout')->middleware('throttle:15,1');
@@ -44,6 +46,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::put('/customers/profile', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'updateProfile'])->name('customers.profile');
     Route::post('/customers/wishlist', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'syncWishlist'])->name('customers.wishlist');
     Route::get('/customers/orders', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'orders'])->name('customers.orders');
+    Route::get('/customers/reviews', [\App\Http\Controllers\Api\V1\ProductReviewController::class, 'customerReviews'])->name('customers.reviews');
 
     // 5. Logistics & Shipping Endpoints (Biteship)
     Route::post('/shipping/rates', [\App\Http\Controllers\Api\V1\ShippingController::class, 'rates'])->name('shipping.rates');

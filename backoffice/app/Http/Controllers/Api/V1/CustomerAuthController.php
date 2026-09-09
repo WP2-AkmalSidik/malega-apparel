@@ -249,10 +249,13 @@ class CustomerAuthController extends Controller
         $orders = $customer->orders()
             ->with(['items', 'payment', 'shipment'])
             ->get();
+        $reviewedProductIds = \App\Models\ProductReview::where('customer_id', $customer->id)
+            ->pluck('product_id')
+            ->toArray();
 
         return response()->json([
             'success' => true,
-            'data' => $orders->map(function ($order) {
+            'data' => $orders->map(function ($order) use ($reviewedProductIds) {
                 return [
                     'id' => $order->id,
                     'order_number' => $order->order_number,
@@ -262,11 +265,15 @@ class CustomerAuthController extends Controller
                     'formatted_total' => $order->formatted_grand_total,
                     'created_at' => $order->created_at->format('d M Y, H:i'),
                     'items' => $order->items->map(fn ($item) => [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name,
                         'title' => $item->variant_title,
                         'sku' => $item->sku,
                         'price' => (int) $item->unit_price,
                         'quantity' => (int) $item->quantity,
                         'subtotal' => (int) $item->subtotal,
+                        'has_reviewed' => in_array($item->product_id, $reviewedProductIds),
                     ]),
                     'shipping' => $order->shipment ? [
                         'courier' => $order->shipment->courier_company ?: $order->shipment->courier_service_name ?: 'Kurir Rekanan',

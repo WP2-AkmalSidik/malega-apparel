@@ -97,6 +97,8 @@ export default function ProductDetailClient({
 
       {/* Verified Reviews Section */}
       <ProductReviews
+        productId={product.id}
+        productName={product.title}
         reviewCount={product.reviewCount}
         reviewsList={reviewsList}
         filteredReviews={filteredReviews}

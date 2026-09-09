@@ -278,11 +278,15 @@ export interface CustomerPastOrder {
   formatted_total: string;
   created_at: string;
   items: Array<{
+    id?: number;
+    product_id?: number;
+    product_name?: string;
     title: string;
     sku: string;
     price: number;
     quantity: number;
     subtotal: number;
+    has_reviewed?: boolean;
   }>;
   shipping?: {
     courier: string;
@@ -293,6 +297,45 @@ export interface CustomerPastOrder {
     method: string;
     status: string;
   } | null;
+}
+
+export interface ProductReviewItem {
+  id: number;
+  customer_name: string;
+  customer_tier: string;
+  customer_avatar?: string | null;
+  rating: number;
+  headline?: string | null;
+  review: string;
+  fit_rating?: string | null;
+  fit_label?: string | null;
+  is_verified_purchase: boolean;
+  admin_reply?: string | null;
+  admin_replied_at?: string | null;
+  created_at: string;
+  created_at_human: string;
+}
+
+export interface ProductReviewSummary {
+  average_rating: number;
+  total_reviews: number;
+  star_counts: Record<number, number>;
+  star_percentages: Record<number, number>;
+}
+
+export interface ProductReviewResponse {
+  success: boolean;
+  data: {
+    product_id: number;
+    product_name: string;
+    summary: ProductReviewSummary;
+    reviews: ProductReviewItem[];
+    user_eligibility: {
+      can_review: boolean;
+      has_reviewed: boolean;
+      eligible_order_id?: number | null;
+    };
+  };
 }
 
 
