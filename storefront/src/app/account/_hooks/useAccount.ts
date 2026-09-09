@@ -8,7 +8,7 @@ export function useAccount() {
   const { customer, isAuthenticated, token, logout, updateProfile } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'addresses' | 'wishlist' | 'settings'
+    'orders' | 'addresses' | 'settings'
   >('orders');
   const [orders, setOrders] = useState<CustomerPastOrder[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState<boolean>(false);
