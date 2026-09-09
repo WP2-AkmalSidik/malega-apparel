@@ -21,7 +21,7 @@ export function useProductDetail({
 }: UseProductDetailOptions) {
   const router = useRouter();
   const { addToCart, instantBuy } = useCart();
-  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { isInWishlist, toggleWishlist: toggleWishlistBase } = useWishlist();
   const { triggerFly } = useFlyToCart();
 
   const product = useMemo(() => {
@@ -272,7 +272,7 @@ export function useProductDetail({
     filteredReviews,
     relatedProducts,
     isCurrentProductFavorited,
-    toggleWishlist,
+    toggleWishlist: (id: string) => toggleWishlistBase(id, product),
     isNumericSizeProduct,
     isAllSizeProduct,
   };

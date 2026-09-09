@@ -112,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                toggleWishlist(product.id);
+                toggleWishlist(product.id, product);
               }}
               className={`w-8 h-8 rounded-full backdrop-blur-md transition-all cursor-pointer flex items-center justify-center ${
                 isFavorited
