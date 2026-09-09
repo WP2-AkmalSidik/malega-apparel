@@ -466,15 +466,6 @@ export default function Navbar() {
                         <span>Dashboard Akun</span>
                       </Link>
 
-                      <Link
-                        href="/track"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Lacak Pesanan</span>
-                      </Link>
-
                       <button
                         type="button"
                         onClick={() => { logout(); setUserDropdownOpen(false); }}

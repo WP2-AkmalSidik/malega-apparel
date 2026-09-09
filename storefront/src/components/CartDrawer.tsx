@@ -259,34 +259,39 @@ export default function CartDrawer() {
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="font-black text-[#CBAC70] text-sm">
-                          {formatRupiah(item.price * item.quantity)}
+                      <div className="flex items-end justify-between pt-1.5 gap-2">
+                        {/* Price Block: Total & Unit Breakdown */}
+                        <div className="min-w-0 flex flex-col justify-end">
+                          <span className="font-black text-[#CBAC70] text-sm leading-tight tracking-tight">
+                            {formatRupiah(item.price * item.quantity)}
+                          </span>
                           {item.quantity > 1 && (
-                            <span className="text-[10px] font-normal text-[#94A3B8] ml-1">
-                              ({formatRupiah(item.price)} × {item.quantity})
+                            <span className="text-[10px] font-mono text-[#94A3B8] leading-tight mt-0.5 whitespace-nowrap">
+                              {formatRupiah(item.price)} × {item.quantity}
                             </span>
                           )}
-                        </span>
+                        </div>
 
-                        {/* Qty + Delete */}
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex items-center border border-white/15 rounded-lg bg-[#0B132B] overflow-hidden">
+                        {/* Qty Stepper + Delete Button */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center border border-white/15 rounded-lg bg-[#0B132B] overflow-hidden shadow-sm">
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                               disabled={item.quantity <= 1}
-                              className="w-6 h-6 flex items-center justify-center font-bold text-[#94A3B8] hover:text-white disabled:opacity-30 text-xs cursor-pointer"
+                              className="w-6 h-6 flex items-center justify-center font-bold text-[#94A3B8] hover:text-white disabled:opacity-25 text-xs cursor-pointer active:bg-white/10 transition-colors"
+                              aria-label="Kurangi kuantitas"
                             >
                               -
                             </button>
-                            <span className="w-7 h-6 flex items-center justify-center text-center font-bold text-[10px] text-[#FDFCFF] font-mono">
+                            <span className="w-7 h-6 flex items-center justify-center text-center font-bold text-[10px] text-[#FDFCFF] font-mono select-none">
                               {item.quantity}
                             </span>
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-6 h-6 flex items-center justify-center font-bold text-[#94A3B8] hover:text-white text-xs cursor-pointer"
+                              className="w-6 h-6 flex items-center justify-center font-bold text-[#94A3B8] hover:text-white text-xs cursor-pointer active:bg-white/10 transition-colors"
+                              aria-label="Tambah kuantitas"
                             >
                               +
                             </button>
@@ -297,6 +302,7 @@ export default function CartDrawer() {
                             onClick={() => removeFromCart(item.id)}
                             className="text-[#94A3B8] hover:text-red-400 p-1 transition-colors cursor-pointer"
                             title="Hapus item"
+                            aria-label="Hapus item"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
