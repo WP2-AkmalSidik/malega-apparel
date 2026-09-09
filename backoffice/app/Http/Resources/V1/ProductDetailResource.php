@@ -28,7 +28,7 @@ class ProductDetailResource extends JsonResource
             'slug' => $this->slug,
             'subtitle' => $this->subtitle,
             'badge' => $this->badge,
-            'rating' => (float) ($this->rating ?: 4.9),
+            'rating' => (float) ($this->rating ?? 0.0),
             'review_count' => (int) ($this->review_count ?: 0),
             'sold_count' => (int) ($this->sold_count ?: 0),
             'description' => $this->description,

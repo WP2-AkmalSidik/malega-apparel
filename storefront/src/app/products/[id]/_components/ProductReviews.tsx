@@ -1,27 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Star, ShieldCheck, Check, MessageSquare, Sparkles, Filter } from 'lucide-react';
+import { Star, ShieldCheck, Check, MessageSquare, Sparkles } from 'lucide-react';
 import { ProductReviewItem, ProductReviewSummary } from '../../../../types';
 import { useAuth } from '../../../../context/AuthContext';
 import SubmitReviewModal from '../../../account/_components/SubmitReviewModal';
-import { ReviewItem } from '../_constants/reviews-data';
 
 interface ProductReviewsProps {
   productId?: string | number;
   productName?: string;
   reviewCount?: number;
-  reviewsList?: ReviewItem[];
-  filteredReviews?: ReviewItem[];
-  reviewFilter?: 'all' | 'photo' | '5star';
-  setReviewFilter?: (filter: 'all' | 'photo' | '5star') => void;
 }
 
 export default function ProductReviews({
   productId,
   productName,
-  reviewCount: fallbackCount = 0,
-  reviewsList: fallbackReviews = [],
 }: ProductReviewsProps) {
   const { token } = useAuth();
   const [apiReviews, setApiReviews] = useState<ProductReviewItem[]>([]);
@@ -63,15 +56,15 @@ export default function ProductReviews({
     fetchReviews();
   }, [productId, token, API_BASE]);
 
-  // Determine display metrics (API data takes priority if reviews exist, else fallback)
+  // Only use genuine reviews from verified buyers
   const hasRealReviews = apiReviews.length > 0;
-  const totalCount = summary ? summary.total_reviews : hasRealReviews ? apiReviews.length : fallbackCount;
-  const avgRating = summary ? summary.average_rating : 4.9;
+  const totalCount = summary ? summary.total_reviews : apiReviews.length;
+  const avgRating = summary && summary.total_reviews > 0 ? summary.average_rating : (hasRealReviews ? (apiReviews.reduce((acc, r) => acc + r.rating, 0) / apiReviews.length) : 0);
 
   const starPercentages = summary?.star_percentages || {
-    5: 88,
-    4: 10,
-    3: 2,
+    5: 0,
+    4: 0,
+    3: 0,
     2: 0,
     1: 0,
   };
@@ -160,7 +153,7 @@ export default function ProductReviews({
           <div className="md:col-span-4 text-center md:text-left md:border-r border-white/10 md:pr-4 space-y-1">
             <div className="flex items-baseline justify-center md:justify-start gap-2">
               <span className="text-3xl sm:text-4xl font-black text-[#CBAC70] font-mono">
-                {avgRating.toFixed(1)}
+                {totalCount > 0 ? avgRating.toFixed(1) : '0.0'}
               </span>
               <span className="text-xs text-[#94A3B8] font-mono">/ 5.0</span>
             </div>
@@ -169,7 +162,7 @@ export default function ProductReviews({
                 <Star
                   key={i}
                   className={`w-3.5 h-3.5 ${
-                    i < Math.round(avgRating)
+                    totalCount > 0 && i < Math.round(avgRating)
                       ? 'fill-current text-[#CBAC70]'
                       : 'text-slate-700'
                   }`}
@@ -177,7 +170,9 @@ export default function ProductReviews({
               ))}
             </div>
             <p className="text-[11px] text-[#94A3B8]">
-              Berdasarkan {totalCount} ulasan pembeli resmi
+              {totalCount > 0
+                ? `Berdasarkan ${totalCount} ulasan pembeli resmi`
+                : 'Belum ada ulasan dari pembeli'}
             </p>
           </div>
 
@@ -207,7 +202,7 @@ export default function ProductReviews({
 
         {/* Reviews List */}
         <div className="space-y-3.5">
-          {hasRealReviews ? (
+          {displayedReviews.length > 0 ? (
             displayedReviews.map((rev) => (
               <div
                 key={rev.id}
@@ -283,46 +278,33 @@ export default function ProductReviews({
                 )}
               </div>
             ))
-          ) : fallbackReviews.length > 0 ? (
-            /* Fallback mock reviews if no reviews seeded yet */
-            fallbackReviews.map((rev) => (
-              <div
-                key={rev.id}
-                className="p-4 rounded-xl bg-[#0B132B] border border-white/5 space-y-2.5"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#14204A] border border-[#CBAC70]/30 flex items-center justify-center text-xs font-bold text-[#CBAC70]">
-                      {rev.avatar}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-xs text-[#FDFCFF]">{rev.author}</p>
-                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold px-1.5 py-0.2 rounded">
-                          ✓ Terverifikasi
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-[#94A3B8] font-mono">{rev.variant}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-0.5 text-[#CBAC70]">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                    ))}
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed max-w-[75ch]">{rev.comment}</p>
-              </div>
-            ))
           ) : (
-            <div className="py-12 text-center rounded-2xl bg-[#0B132B] border border-white/5 p-6 space-y-2">
-              <MessageSquare className="w-8 h-8 text-slate-600 mx-auto" />
-              <p className="text-xs font-bold text-slate-300">Belum ada ulasan untuk produk ini</p>
-              <p className="text-[11px] text-slate-500">
-                Jadilah pembeli pertama yang memberikan testimoni setelah barang Anda sampai!
-              </p>
+            <div className="py-12 text-center rounded-2xl bg-[#0B132B] border border-white/5 p-6 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-[#CBAC70]/60">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#FDFCFF]">
+                  {activeStarFilter
+                    ? `Belum Ada Ulasan dengan Rating ${activeStarFilter} Bintang`
+                    : 'Belum Ada Ulasan untuk Produk Ini'}
+                </p>
+                <p className="text-xs text-[#94A3B8] mt-1 max-w-md mx-auto leading-relaxed">
+                  {activeStarFilter
+                    ? 'Coba pilih filter bintang lain atau tampilkan semua ulasan.'
+                    : 'Hanya member terdaftar yang telah menyelesaikan pesanan untuk produk ini yang dapat memberikan rating dan ulasan terverifikasi.'}
+                </p>
+              </div>
+              {userEligibility.can_review && (
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(true)}
+                  className="mt-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#CBAC70] to-[#E3CD99] text-[#0B132B] font-bold text-xs shadow hover:from-[#E3CD99] hover:to-[#CBAC70] transition active:scale-95 cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Jadilah Pembeli Pertama yang Mengulas!</span>
+                </button>
+              )}
             </div>
           )}
         </div>

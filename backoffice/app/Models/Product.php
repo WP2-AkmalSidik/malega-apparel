@@ -79,7 +79,7 @@ class Product extends Model
     {
         $approved = $this->reviews()->where('status', 'approved');
         $count = $approved->count();
-        $avg = $count > 0 ? round((float) $approved->avg('rating'), 1) : 5.0;
+        $avg = $count > 0 ? round((float) $approved->avg('rating'), 1) : 0.0;
 
         $this->updateQuietly([
             'rating' => $avg,

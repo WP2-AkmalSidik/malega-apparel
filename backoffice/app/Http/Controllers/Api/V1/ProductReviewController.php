@@ -30,7 +30,7 @@ class ProductReviewController extends Controller
         $totalReviews = $approvedReviews->count();
         $averageRating = $totalReviews > 0
             ? round((float) $approvedReviews->avg('rating'), 1)
-            : 5.0;
+            : 0.0;
 
         // Breakdown distribution
         $starCounts = [

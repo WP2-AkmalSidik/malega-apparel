@@ -7,7 +7,6 @@ import { useCart } from '../../../../context/CartContext';
 import { useWishlist } from '../../../../context/WishlistContext';
 import { useFlyToCart } from '../../../../context/FlyToCartContext';
 import { ColorOption, Product } from '../../../../types';
-import { getReviewsList } from '../_constants/reviews-data';
 
 interface UseProductDetailOptions {
   productId: string;
@@ -201,18 +200,8 @@ export function useProductDetail({
     router.push('/checkout');
   };
 
-  const reviewsList = useMemo(
-    () => getReviewsList(selectedColor.name, selectedSize),
-    [selectedColor.name, selectedSize]
-  );
-
-  const filteredReviews = useMemo(() => {
-    return reviewsList.filter((r) => {
-      if (reviewFilter === 'photo') return r.photos.length > 0;
-      if (reviewFilter === '5star') return r.rating === 5;
-      return true;
-    });
-  }, [reviewsList, reviewFilter]);
+  const reviewsList = useMemo<any[]>(() => [], []);
+  const filteredReviews = useMemo<any[]>(() => [], []);
 
   const relatedProducts = useMemo(() => {
     const pool =

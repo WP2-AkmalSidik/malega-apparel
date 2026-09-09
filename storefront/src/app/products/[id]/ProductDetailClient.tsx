@@ -100,10 +100,6 @@ export default function ProductDetailClient({
         productId={product.id}
         productName={product.title}
         reviewCount={product.reviewCount}
-        reviewsList={reviewsList}
-        filteredReviews={filteredReviews}
-        reviewFilter={reviewFilter}
-        setReviewFilter={setReviewFilter}
       />
 
       {/* Related Products Grid */}
