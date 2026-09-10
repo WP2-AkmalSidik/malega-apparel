@@ -295,7 +295,12 @@ export function useAccount() {
   const getProgressStep = () => {
     if (!trackingOrder) return 1;
     const s = trackingOrder.shipment?.status?.toLowerCase() || '';
-    if (trackingOrder.fulfillmentStatus?.code === 'delivered' || s === 'delivered') return 5;
+    if (
+      trackingOrder.fulfillmentStatus?.code === 'delivered' ||
+      s === 'delivered' ||
+      trackingOrder.orderStatus?.code === 'completed'
+    )
+      return 5;
     if (['in_transit', 'dropping_off', 'shipped'].includes(s)) return 4;
     if (
       ['picking_up', 'picked', 'allocated', 'confirmed'].includes(s) ||
