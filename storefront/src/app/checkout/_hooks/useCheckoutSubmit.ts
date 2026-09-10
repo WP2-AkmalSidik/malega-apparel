@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CartItem, ShippingOption, PaymentMethod, Voucher } from '../../../types';
+import { CartItem, ShippingOption, PaymentMethod, Voucher, CustomerProfile } from '../../../types';
 
 interface UseCheckoutSubmitOptions {
   checkoutItems: CartItem[];
@@ -17,6 +17,9 @@ interface UseCheckoutSubmitOptions {
   grandTotal: number;
   buyerNote: string;
   createOrder: () => void;
+  customer?: CustomerProfile | null;
+  token?: string | null;
+  isAuthenticated?: boolean;
 }
 
 export function useCheckoutSubmit({
@@ -32,6 +35,9 @@ export function useCheckoutSubmit({
   grandTotal,
   buyerNote,
   createOrder,
+  customer,
+  token,
+  isAuthenticated,
 }: UseCheckoutSubmitOptions) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -58,15 +64,30 @@ export function useCheckoutSubmit({
 
       const appliedVoucherCode = appliedVouchers.length > 0 ? appliedVouchers[0].code : null;
 
+      const customerEmail =
+        customer?.email ||
+        selectedAddress.email ||
+        'pelanggan@malega.my.id';
+
+      const customerName =
+        selectedAddress.name ||
+        customer?.name ||
+        'Pelanggan Malega';
+
+      const customerPhone =
+        selectedAddress.phone ||
+        customer?.phone ||
+        '081234567890';
+
       const payload = {
         customer: {
-          name: selectedAddress.name || 'Pelanggan Malega',
-          email: 'pelanggan@malega.my.id',
-          phone: selectedAddress.phone || '081234567890',
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
         },
         shipping_address: {
-          recipient_name: selectedAddress.name || 'Pelanggan Malega',
-          phone: selectedAddress.phone || '081234567890',
+          recipient_name: customerName,
+          phone: customerPhone,
           address_line1: selectedAddress.street || 'Jl. Malega No. 1',
           address_line2: selectedAddress.district || '',
           city: selectedAddress.city || 'Jakarta Selatan',
@@ -89,6 +110,7 @@ export function useCheckoutSubmit({
         service_fee: serviceFee,
         discount_total: productDiscount + shippingDiscount,
         notes: buyerNote || 'Pesanan dari Storefront Malega',
+        ...(customer?.id ? { authenticated_customer_id: customer.id } : {}),
       };
 
       const res = await fetch(`${apiUrl}/orders/checkout`, {
@@ -96,6 +118,7 @@ export function useCheckoutSubmit({
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
       });

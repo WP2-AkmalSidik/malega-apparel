@@ -148,6 +148,28 @@ class CustomerAuthController extends Controller
             ], 401);
         }
 
+        // Auto-link any unassociated orders matching this customer's email or phone
+        if ($customer->email) {
+            Order::where(function ($q) use ($customer) {
+                $q->whereHas('customer', fn ($c) => $c->where('email', $customer->email))
+                  ->orWhereHas('address', fn ($a) => $a->where('phone', $customer->phone));
+            })
+            ->where('customer_id', '!=', $customer->id)
+            ->update(['customer_id' => $customer->id]);
+        }
+
+        // Dynamic accurate calculations
+        $paidOrders = $customer->orders()->whereIn('payment_status', ['paid', 'completed'])->get();
+        $realSpend = (int) $paidOrders->sum('grand_total');
+        $realCount = $customer->orders()->count();
+
+        if ($customer->total_spend_amount !== $realSpend || $customer->total_orders_count !== $realCount) {
+            $customer->total_spend_amount = $realSpend;
+            $customer->total_orders_count = $realCount;
+            $customer->updateMembershipTier();
+            $customer->saveQuietly();
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -245,6 +267,16 @@ class CustomerAuthController extends Controller
                 'success' => false,
                 'message' => 'Sesi tidak valid.',
             ], 401);
+        }
+
+        // Auto-link any unassociated orders matching this customer's email or phone
+        if ($customer->email) {
+            Order::where(function ($q) use ($customer) {
+                $q->whereHas('customer', fn ($c) => $c->where('email', $customer->email))
+                  ->orWhereHas('address', fn ($a) => $a->where('phone', $customer->phone));
+            })
+            ->where('customer_id', '!=', $customer->id)
+            ->update(['customer_id' => $customer->id]);
         }
 
         $orders = $customer->orders()

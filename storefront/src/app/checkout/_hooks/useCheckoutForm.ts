@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Address } from '../../../types';
+import { Address, CustomerProfile } from '../../../types';
 
 interface UseCheckoutFormOptions {
   selectedAddress: Address;
@@ -12,6 +12,7 @@ interface UseCheckoutFormOptions {
     phone?: string
   ) => Promise<{ success: boolean; message: string; discount?: number }>;
   toggleVoucher: (code: string) => void;
+  customer?: CustomerProfile | null;
 }
 
 export function useCheckoutForm({
@@ -19,6 +20,7 @@ export function useCheckoutForm({
   setSelectedAddress,
   applyVoucherCodeAsync,
   toggleVoucher,
+  customer,
 }: UseCheckoutFormOptions) {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressForm, setAddressForm] = useState(selectedAddress);
@@ -28,6 +30,9 @@ export function useCheckoutForm({
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [buyerNoteLocal, setBuyerNoteLocal] = useState('');
+
+  const targetEmail = customer?.email || 'pelanggan@malega.my.id';
+  const targetPhone = customer?.phone || selectedAddress.phone || '081234567890';
 
   const handleSaveAddress = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,9 +48,7 @@ export function useCheckoutForm({
 
     setIsValidatingPromo(true);
     try {
-      const guestEmail = 'pelanggan@malega.my.id';
-      const guestPhone = selectedAddress.phone || '081234567890';
-      const res = await applyVoucherCodeAsync(voucherInput.trim(), guestEmail, guestPhone);
+      const res = await applyVoucherCodeAsync(voucherInput.trim(), targetEmail, targetPhone);
       if (res.success) {
         setVoucherSuccess(res.message);
         setVoucherInput('');
@@ -65,9 +68,7 @@ export function useCheckoutForm({
     setVoucherSuccess('');
     setIsValidatingPromo(true);
     try {
-      const guestEmail = 'pelanggan@malega.my.id';
-      const guestPhone = selectedAddress.phone || '081234567890';
-      const res = await applyVoucherCodeAsync(code, guestEmail, guestPhone);
+      const res = await applyVoucherCodeAsync(code, targetEmail, targetPhone);
       if (res.success) {
         setVoucherSuccess(res.message);
       } else {

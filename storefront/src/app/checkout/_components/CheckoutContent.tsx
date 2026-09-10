@@ -23,6 +23,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useCart } from '../../../context/CartContext';
+import { useAuth } from '../../../context/AuthContext';
 import { formatRupiah } from '../../../lib/utils';
 import PaymentLogo from '../../../components/PaymentLogo';
 import { useShippingRates } from '../_hooks/useShippingRates';
@@ -32,6 +33,8 @@ import { useCheckoutSubmit } from '../_hooks/useCheckoutSubmit';
 import { VoucherModal } from './VoucherModal';
 
 export default function CheckoutContent() {
+  const { customer, token, isAuthenticated } = useAuth();
+
   const {
     cart,
     checkoutItems,
@@ -60,6 +63,31 @@ export default function CheckoutContent() {
     createOrder,
     clearCart,
   } = useCart();
+
+  // Auto-prefill customer address and name if logged in
+  React.useEffect(() => {
+    if (customer && (selectedAddress.name === 'Budi Santoso' || !selectedAddress.name)) {
+      if (customer.saved_addresses && customer.saved_addresses.length > 0) {
+        const defaultAddr = customer.saved_addresses.find((a) => a.isDefault) || customer.saved_addresses[0];
+        setSelectedAddress({
+          name: defaultAddr.name || customer.name,
+          phone: defaultAddr.phone || customer.phone,
+          street: defaultAddr.street || '',
+          district: defaultAddr.district || '',
+          city: defaultAddr.city || '',
+          province: defaultAddr.province || '',
+          postalCode: defaultAddr.postalCode || '',
+          isDefault: true,
+        });
+      } else {
+        setSelectedAddress({
+          ...selectedAddress,
+          name: customer.name || selectedAddress.name,
+          phone: customer.phone || selectedAddress.phone,
+        });
+      }
+    }
+  }, [customer, setSelectedAddress, selectedAddress]);
 
   // Hooks
   const { couriersList, isLoadingRates } = useShippingRates({
@@ -96,6 +124,7 @@ export default function CheckoutContent() {
     setSelectedAddress,
     applyVoucherCodeAsync,
     toggleVoucher,
+    customer,
   });
 
   const {
@@ -118,6 +147,9 @@ export default function CheckoutContent() {
     grandTotal,
     buyerNote,
     createOrder,
+    customer,
+    token,
+    isAuthenticated,
   });
 
   // Empty cart state

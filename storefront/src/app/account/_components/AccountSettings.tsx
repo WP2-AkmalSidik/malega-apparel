@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Bell, Check, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { CustomerProfile } from '../../../types';
+import LuxuryToast from '../../../components/LuxuryToast';
 
 interface AccountSettingsProps {
   customer: CustomerProfile | null;
@@ -15,6 +16,7 @@ export default function AccountSettings({ customer, updateProfile }: AccountSett
   const [marketingOptIn, setMarketingOptIn] = useState(customer?.marketing_opt_in ?? true);
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [toast, setToast] = useState<{ title: string; subtitle?: string } | null>(null);
 
   // Sync state if customer props update
   useEffect(() => {
@@ -42,12 +44,22 @@ export default function AccountSettings({ customer, updateProfile }: AccountSett
           type: 'success',
           text: 'Profil dan preferensi berhasil disimpan.',
         });
+        setToast({
+          title: 'Pengaturan Berhasil Disimpan',
+          subtitle: 'Data profil dan preferensi akun Anda telah diperbarui.',
+        });
         setTimeout(() => setStatusMessage(null), 4000);
+        setTimeout(() => setToast(null), 3500);
       } else {
         setStatusMessage({
           type: 'error',
           text: 'Gagal memperbarui profil. Silakan coba kembali.',
         });
+        setToast({
+          title: 'Gagal Menyimpan',
+          subtitle: 'Silakan periksa kembali data Anda atau coba beberapa saat lagi.',
+        });
+        setTimeout(() => setToast(null), 3500);
       }
     } catch (err) {
       setStatusMessage({
@@ -209,6 +221,9 @@ export default function AccountSettings({ customer, updateProfile }: AccountSett
           </button>
         </div>
       </form>
+
+      {/* Toast Notification */}
+      <LuxuryToast toast={toast} />
     </div>
   );
 }
