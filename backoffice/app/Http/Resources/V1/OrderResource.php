@@ -19,7 +19,19 @@ class OrderResource extends JsonResource
     public function toArray(Request $request): array
     {
         $isPublicTrack = $request->routeIs('api.v1.orders.track');
-        $isOwnerOrAdmin = auth('sanctum')->check() || auth('web')->check();
+        $authHeader = $request->header('Authorization');
+        $bearerToken = ($authHeader && str_starts_with($authHeader, 'Bearer ')) ? trim(substr($authHeader, 7)) : null;
+        $isCustomerOwner = false;
+
+        if ($this->customer_id) {
+            if ($bearerToken && $this->customer && $this->customer->remember_token === $bearerToken) {
+                $isCustomerOwner = true;
+            } elseif (auth('customer')->check() && auth('customer')->id() === $this->customer_id) {
+                $isCustomerOwner = true;
+            }
+        }
+
+        $isOwnerOrAdmin = auth('sanctum')->check() || auth('web')->check() || $isCustomerOwner;
         $shouldMask = $isPublicTrack && ! $isOwnerOrAdmin;
 
         $maskPhone = function (?string $phone) use ($shouldMask) {

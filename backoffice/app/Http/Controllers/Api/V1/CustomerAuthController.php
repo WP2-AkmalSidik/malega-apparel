@@ -248,7 +248,8 @@ class CustomerAuthController extends Controller
         }
 
         $orders = $customer->orders()
-            ->with(['items', 'payment', 'shipment'])
+            ->with(['items', 'payment', 'shipment', 'address'])
+            ->latest()
             ->get();
         $reviewedProductIds = \App\Models\ProductReview::where('customer_id', $customer->id)
             ->pluck('product_id')
@@ -278,12 +279,31 @@ class CustomerAuthController extends Controller
                     ]),
                     'shipping' => $order->shipment ? [
                         'courier' => $order->shipment->courier_company ?: $order->shipment->courier_service_name ?: 'Kurir Rekanan',
+                        'service' => $order->shipment->courier_service_name,
                         'waybill' => $order->shipment->waybill_id ?: '-',
-                        'tracking_url' => url('/track?order='.$order->order_number),
+                        'status' => $order->shipment->status,
+                        'status_label' => $order->shipment->status_label,
+                        'tracking_url' => $order->shipment->tracking_url ?: url('/track?order='.$order->order_number),
+                        'tracking_history' => $order->shipment->tracking_history,
+                    ] : null,
+                    'address' => $order->address ? [
+                        'recipient_name' => $order->address->recipient_name,
+                        'phone' => $order->address->phone,
+                        'address_line1' => $order->address->address_line1,
+                        'address_line2' => $order->address->address_line2,
+                        'city' => $order->address->city,
+                        'province' => $order->address->province,
+                        'postal_code' => $order->address->postal_code,
+                        'courier_name' => $order->address->courier_name,
+                        'tracking_number' => $order->address->tracking_number,
                     ] : null,
                     'payment' => $order->payment ? [
                         'method' => $order->payment->payment_method,
+                        'method_name' => $order->payment->payment_method_name,
                         'status' => $order->payment->status,
+                        'payment_url' => $order->payment->payment_url,
+                        'reference' => $order->payment->reference,
+                        'paid_at' => $order->payment->paid_at?->format('d M Y, H:i'),
                     ] : null,
                 ];
             }),

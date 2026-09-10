@@ -290,12 +290,31 @@ export interface CustomerPastOrder {
   }>;
   shipping?: {
     courier: string;
+    service?: string;
     waybill: string;
+    status?: string;
+    status_label?: string;
     tracking_url: string;
+    tracking_history?: Array<{ status: string; note: string; updated_at?: string }>;
+  } | null;
+  address?: {
+    recipient_name: string;
+    phone: string;
+    address_line1: string;
+    address_line2?: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    courier_name?: string;
+    tracking_number?: string;
   } | null;
   payment?: {
     method: string;
+    method_name?: string;
     status: string;
+    payment_url?: string;
+    reference?: string;
+    paid_at?: string;
   } | null;
 }
 

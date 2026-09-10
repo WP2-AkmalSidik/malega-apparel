@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Package, MapPin, Settings } from 'lucide-react';
+import { Package, Truck, MapPin, Settings } from 'lucide-react';
 import { useAccount } from '../_hooks/useAccount';
 import AuthGateway from './AuthGateway';
 import MemberHeader from './MemberHeader';
 import OrderHistory from './OrderHistory';
+import AccountTracking from './AccountTracking';
 import AddressBook from './AddressBook';
 import AccountSettings from './AccountSettings';
 
@@ -19,6 +20,27 @@ export default function AccountContent() {
     setActiveTab,
     orders,
     isLoadingOrders,
+
+    // Tracking Dashboard
+    selectedTrackingOrderNumber,
+    trackingOrder,
+    isLoadingTracking,
+    trackingError,
+    activeTrackingSubTab,
+    setActiveTrackingSubTab,
+    copiedKey,
+    isGeneratingInvoice,
+    toast,
+    progressStep,
+    milestones,
+    courierCompany,
+    waText,
+    copyToClipboard,
+    handleCreatePaymentInvoice,
+    fetchTrackingDetail,
+    selectOrderForTracking,
+
+    // Address Book
     showAddressModal,
     setShowAddressModal,
     addrName,
@@ -42,6 +64,11 @@ export default function AccountContent() {
     return <AuthGateway />;
   }
 
+  // Check if any order is actively in progress/shipping
+  const activeShipmentCount = orders.filter((o) =>
+    ['pending', 'paid', 'processing', 'shipped'].includes(o.status)
+  ).length;
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 pb-16 sm:pb-12">
       {/* 1. Member Profile Header Card */}
@@ -51,8 +78,8 @@ export default function AccountContent() {
         onEditProfile={() => setActiveTab('settings')}
       />
 
-      {/* 2. Navigation Tabs (3 Balanced Pillars: Pesanan, Alamat, Pengaturan) */}
-      <div className="grid grid-cols-3 rounded-2xl bg-[#0E1736] p-1.5 border border-white/10 gap-1.5 shadow-lg">
+      {/* 2. Navigation Tabs (4 Balanced Pillars: Pesanan, Lacak Pengiriman, Alamat, Pengaturan) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 rounded-2xl bg-[#0E1736] p-1.5 border border-white/10 gap-1.5 shadow-lg">
         <button
           type="button"
           onClick={() => setActiveTab('orders')}
@@ -64,6 +91,32 @@ export default function AccountContent() {
         >
           <Package className="w-4 h-4 shrink-0" />
           <span className="truncate">Pesanan ({orders.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('tracking');
+            if (!selectedTrackingOrderNumber && orders.length > 0) {
+              selectOrderForTracking(orders[0].order_number);
+            }
+          }}
+          className={`py-2.5 px-2 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer relative ${
+            activeTab === 'tracking'
+              ? 'bg-[#CBAC70] text-[#0B132B] shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Truck className="w-4 h-4 shrink-0" />
+          <span className="truncate">Lacak Pengiriman</span>
+          {activeShipmentCount > 0 && (
+            <span
+              className={`w-2 h-2 rounded-full ${
+                activeTab === 'tracking' ? 'bg-[#0B132B]' : 'bg-emerald-400 animate-ping'
+              }`}
+              title={`${activeShipmentCount} pesanan aktif`}
+            />
+          )}
         </button>
 
         <button
@@ -96,7 +149,34 @@ export default function AccountContent() {
       {/* Tab Panels */}
       <div className="space-y-4">
         {activeTab === 'orders' && (
-          <OrderHistory orders={orders} isLoadingOrders={isLoadingOrders} />
+          <OrderHistory
+            orders={orders}
+            isLoadingOrders={isLoadingOrders}
+            onTrackOrder={selectOrderForTracking}
+          />
+        )}
+
+        {activeTab === 'tracking' && (
+          <AccountTracking
+            orders={orders}
+            selectedTrackingOrderNumber={selectedTrackingOrderNumber}
+            onSelectOrder={selectOrderForTracking}
+            trackingOrder={trackingOrder}
+            isLoadingTracking={isLoadingTracking}
+            trackingError={trackingError}
+            activeSubTab={activeTrackingSubTab}
+            setActiveSubTab={setActiveTrackingSubTab}
+            copiedKey={copiedKey}
+            isGeneratingInvoice={isGeneratingInvoice}
+            toast={toast}
+            progressStep={progressStep}
+            milestones={milestones}
+            courierCompany={courierCompany}
+            waText={waText}
+            onCopy={copyToClipboard}
+            onPayNow={handleCreatePaymentInvoice}
+            onRefresh={fetchTrackingDetail}
+          />
         )}
 
         {activeTab === 'addresses' && (
@@ -129,3 +209,4 @@ export default function AccountContent() {
     </div>
   );
 }
+

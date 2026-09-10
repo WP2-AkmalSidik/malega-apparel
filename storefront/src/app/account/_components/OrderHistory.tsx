@@ -10,9 +10,14 @@ import SubmitReviewModal from './SubmitReviewModal';
 interface OrderHistoryProps {
   orders: CustomerPastOrder[];
   isLoadingOrders: boolean;
+  onTrackOrder?: (orderNumber: string) => void;
 }
 
-export default function OrderHistory({ orders: initialOrders, isLoadingOrders }: OrderHistoryProps) {
+export default function OrderHistory({
+  orders: initialOrders,
+  isLoadingOrders,
+  onTrackOrder,
+}: OrderHistoryProps) {
   const { token } = useAuth();
   const [orders, setOrders] = useState<CustomerPastOrder[]>(initialOrders);
   const [selectedReviewItem, setSelectedReviewItem] = useState<{
@@ -107,13 +112,24 @@ export default function OrderHistory({ orders: initialOrders, isLoadingOrders }:
                     {order.status_label || order.status.toUpperCase()}
                   </span>
 
-                  <Link
-                    href={`/track?order=${order.order_number}`}
-                    className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 transition flex items-center gap-1"
-                  >
-                    <Truck className="w-3.5 h-3.5 text-[#CBAC70]" />
-                    <span>Lacak Pengiriman</span>
-                  </Link>
+                  {onTrackOrder ? (
+                    <button
+                      type="button"
+                      onClick={() => onTrackOrder(order.order_number)}
+                      className="px-3 py-1 rounded-xl bg-[#CBAC70]/10 hover:bg-[#CBAC70] text-[#CBAC70] hover:text-[#0B132B] border border-[#CBAC70]/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm"
+                    >
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>Lacak Paket</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/track?order=${order.order_number}`}
+                      className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 transition flex items-center gap-1"
+                    >
+                      <Truck className="w-3.5 h-3.5 text-[#CBAC70]" />
+                      <span>Lacak Pengiriman</span>
+                    </Link>
+                  )}
                 </div>
               </div>
 

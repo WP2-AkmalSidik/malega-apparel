@@ -76,7 +76,7 @@ class OrderController extends Controller
         $term = trim($orderNumber);
 
         // 1. Search by canonical order number
-        $order = Order::with(['customer', 'items', 'address', 'shipment'])
+        $order = Order::with(['customer', 'items', 'address', 'shipment', 'payment'])
             ->where('order_number', $term)
             ->first();
 
@@ -84,13 +84,13 @@ class OrderController extends Controller
         if (! $order) {
             $shipment = \App\Models\Shipment::where('waybill_id', $term)->first();
             if ($shipment) {
-                $order = $shipment->order()->with(['customer', 'items', 'address', 'shipment'])->first();
+                $order = $shipment->order()->with(['customer', 'items', 'address', 'shipment', 'payment'])->first();
             }
         }
 
         // 3. Search by address tracking_number
         if (! $order) {
-            $order = Order::with(['customer', 'items', 'address', 'shipment'])
+            $order = Order::with(['customer', 'items', 'address', 'shipment', 'payment'])
                 ->whereHas('address', fn ($a) => $a->where('tracking_number', $term))
                 ->first();
         }
@@ -106,7 +106,7 @@ class OrderController extends Controller
         if ($order->shipment) {
             $syncAction->execute($order);
             $order->refresh();
-            $order->load(['customer', 'items', 'address', 'shipment']);
+            $order->load(['customer', 'items', 'address', 'shipment', 'payment']);
         }
 
         return response()->json([
