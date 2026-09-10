@@ -53,31 +53,24 @@ class ProductReviewController extends Controller
         $hasReviewed = false;
         $eligibleOrderId = null;
 
-        $authHeader = $request->header('Authorization');
-        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-            $customer = Customer::where('remember_token', $token)->first();
+        $customer = $this->resolveCustomer($request);
+        if ($customer && $customer->is_active) {
+            $hasReviewed = ProductReview::where('product_id', $product->id)
+                ->where('customer_id', $customer->id)
+                ->exists();
 
-            if ($customer) {
-                $hasReviewed = ProductReview::where('product_id', $product->id)
-                    ->where('customer_id', $customer->id)
-                    ->exists();
+            $orderItem = OrderItem::where('product_id', $product->id)
+                ->whereHas('order', function ($q) use ($customer) {
+                    $q->where('customer_id', $customer->id)
+                        ->where('payment_status', 'paid')
+                        ->whereNotIn('order_status', ['cancelled']);
+                })
+                ->latest()
+                ->first();
 
-                $orderItem = OrderItem::where('product_id', $product->id)
-                    ->whereHas('order', function ($q) use ($customer) {
-                        $q->where('customer_id', $customer->id)
-                            ->where(function ($sub) {
-                                $sub->where('payment_status', 'paid')
-                                    ->orWhereIn('order_status', ['completed', 'processing']);
-                            });
-                    })
-                    ->latest()
-                    ->first();
-
-                if ($orderItem && ! $hasReviewed) {
-                    $canReview = true;
-                    $eligibleOrderId = $orderItem->order_id;
-                }
+            if ($orderItem && ! $hasReviewed) {
+                $canReview = true;
+                $eligibleOrderId = $orderItem->order_id;
             }
         }
 
@@ -128,6 +121,24 @@ class ProductReviewController extends Controller
     }
 
     /**
+     * Helper to resolve customer from Bearer token.
+     */
+    protected function resolveCustomer(Request $request): ?Customer
+    {
+        $authHeader = $request->header('Authorization');
+        if (! $authHeader || ! str_starts_with($authHeader, 'Bearer ')) {
+            return null;
+        }
+
+        $token = trim(substr($authHeader, 7));
+        if (empty($token)) {
+            return null;
+        }
+
+        return Customer::where('remember_token', $token)->first();
+    }
+
+    /**
      * Store a new product review (Verified Buyer Only).
      */
     public function store(Request $request, string $productId): JsonResponse
@@ -136,7 +147,7 @@ class ProductReviewController extends Controller
             ->orWhere('slug', $productId)
             ->firstOrFail();
 
-        // 1. Must be authenticated member
+        // 1. Must be authenticated active member
         $authHeader = $request->header('Authorization');
         if (! $authHeader || ! str_starts_with($authHeader, 'Bearer ')) {
             return response()->json([
@@ -145,8 +156,7 @@ class ProductReviewController extends Controller
             ], 401);
         }
 
-        $token = substr($authHeader, 7);
-        $customer = Customer::where('remember_token', $token)->first();
+        $customer = $this->resolveCustomer($request);
 
         if (! $customer) {
             return response()->json([
@@ -155,14 +165,19 @@ class ProductReviewController extends Controller
             ], 401);
         }
 
-        // 2. Strict Verified Buyer check
+        if (! $customer->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun dinonaktifkan. Silakan hubungi Customer Service.',
+            ], 403);
+        }
+
+        // 2. Strict Verified Buyer check (Must be paid and not cancelled)
         $orderItem = OrderItem::where('product_id', $product->id)
             ->whereHas('order', function ($q) use ($customer) {
                 $q->where('customer_id', $customer->id)
-                    ->where(function ($sub) {
-                        $sub->where('payment_status', 'paid')
-                            ->orWhereIn('order_status', ['completed', 'processing']);
-                    });
+                    ->where('payment_status', 'paid')
+                    ->whereNotIn('order_status', ['cancelled']);
             })
             ->latest()
             ->first();
@@ -186,23 +201,25 @@ class ProductReviewController extends Controller
             ], 422);
         }
 
-        // 4. Validate review content
+        // 4. Validate review content (order_id is strictly server-authoritative from verified orderItem)
         $validated = $request->validate([
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
             'headline' => ['nullable', 'string', 'max:150'],
             'review' => ['required', 'string', 'min:5', 'max:1000'],
             'fit_rating' => ['nullable', 'string', 'in:true_to_size,runs_small,runs_large'],
-            'order_id' => ['nullable', 'integer', 'exists:orders,id'],
         ]);
+
+        $headline = ! empty($validated['headline']) ? strip_tags(trim($validated['headline'])) : null;
+        $reviewText = strip_tags(trim($validated['review']));
 
         $review = ProductReview::create([
             'product_id' => $product->id,
             'customer_id' => $customer->id,
-            'order_id' => $validated['order_id'] ?? $orderItem->order_id,
+            'order_id' => $orderItem->order_id,
             'order_item_id' => $orderItem->id,
             'rating' => (int) $validated['rating'],
-            'headline' => $validated['headline'] ?? null,
-            'review' => trim($validated['review']),
+            'headline' => $headline,
+            'review' => $reviewText,
             'fit_rating' => $validated['fit_rating'] ?? 'true_to_size',
             'is_verified_purchase' => true,
             'status' => 'approved',
@@ -230,22 +247,20 @@ class ProductReviewController extends Controller
      */
     public function customerReviews(Request $request): JsonResponse
     {
-        $authHeader = $request->header('Authorization');
-        if (! $authHeader || ! str_starts_with($authHeader, 'Bearer ')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
-        }
-
-        $token = substr($authHeader, 7);
-        $customer = Customer::where('remember_token', $token)->first();
+        $customer = $this->resolveCustomer($request);
 
         if (! $customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
             ], 401);
+        }
+
+        if (! $customer->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun dinonaktifkan.',
+            ], 403);
         }
 
         $reviews = ProductReview::where('customer_id', $customer->id)

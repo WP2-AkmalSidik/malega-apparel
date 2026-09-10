@@ -57,14 +57,25 @@ class CreateOrderAction
         }
 
         return DB::transaction(function () use ($data) {
-            // 1. Find or create customer
-            $customer = Customer::firstOrCreate(
-                ['email' => trim(strtolower($data['customer']['email']))],
-                [
-                    'name' => $data['customer']['name'],
-                    'phone' => $data['customer']['phone'],
-                ]
-            );
+            // 1. Resolve customer: use authenticated customer if provided, otherwise find or create
+            $authenticatedCustomerId = $data['authenticated_customer_id'] ?? null;
+            $customer = null;
+
+            if ($authenticatedCustomerId) {
+                $customer = Customer::where('id', $authenticatedCustomerId)
+                    ->where('is_active', true)
+                    ->first();
+            }
+
+            if (! $customer) {
+                $customer = Customer::firstOrCreate(
+                    ['email' => trim(strtolower($data['customer']['email']))],
+                    [
+                        'name' => $data['customer']['name'],
+                        'phone' => $data['customer']['phone'],
+                    ]
+                );
+            }
 
             // 2. Generate canonical Order Number (MLG-YYYYMMDD-XXXX)
             $datePrefix = date('Ymd');

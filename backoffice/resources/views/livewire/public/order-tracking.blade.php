@@ -385,15 +385,22 @@
                     <div class="space-y-6">
                         <!-- Delivery Destination Address -->
                         <div class="p-5 rounded-3xl bg-[#0B132B] border border-slate-800 space-y-3">
-                            <p class="text-xs font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Tujuan Pengiriman</p>
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs font-mono text-[#CBAC70] uppercase font-bold tracking-wider">Tujuan Pengiriman</p>
+                                @if(! $this->isAuthorizedViewer)
+                                    <span class="text-[10px] font-mono text-slate-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                        Data Disamarkan
+                                    </span>
+                                @endif
+                            </div>
                             <div class="text-xs space-y-1">
-                                <p class="text-slate-100 font-bold text-sm">{{ $order->address?->recipient_name }}</p>
-                                <p class="text-slate-400 font-mono">{{ $order->address?->phone }}</p>
-                                <p class="text-slate-300 pt-1 leading-relaxed">{{ $order->address?->address_line1 }}</p>
-                                @if($order->address?->address_line2)
+                                <p class="text-slate-100 font-bold text-sm">{{ $this->maskedRecipientName }}</p>
+                                <p class="text-slate-400 font-mono">{{ $this->maskedPhone }}</p>
+                                <p class="text-slate-300 pt-1 leading-relaxed">{{ $this->maskedAddressLine }}</p>
+                                @if($order->address?->address_line2 && $this->isAuthorizedViewer)
                                     <p class="text-slate-400">{{ $order->address?->address_line2 }}</p>
                                 @endif
-                                <p class="text-slate-400">{{ $order->address?->city }}, {{ $order->address?->province }} {{ $order->address?->postal_code }}</p>
+                                <p class="text-slate-400">{{ $order->address?->city }}, {{ $order->address?->province }} {{ $this->maskedPostalCode }}</p>
                             </div>
                         </div>
 

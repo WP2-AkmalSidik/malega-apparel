@@ -26,7 +26,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/products/{id}/reviews', [\App\Http\Controllers\Api\V1\ProductReviewController::class, 'index'])->name('products.reviews.index');
-    Route::post('/products/{id}/reviews', [\App\Http\Controllers\Api\V1\ProductReviewController::class, 'store'])->name('products.reviews.store');
+    Route::post('/products/{id}/reviews', [\App\Http\Controllers\Api\V1\ProductReviewController::class, 'store'])->name('products.reviews.store')->middleware('throttle:15,1');
 
     // 2. Order & Checkout Endpoints
     Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout')->middleware('throttle:15,1');
@@ -38,8 +38,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('/payments/status/{order_number}', [\App\Http\Controllers\Api\V1\PaymentController::class, 'status'])->name('payments.status')->middleware('throttle:60,1');
 
     // 4. Customer Authentication & Account Endpoints
-    Route::post('/customers/register', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'register'])->name('customers.register');
-    Route::post('/customers/login', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'login'])->name('customers.login');
+    Route::post('/customers/register', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'register'])->name('customers.register')->middleware('throttle:10,1');
+    Route::post('/customers/login', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'login'])->name('customers.login')->middleware('throttle:10,1');
     Route::post('/customers/google', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'google'])->name('customers.google')->middleware('throttle:15,1');
     Route::post('/customers/logout', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'logout'])->name('customers.logout');
     Route::get('/customers/me', [\App\Http\Controllers\Api\V1\CustomerAuthController::class, 'me'])->name('customers.me');
@@ -54,7 +54,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('/webhooks/duitku', [\App\Http\Controllers\Api\V1\DuitkuWebhookController::class, 'handle'])->name('webhooks.duitku');
 
     // 6. Marketing & Promotion Endpoints (Vouchers & Membership Tiers)
-    Route::post('/vouchers/validate', [\App\Http\Controllers\Api\V1\VoucherController::class, 'validateCode'])->name('vouchers.validate');
+    Route::post('/vouchers/validate', [\App\Http\Controllers\Api\V1\VoucherController::class, 'validateCode'])->name('vouchers.validate')->middleware('throttle:30,1');
     Route::get('/vouchers/public', [\App\Http\Controllers\Api\V1\VoucherController::class, 'publicList'])->name('vouchers.public');
     Route::get('/membership-tiers', [\App\Http\Controllers\Api\V1\MembershipTierController::class, 'index'])->name('membership-tiers.index');
 });

@@ -536,6 +536,317 @@ class SecuritySourceToSinkTest extends TestCase
         $this->assertEquals('confirmed', $shipment->fresh()->status);
         $this->assertNotEquals(\App\Enums\OrderStatus::Completed, $order->fresh()->order_status);
     }
+
+    /**
+     * SEC-NEW-01: Inactive or suspended customer cannot submit or access reviews.
+     */
+    public function test_inactive_or_banned_customer_cannot_post_review_or_fetch_reviews(): void
+    {
+        $bannedCustomer = Customer::create([
+            'name' => 'Banned User',
+            'email' => 'banned@test.com',
+            'phone' => '081299990001',
+            'password' => 'secret123',
+            'is_active' => false,
+            'remember_token' => 'mlg_cust_banned_token_123',
+        ]);
+
+        $order = Order::create([
+            'order_number' => 'MLG-20260910-999001',
+            'customer_id' => $bannedCustomer->id,
+            'source' => 'storefront',
+            'order_status' => \App\Enums\OrderStatus::Processing,
+            'payment_status' => \App\Enums\PaymentStatus::Paid,
+            'subtotal' => 399000,
+            'grand_total' => 414000,
+        ]);
+
+        \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $this->product->id,
+            'variant_id' => $this->variant->id,
+            'product_name' => 'Test Product',
+            'variant_title' => 'Default',
+            'sku' => 'SKU-001',
+            'unit_price' => 399000,
+            'quantity' => 1,
+            'subtotal' => 399000,
+        ]);
+
+        $response = $this->withHeader('Authorization', 'Bearer mlg_cust_banned_token_123')
+            ->postJson(route('api.v1.products.reviews.store', $this->product->id), [
+                'rating' => 5,
+                'headline' => 'Banned user attempt',
+                'review' => 'This review should be rejected by 403.',
+            ]);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('product_reviews', [
+            'customer_id' => $bannedCustomer->id,
+        ]);
+
+        $reviewsResponse = $this->withHeader('Authorization', 'Bearer mlg_cust_banned_token_123')
+            ->getJson(route('api.v1.customers.reviews'));
+
+        $reviewsResponse->assertStatus(403);
+    }
+
+    /**
+     * SEC-NEW-02: Review submission enforces server-authoritative order_id and prevents IDOR spoofing.
+     */
+    public function test_review_store_enforces_server_authoritative_order_id_preventing_spoofing(): void
+    {
+        $legitCustomer = Customer::create([
+            'name' => 'Legit Buyer',
+            'email' => 'legit@test.com',
+            'phone' => '081299990002',
+            'password' => 'secret123',
+            'is_active' => true,
+            'remember_token' => 'mlg_cust_legit_token_123',
+        ]);
+
+        $victimCustomer = Customer::create([
+            'name' => 'Victim User',
+            'email' => 'victim@test.com',
+            'phone' => '081299990003',
+            'password' => 'secret123',
+            'is_active' => true,
+        ]);
+
+        $victimOrder = Order::create([
+            'order_number' => 'MLG-20260910-VICTIM',
+            'customer_id' => $victimCustomer->id,
+            'source' => 'storefront',
+            'order_status' => \App\Enums\OrderStatus::Completed,
+            'payment_status' => \App\Enums\PaymentStatus::Paid,
+            'subtotal' => 500000,
+            'grand_total' => 500000,
+        ]);
+
+        $legitOrder = Order::create([
+            'order_number' => 'MLG-20260910-LEGIT',
+            'customer_id' => $legitCustomer->id,
+            'source' => 'storefront',
+            'order_status' => \App\Enums\OrderStatus::Completed,
+            'payment_status' => \App\Enums\PaymentStatus::Paid,
+            'subtotal' => 399000,
+            'grand_total' => 399000,
+        ]);
+
+        \App\Models\OrderItem::create([
+            'order_id' => $legitOrder->id,
+            'product_id' => $this->product->id,
+            'variant_id' => $this->variant->id,
+            'product_name' => 'Test Product',
+            'variant_title' => 'Default',
+            'sku' => 'SKU-002',
+            'unit_price' => 399000,
+            'quantity' => 1,
+            'subtotal' => 399000,
+        ]);
+
+        // Attacker attempts to pass victim's order_id in payload
+        $response = $this->withHeader('Authorization', 'Bearer mlg_cust_legit_token_123')
+            ->postJson(route('api.v1.products.reviews.store', $this->product->id), [
+                'rating' => 5,
+                'headline' => 'Testing Spoofing',
+                'review' => 'Review content <script>alert(1)</script>',
+                'order_id' => $victimOrder->id,
+            ]);
+
+        $response->assertStatus(201);
+
+        // Verify the saved review is bound to legitOrder->id, NEVER victimOrder->id!
+        $this->assertDatabaseHas('product_reviews', [
+            'customer_id' => $legitCustomer->id,
+            'order_id' => $legitOrder->id,
+        ]);
+        $this->assertDatabaseMissing('product_reviews', [
+            'customer_id' => $legitCustomer->id,
+            'order_id' => $victimOrder->id,
+        ]);
+
+        // Also verify XSS strip_tags
+        $savedReview = \App\Models\ProductReview::where('customer_id', $legitCustomer->id)->first();
+        $this->assertStringNotContainsString('<script>', $savedReview->review);
+    }
+
+    /**
+     * SEC-NEW-03: Tier voucher rejects non-existent or inactive customer and CreateOrderAction binds usage to authenticated customer.
+     */
+    public function test_tier_voucher_and_checkout_usage_quota_integrity(): void
+    {
+        $vipVoucher = Voucher::create([
+            'code' => 'VIPONLY50',
+            'name' => 'VIP 50% Discount',
+            'type' => VoucherType::Percentage,
+            'amount' => 50,
+            'min_order_amount' => 100000,
+            'usage_limit_per_user' => 1,
+            'is_active' => true,
+            'allow_guest' => false,
+        ]);
+
+        \App\Models\MembershipTier::create([
+            'name' => 'VIP Platinum',
+            'slug' => 'vip-platinum',
+            'min_spend' => 1000000,
+            'voucher_id' => $vipVoucher->id,
+            'badge_color' => 'gold',
+            'order' => 1,
+            'is_active' => true,
+        ]);
+
+        $action = app(\App\Actions\Marketing\ValidateVoucherAction::class);
+
+        // 1. Non-existent customer ID must NOT bypass tier check
+        $resGhost = $action->execute('VIPONLY50', 200000, 15000, 'ghost@test.com', null, 999999);
+        $this->assertFalse($resGhost['valid'], "Nonexistent customer ID TIDAK boleh membypass tier check!");
+
+        // 2. Customer with low spend must be rejected
+        $silverCustomer = Customer::create([
+            'name' => 'Silver User',
+            'email' => 'silver@test.com',
+            'phone' => '081299990004',
+            'password' => 'secret123',
+            'total_spend_amount' => 50000,
+            'is_active' => true,
+        ]);
+
+        $resSilver = $action->execute('VIPONLY50', 200000, 15000, $silverCustomer->email, null, $silverCustomer->id);
+        $this->assertFalse($resSilver['valid'], "Customer di bawah min spend tier harus ditolak!");
+
+        // 3. Authenticated VIP member checkout binds VoucherUsage to the member's account
+        $vipCustomer = Customer::create([
+            'name' => 'VIP Member',
+            'email' => 'vip@test.com',
+            'phone' => '081299990005',
+            'password' => 'secret123',
+            'total_spend_amount' => 1500000,
+            'is_active' => true,
+            'remember_token' => 'mlg_cust_vip_token_123',
+        ]);
+
+        $checkoutResponse = $this->withHeader('Authorization', 'Bearer mlg_cust_vip_token_123')
+            ->postJson(route('api.v1.orders.checkout'), [
+                'customer' => [
+                    'name' => 'Burner Name',
+                    'email' => 'burner@test.com',
+                    'phone' => '081299990006',
+                ],
+                'shipping_address' => [
+                    'recipient_name' => 'Burner Recipient',
+                    'phone' => '081299990006',
+                    'address_line1' => 'Jl. Uji No. 1',
+                    'city' => 'Jakarta',
+                    'province' => 'DKI Jakarta',
+                    'postal_code' => '10220',
+                ],
+                'items' => [
+                    [
+                        'variant_id' => $this->variant->id,
+                        'quantity' => 1,
+                    ],
+                ],
+                'voucher_code' => 'VIPONLY50',
+            ]);
+
+        $checkoutResponse->assertStatus(201);
+
+        // Voucher usage MUST be recorded for VIP customer ID (preventing infinite reuse)
+        $this->assertDatabaseHas('voucher_usages', [
+            'voucher_id' => $vipVoucher->id,
+            'customer_id' => $vipCustomer->id,
+        ]);
+
+        // Attempting to reuse the 1-time voucher must be rejected on next validation
+        $resSecond = $action->execute('VIPONLY50', 200000, 15000, $vipCustomer->email, null, $vipCustomer->id);
+        $this->assertFalse($resSecond['valid'], "Voucher 1x pakai tidak boleh digunakan kembali oleh member yang sama!");
+    }
+
+    /**
+     * SEC-NEW-04: Biteship webhook with configured secret rejects requests without matching secret.
+     */
+    public function test_biteship_webhook_with_configured_secret_rejects_unauthenticated_request(): void
+    {
+        config(['biteship.webhook_secret' => 'super_secret_biteship_token_xyz']);
+
+        $response = $this->postJson(route('api.v1.webhooks.biteship'), [
+            'status' => 'delivered',
+            'courier_waybill_id' => 'WAYBILL12345',
+        ]);
+
+        $response->assertStatus(401);
+        $response->assertJson(['success' => false]);
+
+        // Supplying valid header secret is accepted
+        $validResponse = $this->withHeader('X-Biteship-Secret', 'super_secret_biteship_token_xyz')
+            ->postJson(route('api.v1.webhooks.biteship'), [
+                'status' => 'delivered',
+                'courier_waybill_id' => 'NONEXISTENT_WAYBILL',
+            ]);
+
+        // Secret passed, but shipment not found -> 400
+        $validResponse->assertStatus(400);
+
+        // Reset config
+        config(['biteship.webhook_secret' => '']);
+    }
+
+    /**
+     * SEC-NEW-06: Public order tracking masks customer PII for unauthenticated visitors.
+     */
+    public function test_public_order_tracking_masks_customer_pii_for_guests(): void
+    {
+        $order = Order::create([
+            'order_number' => 'MLG-20260910-PII-TEST',
+            'source' => 'storefront',
+            'subtotal' => 500000,
+            'grand_total' => 515000,
+        ]);
+
+        $order->address()->create([
+            'recipient_name' => 'Budi Sudarsono',
+            'phone' => '081234567890',
+            'address_line1' => 'Jl. Sudirman No. 45 Jakarta Pusat',
+            'city' => 'Jakarta Pusat',
+            'province' => 'DKI Jakarta',
+            'postal_code' => '10220',
+        ]);
+
+        \Livewire\Livewire::test(\App\Livewire\Public\OrderTracking::class, ['order_number' => 'MLG-20260910-PII-TEST'])
+            ->assertSee('Bu*** S***')
+            ->assertSee('0812****890')
+            ->assertSee('Jl. Sudirm **** (Disamarkan demi privasi)')
+            ->assertDontSee('081234567890')
+            ->assertDontSee('Jl. Sudirman No. 45 Jakarta Pusat');
+    }
+
+    /**
+     * SEC-NEW-07: syncWishlist rejects unbounded payload array.
+     */
+    public function test_sync_wishlist_rejects_unbounded_payload(): void
+    {
+        $customer = Customer::create([
+            'name' => 'Wishlist User',
+            'email' => 'wishlist@test.com',
+            'phone' => '081299990007',
+            'password' => 'secret123',
+            'is_active' => true,
+            'remember_token' => 'mlg_cust_wishlist_token_123',
+        ]);
+
+        // Attempt to send 105 items (max is 100)
+        $giantList = array_map(fn ($i) => "prod-{$i}", range(1, 105));
+
+        $response = $this->withHeader('Authorization', 'Bearer mlg_cust_wishlist_token_123')
+            ->postJson(route('api.v1.customers.wishlist'), [
+                'wishlist' => $giantList,
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['wishlist']);
+    }
 }
 
 

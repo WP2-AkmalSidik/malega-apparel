@@ -79,7 +79,16 @@ class ValidateVoucherAction
             }
 
             $customer = \App\Models\Customer::find($customerId);
-            if ($customer && $customer->total_spend_amount < $tier->min_spend) {
+            if (! $customer || ! $customer->is_active) {
+                return [
+                    'valid' => false,
+                    'message' => "Akun member tidak valid atau dinonaktifkan.",
+                    'discount_amount' => 0,
+                    'voucher' => null,
+                ];
+            }
+
+            if ($customer->total_spend_amount < $tier->min_spend) {
                 $minSpendFormatted = 'Rp ' . number_format($tier->min_spend, 0, ',', '.');
 
                 return [

@@ -216,7 +216,8 @@ class CustomerAuthController extends Controller
         }
 
         $validated = $request->validate([
-            'wishlist' => 'required|array',
+            'wishlist' => ['required', 'array', 'max:100'],
+            'wishlist.*' => ['string', 'max:100'],
         ]);
 
         $customer->update([
@@ -385,29 +386,37 @@ class CustomerAuthController extends Controller
      */
     protected function resolveCustomerFromToken(Request $request): ?Customer
     {
+        $customer = null;
+
         // 1. First-party Laravel Sanctum session auth on customer guard
         $sessionCustomer = Auth::guard('customer')->user();
         if ($sessionCustomer instanceof Customer) {
-            return $sessionCustomer;
+            $customer = $sessionCustomer;
         }
 
         // 2. Sanctum guard request user check
-        $sanctumCustomer = $request->user('customer');
-        if ($sanctumCustomer instanceof Customer) {
-            return $sanctumCustomer;
+        if (! $customer) {
+            $sanctumCustomer = $request->user('customer');
+            if ($sanctumCustomer instanceof Customer) {
+                $customer = $sanctumCustomer;
+            }
         }
 
         // 3. Fallback: Bearer remember_token in Authorization header
-        $header = $request->header('Authorization');
-        if (! $header || ! str_starts_with($header, 'Bearer ')) {
+        if (! $customer) {
+            $header = $request->header('Authorization');
+            if ($header && str_starts_with($header, 'Bearer ')) {
+                $token = trim(substr($header, 7));
+                if (! empty($token)) {
+                    $customer = Customer::where('remember_token', $token)->first();
+                }
+            }
+        }
+
+        if (! $customer || ! $customer->is_active) {
             return null;
         }
 
-        $token = substr($header, 7);
-        if (empty($token)) {
-            return null;
-        }
-
-        return Customer::where('remember_token', $token)->first();
+        return $customer;
     }
 }

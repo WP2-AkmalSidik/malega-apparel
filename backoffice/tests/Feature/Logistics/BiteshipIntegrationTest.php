@@ -319,11 +319,17 @@ class BiteshipIntegrationTest extends TestCase
             ], 200),
         ]);
 
-        // Search by canonical order number
+        // Search by canonical order number as unauthenticated public guest (PII masked)
         Livewire::test(\App\Livewire\Public\OrderTracking::class, ['order_number' => $this->sampleOrder->order_number])
             ->assertSee($this->sampleOrder->order_number)
             ->assertSee('JNE-PUBLIC-9988')
             ->assertSee('Paket sedang diberangkatkan dari Jakarta')
+            ->assertSee('Di*** P***')
+            ->assertSee('Data Disamarkan');
+
+        // Search as authenticated admin (PII unmasked)
+        Livewire::actingAs($this->adminUser)
+            ->test(\App\Livewire\Public\OrderTracking::class, ['order_number' => $this->sampleOrder->order_number])
             ->assertSee('Dimas Arya Pratama');
 
         // Search by AWB / Waybill ID

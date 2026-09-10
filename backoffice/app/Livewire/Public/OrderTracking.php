@@ -308,6 +308,75 @@ class OrderTracking extends Component
         };
     }
 
+    public function isAuthorizedViewer(): bool
+    {
+        if (auth('web')->check()) {
+            return true;
+        }
+
+        $customer = auth('customer')->user();
+        if ($customer && $this->order && (int) $customer->id === (int) $this->order->customer_id) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getIsAuthorizedViewerProperty(): bool
+    {
+        return $this->isAuthorizedViewer();
+    }
+
+    public function getMaskedRecipientNameProperty(): string
+    {
+        $name = $this->order?->address?->recipient_name ?? $this->order?->customer?->name ?? 'Pelanggan';
+        if ($this->isAuthorizedViewer()) {
+            return $name;
+        }
+
+        $parts = explode(' ', trim($name));
+        if (count($parts) > 1) {
+            return substr($parts[0], 0, 2).'*** '.substr(end($parts), 0, 1).'***';
+        }
+
+        return strlen($name) > 2 ? substr($name, 0, 2).'***' : substr($name, 0, 1).'***';
+    }
+
+    public function getMaskedPhoneProperty(): string
+    {
+        $phone = $this->order?->address?->phone ?? $this->order?->customer?->phone ?? '-';
+        if ($this->isAuthorizedViewer()) {
+            return $phone;
+        }
+
+        $len = strlen($phone);
+        if ($len <= 6) {
+            return '***'.substr($phone, -2);
+        }
+
+        return substr($phone, 0, 4).'****'.substr($phone, -3);
+    }
+
+    public function getMaskedAddressLineProperty(): string
+    {
+        $addr = $this->order?->address?->address_line1 ?? '-';
+        if ($this->isAuthorizedViewer()) {
+            return $addr;
+        }
+
+        return strlen($addr) > 12 ? substr($addr, 0, 10).' **** (Disamarkan demi privasi)' : '****';
+    }
+
+    public function getMaskedPostalCodeProperty(): string
+    {
+        $postal = $this->order?->address?->postal_code ?? '-';
+        if ($this->isAuthorizedViewer()) {
+            return $postal;
+        }
+
+        return '*****';
+    }
+
     public function render(): View
     {
         return view('livewire.public.order-tracking');

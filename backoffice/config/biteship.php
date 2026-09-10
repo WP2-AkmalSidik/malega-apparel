@@ -11,6 +11,8 @@ return [
 
     'base_url' => env('BITESHIP_BASE_URL', 'https://api.biteship.com/v1'),
 
+    'webhook_secret' => env('BITESHIP_WEBHOOK_SECRET', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Origin / Warehouse Default Details

@@ -30,9 +30,11 @@ class VoucherController extends Controller
         $customerId = null;
         $authHeader = $request->header('Authorization');
         if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
+            $token = trim(substr($authHeader, 7));
             if (! empty($token)) {
-                $customerId = \App\Models\Customer::where('remember_token', $token)->value('id');
+                $customerId = \App\Models\Customer::where('remember_token', $token)
+                    ->where('is_active', true)
+                    ->value('id');
             }
         }
 
